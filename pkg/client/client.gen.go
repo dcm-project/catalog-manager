@@ -90,6 +90,9 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// GetHealth request
+	GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListServiceTypes request
 	ListServiceTypes(ctx context.Context, params *ListServiceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -127,6 +130,18 @@ type ClientInterface interface {
 	UpdateCatalogItemWithBody(ctx context.Context, serviceTypeId string, catalogItemId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateCatalogItemWithApplicationMergePatchPlusJSONBody(ctx context.Context, serviceTypeId string, catalogItemId string, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetHealthRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) ListServiceTypes(ctx context.Context, params *ListServiceTypesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -295,6 +310,33 @@ func (c *Client) UpdateCatalogItemWithApplicationMergePatchPlusJSONBody(ctx cont
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewGetHealthRequest generates requests for GetHealth
+func NewGetHealthRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/health")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewListServiceTypesRequest generates requests for ListServiceTypes
@@ -881,6 +923,9 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// GetHealthWithResponse request
+	GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error)
+
 	// ListServiceTypesWithResponse request
 	ListServiceTypesWithResponse(ctx context.Context, params *ListServiceTypesParams, reqEditors ...RequestEditorFn) (*ListServiceTypesResponse, error)
 
@@ -918,6 +963,28 @@ type ClientWithResponsesInterface interface {
 	UpdateCatalogItemWithBodyWithResponse(ctx context.Context, serviceTypeId string, catalogItemId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error)
 
 	UpdateCatalogItemWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, serviceTypeId string, catalogItemId string, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error)
+}
+
+type GetHealthResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Health
+}
+
+// Status returns HTTPResponse.Status
+func (r GetHealthResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetHealthResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type ListServiceTypesResponse struct {
@@ -1168,6 +1235,15 @@ func (r UpdateCatalogItemResponse) StatusCode() int {
 	return 0
 }
 
+// GetHealthWithResponse request returning *GetHealthResponse
+func (c *ClientWithResponses) GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error) {
+	rsp, err := c.GetHealth(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetHealthResponse(rsp)
+}
+
 // ListServiceTypesWithResponse request returning *ListServiceTypesResponse
 func (c *ClientWithResponses) ListServiceTypesWithResponse(ctx context.Context, params *ListServiceTypesParams, reqEditors ...RequestEditorFn) (*ListServiceTypesResponse, error) {
 	rsp, err := c.ListServiceTypes(ctx, params, reqEditors...)
@@ -1288,6 +1364,32 @@ func (c *ClientWithResponses) UpdateCatalogItemWithApplicationMergePatchPlusJSON
 		return nil, err
 	}
 	return ParseUpdateCatalogItemResponse(rsp)
+}
+
+// ParseGetHealthResponse parses an HTTP response from a GetHealthWithResponse call
+func ParseGetHealthResponse(rsp *http.Response) (*GetHealthResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetHealthResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Health
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseListServiceTypesResponse parses an HTTP response from a ListServiceTypesWithResponse call

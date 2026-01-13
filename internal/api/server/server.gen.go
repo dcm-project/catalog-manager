@@ -134,6 +134,15 @@ type FieldConfiguration struct {
 	ValidationSchema *map[string]interface{} `json:"validation_schema,omitempty"`
 }
 
+// Health defines model for Health.
+type Health struct {
+	// Path Canonical path of the resource
+	Path *string `json:"path,omitempty"`
+
+	// Status Health status
+	Status string `json:"status"`
+}
+
 // ListCatalogItemsResponse defines model for ListCatalogItemsResponse.
 type ListCatalogItemsResponse struct {
 	// NextPageToken Token for retrieving the next page.
@@ -296,6 +305,9 @@ type UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody = CatalogItem
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Health check
+	// (GET /health)
+	GetHealth(w http.ResponseWriter, r *http.Request)
 	// List service types
 	// (GET /service-types)
 	ListServiceTypes(w http.ResponseWriter, r *http.Request, params ListServiceTypesParams)
@@ -331,6 +343,12 @@ type ServerInterface interface {
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
+
+// Health check
+// (GET /health)
+func (_ Unimplemented) GetHealth(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
 
 // List service types
 // (GET /service-types)
@@ -400,6 +418,20 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// GetHealth operation middleware
+func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetHealth(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // ListServiceTypes operation middleware
 func (siw *ServerInterfaceWrapper) ListServiceTypes(w http.ResponseWriter, r *http.Request) {
@@ -845,6 +877,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/health", wrapper.GetHealth)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/service-types", wrapper.ListServiceTypes)
 	})
 	r.Group(func(r chi.Router) {
@@ -889,6 +924,22 @@ type ForbiddenJSONResponse Error
 type InternalServerErrorJSONResponse Error
 
 type NotFoundJSONResponse Error
+
+type GetHealthRequestObject struct {
+}
+
+type GetHealthResponseObject interface {
+	VisitGetHealthResponse(w http.ResponseWriter) error
+}
+
+type GetHealth200JSONResponse Health
+
+func (response GetHealth200JSONResponse) VisitGetHealthResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
 
 type ListServiceTypesRequestObject struct {
 	Params ListServiceTypesParams
@@ -1360,6 +1411,9 @@ func (response UpdateCatalogItem500JSONResponse) VisitUpdateCatalogItemResponse(
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// Health check
+	// (GET /health)
+	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
 	// List service types
 	// (GET /service-types)
 	ListServiceTypes(ctx context.Context, request ListServiceTypesRequestObject) (ListServiceTypesResponseObject, error)
@@ -1419,6 +1473,30 @@ type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
 	options     StrictHTTPServerOptions
+}
+
+// GetHealth operation middleware
+func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
+	var request GetHealthRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetHealth(ctx, request.(GetHealthRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetHealth")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetHealthResponseObject); ok {
+		if err := validResponse.VisitGetHealthResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // ListServiceTypes operation middleware

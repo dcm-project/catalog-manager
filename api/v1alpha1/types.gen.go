@@ -127,6 +127,15 @@ type FieldConfiguration struct {
 	ValidationSchema *map[string]interface{} `json:"validation_schema,omitempty"`
 }
 
+// Health defines model for Health.
+type Health struct {
+	// Path Canonical path of the resource
+	Path *string `json:"path,omitempty"`
+
+	// Status Health status
+	Status string `json:"status"`
+}
+
 // ListCatalogItemsResponse defines model for ListCatalogItemsResponse.
 type ListCatalogItemsResponse struct {
 	// NextPageToken Token for retrieving the next page.
