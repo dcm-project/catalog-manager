@@ -1,0 +1,953 @@
+openapi: 3.1.0
+
+info:
+  title: DCM Catalog Manager API
+  version: v1alpha1
+  description: |
+    The DCM Catalog Manager API provides a standardized way to manage
+    service type definitions and catalog items for infrastructure services.
+
+    This API follows AEP (API Enhancement Proposals) standards for
+    resource-oriented design.
+
+    ## Resource Hierarchy
+
+    - **ServiceTypes**: Define templates for different types of infrastructure services
+      (VM, container, database, Kubernetes cluster, or custom types)
+    - **CatalogItems**: Curated service offerings based on service types with
+      specific field configurations and constraints
+
+    ServiceTypes can have multiple CatalogItems as children, forming a two-level hierarchy.
+  contact: {}
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: https://api.dcm-project.io
+    description: Production server
+
+paths:
+  /service-types:
+    get:
+      operationId: listServiceTypes
+      summary: List service types
+      description: |
+        Retrieves a paginated list of service type definitions.
+        Supports standard pagination using page tokens.
+      parameters:
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |
+            Token for retrieving the next page of results.
+            Obtained from the next_page_token field of a previous response.
+
+        - name: max_page_size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 1000
+            default: 100
+          description: |
+            Maximum number of items to return per page.
+            If not specified, defaults to 100.
+
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListServiceTypesResponse'
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      operationId: createServiceType
+      summary: Create a service type
+      description: |
+        Creates a new service type definition.
+
+        Supports user-specified IDs via the 'id' query parameter for idempotency.
+        If the ID is not provided, the server will generate one.
+      parameters:
+        - name: id
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          description: |
+            Optional user-specified ID for the service type.
+            Must follow DNS-1123 label format (lowercase alphanumeric with hyphens).
+            If omitted, the server generates an ID.
+          example: vm-standard
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceType'
+
+      responses:
+        '201':
+          description: Service type created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceType'
+
+        '400':
+          description: Invalid request body or validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '409':
+          $ref: '#/components/responses/AlreadyExists'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /service-types/{service_type_id}:
+    get:
+      operationId: getServiceType
+      summary: Get a service type
+      description: |
+        Retrieves a single service type by its ID.
+      parameters:
+        - name: service_type_id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          description: Unique identifier for the service type
+          example: vm-standard
+
+      responses:
+        '200':
+          description: Service type found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceType'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    patch:
+      operationId: updateServiceType
+      summary: Update a service type
+      description: |
+        Updates specific fields of a service type using JSON Merge Patch (RFC 7396).
+
+        Only the fields provided in the request body are updated; omitted fields
+        are preserved. Note that service_type and schema_version are immutable
+        after creation.
+      parameters:
+        - name: service_type_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier for the service type
+
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/ServiceType'
+
+      responses:
+        '200':
+          description: Service type updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceType'
+
+        '400':
+          description: Invalid update request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      operationId: deleteServiceType
+      summary: Delete a service type
+      description: |
+        Deletes a service type.
+
+        By default, deletion fails if catalog items still reference this service type.
+        Use force=true to cascade delete all child catalog items.
+      parameters:
+        - name: service_type_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier for the service type
+
+        - name: force
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: |
+            If true, cascade delete all child catalog items.
+            If false (default), fails if catalog items exist.
+
+      responses:
+        '204':
+          description: Service type deleted successfully
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '409':
+          $ref: '#/components/responses/FailedPrecondition'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /service-types/{service_type_id}/catalog-items:
+    get:
+      operationId: listCatalogItems
+      summary: List catalog items
+      description: |
+        Retrieves a paginated list of catalog items under a specific service type.
+      parameters:
+        - name: service_type_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Parent service type ID
+
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Token for retrieving the next page of results
+
+        - name: max_page_size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 1000
+            default: 100
+          description: Maximum number of items to return per page
+
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCatalogItemsResponse'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      operationId: createCatalogItem
+      summary: Create a catalog item
+      description: |
+        Creates a new catalog item under a service type.
+
+        Supports user-specified IDs via the 'id' query parameter for idempotency.
+      parameters:
+        - name: service_type_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Parent service type ID
+
+        - name: id
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          description: Optional user-specified catalog item ID
+          example: small-vm
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogItem'
+
+      responses:
+        '201':
+          description: Catalog item created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+
+        '400':
+          description: Invalid request body or field paths
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '409':
+          $ref: '#/components/responses/AlreadyExists'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /service-types/{service_type_id}/catalog-items/{catalog_item_id}:
+    get:
+      operationId: getCatalogItem
+      summary: Get a catalog item
+      description: |
+        Retrieves a single catalog item by its ID.
+      parameters:
+        - name: service_type_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Parent service type ID
+
+        - name: catalog_item_id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          description: Unique identifier for the catalog item
+          example: small-vm
+
+      responses:
+        '200':
+          description: Catalog item found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    patch:
+      operationId: updateCatalogItem
+      summary: Update a catalog item
+      description: |
+        Updates specific fields of a catalog item using JSON Merge Patch (RFC 7396).
+
+        Note that api_version, service_type, schema_version, and parent are
+        immutable after creation.
+      parameters:
+        - name: service_type_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Parent service type ID
+
+        - name: catalog_item_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier for the catalog item
+
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/CatalogItem'
+
+      responses:
+        '200':
+          description: Catalog item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+
+        '400':
+          description: Invalid update request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      operationId: deleteCatalogItem
+      summary: Delete a catalog item
+      description: |
+        Deletes a catalog item.
+      parameters:
+        - name: service_type_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Parent service type ID
+
+        - name: catalog_item_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier for the catalog item
+
+      responses:
+        '204':
+          description: Catalog item deleted successfully
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    ServiceType:
+      type: object
+      x-aep-resource:
+        type: catalog-manager.dcm.io/service-type
+        singular: service-type
+        plural: service-types
+        patterns:
+          - service-types/{service_type_id}
+      required:
+        - service_type
+        - schema_version
+        - metadata
+        - spec
+      properties:
+        path:
+          type: string
+          readOnly: true
+          description: |
+            Resource path in the format: service-types/{service_type_id}
+            This is the canonical identifier for the resource.
+          example: service-types/vm-standard
+
+        uid:
+          type: string
+          format: uuid
+          readOnly: true
+          description: |
+            System-assigned unique identifier (UUID4).
+            Globally unique across all resources.
+          example: 550e8400-e29b-41d4-a716-446655440000
+
+        create_time:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Timestamp when the resource was created (RFC 3339)
+          example: '2026-01-13T10:30:00Z'
+
+        update_time:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Timestamp when the resource was last modified (RFC 3339)
+          example: '2026-01-13T12:45:00Z'
+
+        display_name:
+          type: string
+          maxLength: 63
+          description: |
+            User-friendly display name for the service type.
+            Mutable and does not need to be unique.
+          example: Standard Virtual Machine
+
+        delete_time:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          description: |
+            Timestamp when the resource was soft deleted (RFC 3339).
+            Only set for soft-deleted resources.
+
+        service_type:
+          type: string
+          description: |
+            Classification of the service type.
+            Common values include: vm, container, database, cluster.
+            Administrators may define custom types beyond these.
+          example: vm
+
+        schema_version:
+          type: string
+          pattern: '^v[0-9]+[a-z]+[0-9]+$'
+          description: |
+            Version of the service type schema (e.g., v1alpha1, v1beta1, v1).
+            Immutable after creation.
+          example: v1alpha1
+
+        metadata:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              maxLength: 253
+              pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+              description: |
+                Unique name identifier within the service type namespace.
+                Must follow DNS-1123 label format.
+              example: standard-vm-01
+
+            labels:
+              type: object
+              additionalProperties:
+                type: string
+              description: |
+                Key-value pairs for categorization and filtering.
+                Both keys and values are strings.
+              example:
+                environment: production
+                tier: standard
+                region: us-west-2
+
+        provider_hints:
+          type: object
+          additionalProperties: true
+          description: |
+            Optional provider-specific configuration hints.
+            This is an opaque dictionary keyed by provider identifier.
+            Providers acknowledge hints they recognize and ignore others,
+            enabling portability across multiple platforms.
+          example:
+            aws:
+              instance_type: t3.medium
+              ami: ami-0abcdef1234567890
+            gcp:
+              machine_type: n1-standard-2
+              boot_disk_type: pd-standard
+
+        spec:
+          type: object
+          additionalProperties: true
+          description: |
+            Service-specific configuration schema (required).
+            This is an opaque dictionary containing service type-specific fields.
+
+            Examples by service type:
+            - VM: vcpu, memory, storage, guestOS, access
+            - Container: image, resources, process, network
+            - Database: engine, version, resources
+            - Cluster: version, nodes (control plane, workers)
+
+            The structure varies based on the service_type and schema_version.
+          example:
+            vcpu:
+              count: 2
+              architecture: x86_64
+            memory:
+              size_gb: 8
+            storage:
+              disks:
+                - name: boot
+                  capacity_gb: 50
+                  type: ssd
+
+    CatalogItem:
+      type: object
+      x-aep-resource:
+        type: catalog-manager.dcm.io/catalog-item
+        singular: catalog-item
+        plural: catalog-items
+        patterns:
+          - service-types/{service_type_id}/catalog-items/{catalog_item_id}
+      required:
+        - api_version
+        - service_type
+        - schema_version
+        - fields
+      properties:
+        path:
+          type: string
+          readOnly: true
+          description: |
+            Resource path in the format:
+            service-types/{service_type_id}/catalog-items/{catalog_item_id}
+          example: service-types/vm-standard/catalog-items/small-vm
+
+        parent:
+          type: string
+          readOnly: true
+          description: |
+            Path to the parent ServiceType resource.
+            Format: service-types/{service_type_id}
+            Immutable after creation.
+          example: service-types/vm-standard
+
+        uid:
+          type: string
+          format: uuid
+          readOnly: true
+          description: System-assigned unique identifier (UUID4)
+          example: 650e8400-e29b-41d4-a716-446655440001
+
+        create_time:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Timestamp when the catalog item was created (RFC 3339)
+          example: '2026-01-13T14:20:00Z'
+
+        update_time:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Timestamp when the catalog item was last modified (RFC 3339)
+          example: '2026-01-13T15:10:00Z'
+
+        display_name:
+          type: string
+          maxLength: 63
+          description: |
+            User-friendly display name for the catalog item.
+            Mutable and does not need to be unique.
+          example: Small Development VM
+
+        delete_time:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          description: |
+            Timestamp when the resource was soft deleted (RFC 3339).
+            Only set for soft-deleted resources.
+
+        api_version:
+          type: string
+          pattern: '^v[0-9]+[a-z]+[0-9]+$'
+          description: |
+            Version of the CatalogItem schema itself (e.g., v1alpha1).
+            Immutable after creation.
+          example: v1alpha1
+
+        service_type:
+          type: string
+          description: |
+            Service classification.
+            Must match the parent ServiceType's service_type field.
+            Immutable after creation.
+          example: vm
+
+        schema_version:
+          type: string
+          pattern: '^v[0-9]+[a-z]+[0-9]+$'
+          description: |
+            Version of the ServiceType schema this catalog item references.
+            Should match the parent ServiceType's schema_version.
+            Immutable after creation.
+          example: v1alpha1
+
+        fields:
+          type: array
+          minItems: 1
+          description: |
+            Array of field configurations for this catalog item.
+            Each configuration defines constraints and defaults for fields
+            in the service type specification.
+          items:
+            $ref: '#/components/schemas/FieldConfiguration'
+
+    FieldConfiguration:
+      type: object
+      required:
+        - path
+      properties:
+        path:
+          type: string
+          description: |
+            JSON path to the field in the ServiceType spec using dot notation.
+            Examples: "spec.vcpu.count", "spec.memory.size_gb", "metadata.labels.tier"
+          example: spec.vcpu.count
+
+        display_name:
+          type: string
+          maxLength: 63
+          description: |
+            User-facing label for this field in UI/CLI.
+            If omitted, derived from the path (e.g., "spec.vcpu.count" → "Vcpu Count").
+          example: CPU Count
+
+        editable:
+          type: boolean
+          default: false
+          description: |
+            Whether end users can modify this field value when requesting services.
+            If false, the field is fixed to the default value.
+          example: true
+
+        default:
+          description: |
+            Default value for this field.
+            Type depends on the field's schema (can be string, number, boolean, object, array).
+            If editable=false, this is the fixed value.
+            If editable=true, this is the initial/suggested value.
+          nullable: true
+          example: 2
+
+        validation_schema:
+          type: object
+          additionalProperties: true
+          description: |
+            JSON Schema constraints for validating this field (draft 2020-12).
+            Only applicable when editable=true.
+            Supports standard JSON Schema keywords: type, minimum, maximum,
+            pattern, enum, minLength, maxLength, etc.
+
+            Reference: https://json-schema.org/draft/2020-12/json-schema-validation
+          example:
+            type: integer
+            minimum: 1
+            maximum: 16
+            multipleOf: 1
+            description: Number of CPU cores (1-16)
+
+    ListServiceTypesResponse:
+      type: object
+      required:
+        - results
+        - next_page_token
+      properties:
+        results:
+          type: array
+          description: |
+            Array of service type resources.
+            May be empty if no results match the query.
+          items:
+            $ref: '#/components/schemas/ServiceType'
+
+        next_page_token:
+          type: string
+          description: |
+            Token for retrieving the next page of results.
+            Empty string indicates this is the last page.
+            Opaque token - do not parse or construct manually.
+          example: eyJvZmZzZXQiOjEwMH0=
+
+    ListCatalogItemsResponse:
+      type: object
+      required:
+        - results
+        - next_page_token
+      properties:
+        results:
+          type: array
+          description: Array of catalog item resources
+          items:
+            $ref: '#/components/schemas/CatalogItem'
+
+        next_page_token:
+          type: string
+          description: |
+            Token for retrieving the next page.
+            Empty string indicates this is the last page.
+          example: eyJvZmZzZXQiOjUwfQ==
+
+    Error:
+      type: object
+      description: |
+        Error response following RFC 7807 Problem Details for HTTP APIs
+        and AEP-193 Error Responses specification.
+      required:
+        - type
+        - status
+        - title
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          description: |
+            Machine-readable error code. Uses AEP standard error codes.
+          enum:
+            - INVALID_ARGUMENT
+            - NOT_FOUND
+            - ALREADY_EXISTS
+            - PERMISSION_DENIED
+            - RESOURCE_EXHAUSTED
+            - FAILED_PRECONDITION
+            - ABORTED
+            - OUT_OF_RANGE
+            - UNIMPLEMENTED
+            - INTERNAL
+            - UNAVAILABLE
+            - DEADLINE_EXCEEDED
+          example: INVALID_ARGUMENT
+
+        status:
+          type: integer
+          format: int32
+          description: HTTP status code (matches the response status)
+          example: 400
+
+        title:
+          type: string
+          description: |
+            Short, human-readable summary of the error type.
+            Should be consistent across occurrences of the same error type.
+          example: Invalid request parameters
+
+        detail:
+          type: string
+          description: |
+            Human-readable explanation specific to this occurrence of the error.
+            May contain request-specific details to help debug the issue.
+          example: Field 'service_type' must not be empty
+
+        instance:
+          type: string
+          format: uri-reference
+          description: |
+            Unique identifier for this specific error occurrence.
+            Can be used for tracking and debugging.
+          example: 7934df3e-4b63-429b-b0f5-b8d350ec165e
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: INVALID_ARGUMENT
+            status: 400
+            title: Invalid request parameters
+            detail: Field 'service_type' must not be empty
+            instance: 7934df3e-4b63-429b-b0f5-b8d350ec165e
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: PERMISSION_DENIED
+            status: 403
+            title: Access forbidden
+            detail: User does not have permission to access this resource
+            instance: 8a45ef4f-5c74-53ac-c1f6-c9e461fd276f
+
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: NOT_FOUND
+            status: 404
+            title: Resource not found
+            detail: ServiceType 'vm-standard' does not exist
+            instance: 9b56fg5g-6d85-64bd-d2g7-d0f572ge387g
+
+    AlreadyExists:
+      description: Already Exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: ALREADY_EXISTS
+            status: 409
+            title: Resource already exists
+            detail: ServiceType with id 'vm-standard' already exists
+            instance: 0c67gh6h-7e96-75ce-e3h8-e1g683hf498h
+
+    FailedPrecondition:
+      description: Failed Precondition
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: FAILED_PRECONDITION
+            status: 409
+            title: Operation failed precondition
+            detail: Cannot delete ServiceType with existing CatalogItems (use force=true to cascade)
+            instance: 1d78hi7i-8f07-86df-f4i9-f2h794ig509i
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: INTERNAL
+            status: 500
+            title: Internal server error
+            detail: An unexpected error occurred while processing the request
+            instance: 2e89ij8j-9g18-97eg-g5j0-g3i805jh610j
