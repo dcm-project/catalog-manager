@@ -109,7 +109,7 @@ paths:
             Optional user-specified ID for the service type.
             Must follow DNS-1123 label format (lowercase alphanumeric with hyphens).
             If omitted, the server generates an ID.
-          example: vm-standard
+          example: vm
 
       requestBody:
         required: true
