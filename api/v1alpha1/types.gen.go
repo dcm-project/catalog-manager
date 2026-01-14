@@ -21,6 +21,7 @@ const (
 	OUTOFRANGE         ErrorType = "OUT_OF_RANGE"
 	PERMISSIONDENIED   ErrorType = "PERMISSION_DENIED"
 	RESOURCEEXHAUSTED  ErrorType = "RESOURCE_EXHAUSTED"
+	UNAUTHENTICATED    ErrorType = "UNAUTHENTICATED"
 	UNAVAILABLE        ErrorType = "UNAVAILABLE"
 	UNIMPLEMENTED      ErrorType = "UNIMPLEMENTED"
 )
@@ -242,6 +243,10 @@ type InternalServerError = Error
 // NotFound Error response following RFC 7807 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type NotFound = Error
+
+// Unauthorized Error response following RFC 7807 Problem Details for HTTP APIs
+// and AEP-193 Error Responses specification.
+type Unauthorized = Error
 
 // ListServiceTypesParams defines parameters for ListServiceTypes.
 type ListServiceTypesParams struct {

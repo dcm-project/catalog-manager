@@ -992,6 +992,8 @@ type ListServiceTypesResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *ListServiceTypesResponse
 	JSON400      *BadRequest
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
 	JSON500      *InternalServerError
 }
 
@@ -1016,6 +1018,8 @@ type CreateServiceTypeResponse struct {
 	HTTPResponse *http.Response
 	JSON201      *ServiceType
 	JSON400      *Error
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
 	JSON409      *AlreadyExists
 	JSON500      *InternalServerError
 }
@@ -1039,6 +1043,7 @@ func (r CreateServiceTypeResponse) StatusCode() int {
 type DeleteServiceTypeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON401      *Unauthorized
 	JSON403      *Forbidden
 	JSON404      *NotFound
 	JSON409      *FailedPrecondition
@@ -1065,6 +1070,7 @@ type GetServiceTypeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ServiceType
+	JSON401      *Unauthorized
 	JSON403      *Forbidden
 	JSON404      *NotFound
 	JSON500      *InternalServerError
@@ -1091,6 +1097,8 @@ type UpdateServiceTypeResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *ServiceType
 	JSON400      *Error
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
 	JSON404      *NotFound
 	JSON500      *InternalServerError
 }
@@ -1115,6 +1123,8 @@ type ListCatalogItemsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ListCatalogItemsResponse
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
 	JSON404      *NotFound
 	JSON500      *InternalServerError
 }
@@ -1140,6 +1150,8 @@ type CreateCatalogItemResponse struct {
 	HTTPResponse *http.Response
 	JSON201      *CatalogItem
 	JSON400      *Error
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
 	JSON404      *NotFound
 	JSON409      *AlreadyExists
 	JSON500      *InternalServerError
@@ -1164,6 +1176,7 @@ func (r CreateCatalogItemResponse) StatusCode() int {
 type DeleteCatalogItemResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON401      *Unauthorized
 	JSON403      *Forbidden
 	JSON404      *NotFound
 	JSON500      *InternalServerError
@@ -1189,6 +1202,7 @@ type GetCatalogItemResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *CatalogItem
+	JSON401      *Unauthorized
 	JSON403      *Forbidden
 	JSON404      *NotFound
 	JSON500      *InternalServerError
@@ -1215,6 +1229,8 @@ type UpdateCatalogItemResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *CatalogItem
 	JSON400      *Error
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
 	JSON404      *NotFound
 	JSON500      *InternalServerError
 }
@@ -1420,6 +1436,20 @@ func ParseListServiceTypesResponse(rsp *http.Response) (*ListServiceTypesRespons
 		}
 		response.JSON400 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest InternalServerError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1460,6 +1490,20 @@ func ParseCreateServiceTypeResponse(rsp *http.Response) (*CreateServiceTypeRespo
 		}
 		response.JSON400 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
 		var dest AlreadyExists
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1493,6 +1537,13 @@ func ParseDeleteServiceTypeResponse(rsp *http.Response) (*DeleteServiceTypeRespo
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
 		var dest Forbidden
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1546,6 +1597,13 @@ func ParseGetServiceTypeResponse(rsp *http.Response) (*GetServiceTypeResponse, e
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
 		var dest Forbidden
@@ -1601,6 +1659,20 @@ func ParseUpdateServiceTypeResponse(rsp *http.Response) (*UpdateServiceTypeRespo
 		}
 		response.JSON400 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest NotFound
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1640,6 +1712,20 @@ func ParseListCatalogItemsResponse(rsp *http.Response) (*ListCatalogItemsRespons
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest NotFound
@@ -1688,6 +1774,20 @@ func ParseCreateCatalogItemResponse(rsp *http.Response) (*CreateCatalogItemRespo
 		}
 		response.JSON400 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest NotFound
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1728,6 +1828,13 @@ func ParseDeleteCatalogItemResponse(rsp *http.Response) (*DeleteCatalogItemRespo
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
 		var dest Forbidden
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1774,6 +1881,13 @@ func ParseGetCatalogItemResponse(rsp *http.Response) (*GetCatalogItemResponse, e
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
 		var dest Forbidden
@@ -1828,6 +1942,20 @@ func ParseUpdateCatalogItemResponse(rsp *http.Response) (*UpdateCatalogItemRespo
 			return nil, err
 		}
 		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest NotFound

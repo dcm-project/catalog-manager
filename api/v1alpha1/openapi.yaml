@@ -84,6 +84,12 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -130,6 +136,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
         '409':
           $ref: '#/components/responses/AlreadyExists'
 
@@ -159,6 +171,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceType'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
         '403':
           $ref: '#/components/responses/Forbidden'
@@ -208,6 +223,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -243,6 +264,9 @@ paths:
       responses:
         '204':
           description: Service type deleted successfully
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
         '403':
           $ref: '#/components/responses/Forbidden'
@@ -296,6 +320,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListCatalogItemsResponse'
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -348,6 +378,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -387,6 +423,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CatalogItem'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
         '403':
           $ref: '#/components/responses/Forbidden'
@@ -442,6 +481,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -471,6 +516,9 @@ paths:
       responses:
         '204':
           description: Catalog item deleted successfully
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
         '403':
           $ref: '#/components/responses/Forbidden'
@@ -845,6 +893,7 @@ components:
             Machine-readable error code. Uses AEP standard error codes.
           enum:
             - INVALID_ARGUMENT
+            - UNAUTHENTICATED
             - NOT_FOUND
             - ALREADY_EXISTS
             - PERMISSION_DENIED
@@ -922,6 +971,19 @@ components:
             title: Invalid request parameters
             detail: Field 'service_type' must not be empty
             instance: 7934df3e-4b63-429b-b0f5-b8d350ec165e
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: UNAUTHENTICATED
+            status: 401
+            title: Authentication required
+            detail: Valid authentication credentials are required to access this resource
+            instance: 6c23de2d-3a52-428a-a605-a7d240db054d
 
     Forbidden:
       description: Forbidden

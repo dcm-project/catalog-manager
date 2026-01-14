@@ -28,6 +28,7 @@ const (
 	OUTOFRANGE         ErrorType = "OUT_OF_RANGE"
 	PERMISSIONDENIED   ErrorType = "PERMISSION_DENIED"
 	RESOURCEEXHAUSTED  ErrorType = "RESOURCE_EXHAUSTED"
+	UNAUTHENTICATED    ErrorType = "UNAUTHENTICATED"
 	UNAVAILABLE        ErrorType = "UNAVAILABLE"
 	UNIMPLEMENTED      ErrorType = "UNIMPLEMENTED"
 )
@@ -249,6 +250,10 @@ type InternalServerError = Error
 // NotFound Error response following RFC 7807 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type NotFound = Error
+
+// Unauthorized Error response following RFC 7807 Problem Details for HTTP APIs
+// and AEP-193 Error Responses specification.
+type Unauthorized = Error
 
 // ListServiceTypesParams defines parameters for ListServiceTypes.
 type ListServiceTypesParams struct {
@@ -925,6 +930,8 @@ type InternalServerErrorJSONResponse Error
 
 type NotFoundJSONResponse Error
 
+type UnauthorizedJSONResponse Error
+
 type GetHealthRequestObject struct {
 }
 
@@ -967,6 +974,24 @@ func (response ListServiceTypes400JSONResponse) VisitListServiceTypesResponse(w 
 	return json.NewEncoder(w).Encode(response)
 }
 
+type ListServiceTypes401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListServiceTypes401JSONResponse) VisitListServiceTypesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListServiceTypes403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response ListServiceTypes403JSONResponse) VisitListServiceTypesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type ListServiceTypes500JSONResponse struct {
 	InternalServerErrorJSONResponse
 }
@@ -1001,6 +1026,24 @@ type CreateServiceType400JSONResponse Error
 func (response CreateServiceType400JSONResponse) VisitCreateServiceTypeResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateServiceType401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateServiceType401JSONResponse) VisitCreateServiceTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateServiceType403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response CreateServiceType403JSONResponse) VisitCreateServiceTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1040,6 +1083,15 @@ type DeleteServiceType204Response struct {
 func (response DeleteServiceType204Response) VisitDeleteServiceTypeResponse(w http.ResponseWriter) error {
 	w.WriteHeader(204)
 	return nil
+}
+
+type DeleteServiceType401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteServiceType401JSONResponse) VisitDeleteServiceTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
 }
 
 type DeleteServiceType403JSONResponse struct{ ForbiddenJSONResponse }
@@ -1093,6 +1145,15 @@ type GetServiceType200JSONResponse ServiceType
 func (response GetServiceType200JSONResponse) VisitGetServiceTypeResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetServiceType401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetServiceType401JSONResponse) VisitGetServiceTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1153,6 +1214,24 @@ func (response UpdateServiceType400JSONResponse) VisitUpdateServiceTypeResponse(
 	return json.NewEncoder(w).Encode(response)
 }
 
+type UpdateServiceType401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateServiceType401JSONResponse) VisitUpdateServiceTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateServiceType403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UpdateServiceType403JSONResponse) VisitUpdateServiceTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type UpdateServiceType404JSONResponse struct{ NotFoundJSONResponse }
 
 func (response UpdateServiceType404JSONResponse) VisitUpdateServiceTypeResponse(w http.ResponseWriter) error {
@@ -1187,6 +1266,24 @@ type ListCatalogItems200JSONResponse ListCatalogItemsResponse
 func (response ListCatalogItems200JSONResponse) VisitListCatalogItemsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListCatalogItems401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListCatalogItems401JSONResponse) VisitListCatalogItemsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListCatalogItems403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response ListCatalogItems403JSONResponse) VisitListCatalogItemsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1239,6 +1336,24 @@ func (response CreateCatalogItem400JSONResponse) VisitCreateCatalogItemResponse(
 	return json.NewEncoder(w).Encode(response)
 }
 
+type CreateCatalogItem401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateCatalogItem401JSONResponse) VisitCreateCatalogItemResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateCatalogItem403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response CreateCatalogItem403JSONResponse) VisitCreateCatalogItemResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type CreateCatalogItem404JSONResponse struct{ NotFoundJSONResponse }
 
 func (response CreateCatalogItem404JSONResponse) VisitCreateCatalogItemResponse(w http.ResponseWriter) error {
@@ -1285,6 +1400,15 @@ func (response DeleteCatalogItem204Response) VisitDeleteCatalogItemResponse(w ht
 	return nil
 }
 
+type DeleteCatalogItem401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteCatalogItem401JSONResponse) VisitDeleteCatalogItemResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type DeleteCatalogItem403JSONResponse struct{ ForbiddenJSONResponse }
 
 func (response DeleteCatalogItem403JSONResponse) VisitDeleteCatalogItemResponse(w http.ResponseWriter) error {
@@ -1328,6 +1452,15 @@ type GetCatalogItem200JSONResponse CatalogItem
 func (response GetCatalogItem200JSONResponse) VisitGetCatalogItemResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetCatalogItem401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetCatalogItem401JSONResponse) VisitGetCatalogItemResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1385,6 +1518,24 @@ type UpdateCatalogItem400JSONResponse Error
 func (response UpdateCatalogItem400JSONResponse) VisitUpdateCatalogItemResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateCatalogItem401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateCatalogItem401JSONResponse) VisitUpdateCatalogItemResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateCatalogItem403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UpdateCatalogItem403JSONResponse) VisitUpdateCatalogItemResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
 
 	return json.NewEncoder(w).Encode(response)
 }
