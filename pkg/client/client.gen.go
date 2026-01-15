@@ -102,26 +102,26 @@ type ClientInterface interface {
 	CreateServiceType(ctx context.Context, params *CreateServiceTypeParams, body CreateServiceTypeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetServiceType request
-	GetServiceType(ctx context.Context, serviceTypeId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetServiceType(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListCatalogItems request
-	ListCatalogItems(ctx context.Context, serviceTypeId string, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ListCatalogItems(ctx context.Context, serviceTypeId ServiceTypeIdPath, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CreateCatalogItemWithBody request with any body
-	CreateCatalogItemWithBody(ctx context.Context, serviceTypeId string, params *CreateCatalogItemParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateCatalogItemWithBody(ctx context.Context, serviceTypeId ServiceTypeIdPath, params *CreateCatalogItemParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	CreateCatalogItem(ctx context.Context, serviceTypeId string, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateCatalogItem(ctx context.Context, serviceTypeId ServiceTypeIdPath, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// DeleteCatalogItem request
-	DeleteCatalogItem(ctx context.Context, serviceTypeId string, catalogItemId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	DeleteCatalogItem(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetCatalogItem request
-	GetCatalogItem(ctx context.Context, serviceTypeId string, catalogItemId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetCatalogItem(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateCatalogItemWithBody request with any body
-	UpdateCatalogItemWithBody(ctx context.Context, serviceTypeId string, catalogItemId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateCatalogItemWithBody(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	UpdateCatalogItemWithApplicationMergePatchPlusJSONBody(ctx context.Context, serviceTypeId string, catalogItemId string, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateCatalogItemWithApplicationMergePatchPlusJSONBody(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -172,7 +172,7 @@ func (c *Client) CreateServiceType(ctx context.Context, params *CreateServiceTyp
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetServiceType(ctx context.Context, serviceTypeId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) GetServiceType(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetServiceTypeRequest(c.Server, serviceTypeId)
 	if err != nil {
 		return nil, err
@@ -184,7 +184,7 @@ func (c *Client) GetServiceType(ctx context.Context, serviceTypeId string, reqEd
 	return c.Client.Do(req)
 }
 
-func (c *Client) ListCatalogItems(ctx context.Context, serviceTypeId string, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) ListCatalogItems(ctx context.Context, serviceTypeId ServiceTypeIdPath, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListCatalogItemsRequest(c.Server, serviceTypeId, params)
 	if err != nil {
 		return nil, err
@@ -196,7 +196,7 @@ func (c *Client) ListCatalogItems(ctx context.Context, serviceTypeId string, par
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateCatalogItemWithBody(ctx context.Context, serviceTypeId string, params *CreateCatalogItemParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) CreateCatalogItemWithBody(ctx context.Context, serviceTypeId ServiceTypeIdPath, params *CreateCatalogItemParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateCatalogItemRequestWithBody(c.Server, serviceTypeId, params, contentType, body)
 	if err != nil {
 		return nil, err
@@ -208,7 +208,7 @@ func (c *Client) CreateCatalogItemWithBody(ctx context.Context, serviceTypeId st
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateCatalogItem(ctx context.Context, serviceTypeId string, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) CreateCatalogItem(ctx context.Context, serviceTypeId ServiceTypeIdPath, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateCatalogItemRequest(c.Server, serviceTypeId, params, body)
 	if err != nil {
 		return nil, err
@@ -220,7 +220,7 @@ func (c *Client) CreateCatalogItem(ctx context.Context, serviceTypeId string, pa
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteCatalogItem(ctx context.Context, serviceTypeId string, catalogItemId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) DeleteCatalogItem(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteCatalogItemRequest(c.Server, serviceTypeId, catalogItemId)
 	if err != nil {
 		return nil, err
@@ -232,7 +232,7 @@ func (c *Client) DeleteCatalogItem(ctx context.Context, serviceTypeId string, ca
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetCatalogItem(ctx context.Context, serviceTypeId string, catalogItemId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) GetCatalogItem(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCatalogItemRequest(c.Server, serviceTypeId, catalogItemId)
 	if err != nil {
 		return nil, err
@@ -244,7 +244,7 @@ func (c *Client) GetCatalogItem(ctx context.Context, serviceTypeId string, catal
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateCatalogItemWithBody(ctx context.Context, serviceTypeId string, catalogItemId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) UpdateCatalogItemWithBody(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateCatalogItemRequestWithBody(c.Server, serviceTypeId, catalogItemId, contentType, body)
 	if err != nil {
 		return nil, err
@@ -256,7 +256,7 @@ func (c *Client) UpdateCatalogItemWithBody(ctx context.Context, serviceTypeId st
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateCatalogItemWithApplicationMergePatchPlusJSONBody(ctx context.Context, serviceTypeId string, catalogItemId string, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+func (c *Client) UpdateCatalogItemWithApplicationMergePatchPlusJSONBody(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateCatalogItemRequestWithApplicationMergePatchPlusJSONBody(c.Server, serviceTypeId, catalogItemId, body)
 	if err != nil {
 		return nil, err
@@ -423,12 +423,12 @@ func NewCreateServiceTypeRequestWithBody(server string, params *CreateServiceTyp
 }
 
 // NewGetServiceTypeRequest generates requests for GetServiceType
-func NewGetServiceTypeRequest(server string, serviceTypeId string) (*http.Request, error) {
+func NewGetServiceTypeRequest(server string, serviceTypeId ServiceTypeIdPath) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service_type_id", runtime.ParamLocationPath, serviceTypeId)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "serviceTypeId", runtime.ParamLocationPath, serviceTypeId)
 	if err != nil {
 		return nil, err
 	}
@@ -457,12 +457,12 @@ func NewGetServiceTypeRequest(server string, serviceTypeId string) (*http.Reques
 }
 
 // NewListCatalogItemsRequest generates requests for ListCatalogItems
-func NewListCatalogItemsRequest(server string, serviceTypeId string, params *ListCatalogItemsParams) (*http.Request, error) {
+func NewListCatalogItemsRequest(server string, serviceTypeId ServiceTypeIdPath, params *ListCatalogItemsParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service_type_id", runtime.ParamLocationPath, serviceTypeId)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "serviceTypeId", runtime.ParamLocationPath, serviceTypeId)
 	if err != nil {
 		return nil, err
 	}
@@ -529,7 +529,7 @@ func NewListCatalogItemsRequest(server string, serviceTypeId string, params *Lis
 }
 
 // NewCreateCatalogItemRequest calls the generic CreateCatalogItem builder with application/json body
-func NewCreateCatalogItemRequest(server string, serviceTypeId string, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody) (*http.Request, error) {
+func NewCreateCatalogItemRequest(server string, serviceTypeId ServiceTypeIdPath, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
@@ -540,12 +540,12 @@ func NewCreateCatalogItemRequest(server string, serviceTypeId string, params *Cr
 }
 
 // NewCreateCatalogItemRequestWithBody generates requests for CreateCatalogItem with any type of body
-func NewCreateCatalogItemRequestWithBody(server string, serviceTypeId string, params *CreateCatalogItemParams, contentType string, body io.Reader) (*http.Request, error) {
+func NewCreateCatalogItemRequestWithBody(server string, serviceTypeId ServiceTypeIdPath, params *CreateCatalogItemParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service_type_id", runtime.ParamLocationPath, serviceTypeId)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "serviceTypeId", runtime.ParamLocationPath, serviceTypeId)
 	if err != nil {
 		return nil, err
 	}
@@ -598,19 +598,19 @@ func NewCreateCatalogItemRequestWithBody(server string, serviceTypeId string, pa
 }
 
 // NewDeleteCatalogItemRequest generates requests for DeleteCatalogItem
-func NewDeleteCatalogItemRequest(server string, serviceTypeId string, catalogItemId string) (*http.Request, error) {
+func NewDeleteCatalogItemRequest(server string, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service_type_id", runtime.ParamLocationPath, serviceTypeId)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "serviceTypeId", runtime.ParamLocationPath, serviceTypeId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "catalog_item_id", runtime.ParamLocationPath, catalogItemId)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "catalogItemId", runtime.ParamLocationPath, catalogItemId)
 	if err != nil {
 		return nil, err
 	}
@@ -639,19 +639,19 @@ func NewDeleteCatalogItemRequest(server string, serviceTypeId string, catalogIte
 }
 
 // NewGetCatalogItemRequest generates requests for GetCatalogItem
-func NewGetCatalogItemRequest(server string, serviceTypeId string, catalogItemId string) (*http.Request, error) {
+func NewGetCatalogItemRequest(server string, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service_type_id", runtime.ParamLocationPath, serviceTypeId)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "serviceTypeId", runtime.ParamLocationPath, serviceTypeId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "catalog_item_id", runtime.ParamLocationPath, catalogItemId)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "catalogItemId", runtime.ParamLocationPath, catalogItemId)
 	if err != nil {
 		return nil, err
 	}
@@ -680,7 +680,7 @@ func NewGetCatalogItemRequest(server string, serviceTypeId string, catalogItemId
 }
 
 // NewUpdateCatalogItemRequestWithApplicationMergePatchPlusJSONBody calls the generic UpdateCatalogItem builder with application/merge-patch+json body
-func NewUpdateCatalogItemRequestWithApplicationMergePatchPlusJSONBody(server string, serviceTypeId string, catalogItemId string, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody) (*http.Request, error) {
+func NewUpdateCatalogItemRequestWithApplicationMergePatchPlusJSONBody(server string, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
@@ -691,19 +691,19 @@ func NewUpdateCatalogItemRequestWithApplicationMergePatchPlusJSONBody(server str
 }
 
 // NewUpdateCatalogItemRequestWithBody generates requests for UpdateCatalogItem with any type of body
-func NewUpdateCatalogItemRequestWithBody(server string, serviceTypeId string, catalogItemId string, contentType string, body io.Reader) (*http.Request, error) {
+func NewUpdateCatalogItemRequestWithBody(server string, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service_type_id", runtime.ParamLocationPath, serviceTypeId)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "serviceTypeId", runtime.ParamLocationPath, serviceTypeId)
 	if err != nil {
 		return nil, err
 	}
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "catalog_item_id", runtime.ParamLocationPath, catalogItemId)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "catalogItemId", runtime.ParamLocationPath, catalogItemId)
 	if err != nil {
 		return nil, err
 	}
@@ -788,26 +788,26 @@ type ClientWithResponsesInterface interface {
 	CreateServiceTypeWithResponse(ctx context.Context, params *CreateServiceTypeParams, body CreateServiceTypeJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateServiceTypeResponse, error)
 
 	// GetServiceTypeWithResponse request
-	GetServiceTypeWithResponse(ctx context.Context, serviceTypeId string, reqEditors ...RequestEditorFn) (*GetServiceTypeResponse, error)
+	GetServiceTypeWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*GetServiceTypeResponse, error)
 
 	// ListCatalogItemsWithResponse request
-	ListCatalogItemsWithResponse(ctx context.Context, serviceTypeId string, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*ListCatalogItemsResponse, error)
+	ListCatalogItemsWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*ListCatalogItemsResponse, error)
 
 	// CreateCatalogItemWithBodyWithResponse request with any body
-	CreateCatalogItemWithBodyWithResponse(ctx context.Context, serviceTypeId string, params *CreateCatalogItemParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateCatalogItemResponse, error)
+	CreateCatalogItemWithBodyWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, params *CreateCatalogItemParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateCatalogItemResponse, error)
 
-	CreateCatalogItemWithResponse(ctx context.Context, serviceTypeId string, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateCatalogItemResponse, error)
+	CreateCatalogItemWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateCatalogItemResponse, error)
 
 	// DeleteCatalogItemWithResponse request
-	DeleteCatalogItemWithResponse(ctx context.Context, serviceTypeId string, catalogItemId string, reqEditors ...RequestEditorFn) (*DeleteCatalogItemResponse, error)
+	DeleteCatalogItemWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*DeleteCatalogItemResponse, error)
 
 	// GetCatalogItemWithResponse request
-	GetCatalogItemWithResponse(ctx context.Context, serviceTypeId string, catalogItemId string, reqEditors ...RequestEditorFn) (*GetCatalogItemResponse, error)
+	GetCatalogItemWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*GetCatalogItemResponse, error)
 
 	// UpdateCatalogItemWithBodyWithResponse request with any body
-	UpdateCatalogItemWithBodyWithResponse(ctx context.Context, serviceTypeId string, catalogItemId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error)
+	UpdateCatalogItemWithBodyWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error)
 
-	UpdateCatalogItemWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, serviceTypeId string, catalogItemId string, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error)
+	UpdateCatalogItemWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error)
 }
 
 type GetHealthResponse struct {
@@ -1079,7 +1079,7 @@ func (c *ClientWithResponses) CreateServiceTypeWithResponse(ctx context.Context,
 }
 
 // GetServiceTypeWithResponse request returning *GetServiceTypeResponse
-func (c *ClientWithResponses) GetServiceTypeWithResponse(ctx context.Context, serviceTypeId string, reqEditors ...RequestEditorFn) (*GetServiceTypeResponse, error) {
+func (c *ClientWithResponses) GetServiceTypeWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*GetServiceTypeResponse, error) {
 	rsp, err := c.GetServiceType(ctx, serviceTypeId, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1088,7 +1088,7 @@ func (c *ClientWithResponses) GetServiceTypeWithResponse(ctx context.Context, se
 }
 
 // ListCatalogItemsWithResponse request returning *ListCatalogItemsResponse
-func (c *ClientWithResponses) ListCatalogItemsWithResponse(ctx context.Context, serviceTypeId string, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*ListCatalogItemsResponse, error) {
+func (c *ClientWithResponses) ListCatalogItemsWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*ListCatalogItemsResponse, error) {
 	rsp, err := c.ListCatalogItems(ctx, serviceTypeId, params, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1097,7 +1097,7 @@ func (c *ClientWithResponses) ListCatalogItemsWithResponse(ctx context.Context, 
 }
 
 // CreateCatalogItemWithBodyWithResponse request with arbitrary body returning *CreateCatalogItemResponse
-func (c *ClientWithResponses) CreateCatalogItemWithBodyWithResponse(ctx context.Context, serviceTypeId string, params *CreateCatalogItemParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateCatalogItemResponse, error) {
+func (c *ClientWithResponses) CreateCatalogItemWithBodyWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, params *CreateCatalogItemParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateCatalogItemResponse, error) {
 	rsp, err := c.CreateCatalogItemWithBody(ctx, serviceTypeId, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1105,7 +1105,7 @@ func (c *ClientWithResponses) CreateCatalogItemWithBodyWithResponse(ctx context.
 	return ParseCreateCatalogItemResponse(rsp)
 }
 
-func (c *ClientWithResponses) CreateCatalogItemWithResponse(ctx context.Context, serviceTypeId string, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateCatalogItemResponse, error) {
+func (c *ClientWithResponses) CreateCatalogItemWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateCatalogItemResponse, error) {
 	rsp, err := c.CreateCatalogItem(ctx, serviceTypeId, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1114,7 +1114,7 @@ func (c *ClientWithResponses) CreateCatalogItemWithResponse(ctx context.Context,
 }
 
 // DeleteCatalogItemWithResponse request returning *DeleteCatalogItemResponse
-func (c *ClientWithResponses) DeleteCatalogItemWithResponse(ctx context.Context, serviceTypeId string, catalogItemId string, reqEditors ...RequestEditorFn) (*DeleteCatalogItemResponse, error) {
+func (c *ClientWithResponses) DeleteCatalogItemWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*DeleteCatalogItemResponse, error) {
 	rsp, err := c.DeleteCatalogItem(ctx, serviceTypeId, catalogItemId, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1123,7 +1123,7 @@ func (c *ClientWithResponses) DeleteCatalogItemWithResponse(ctx context.Context,
 }
 
 // GetCatalogItemWithResponse request returning *GetCatalogItemResponse
-func (c *ClientWithResponses) GetCatalogItemWithResponse(ctx context.Context, serviceTypeId string, catalogItemId string, reqEditors ...RequestEditorFn) (*GetCatalogItemResponse, error) {
+func (c *ClientWithResponses) GetCatalogItemWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*GetCatalogItemResponse, error) {
 	rsp, err := c.GetCatalogItem(ctx, serviceTypeId, catalogItemId, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1132,7 +1132,7 @@ func (c *ClientWithResponses) GetCatalogItemWithResponse(ctx context.Context, se
 }
 
 // UpdateCatalogItemWithBodyWithResponse request with arbitrary body returning *UpdateCatalogItemResponse
-func (c *ClientWithResponses) UpdateCatalogItemWithBodyWithResponse(ctx context.Context, serviceTypeId string, catalogItemId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error) {
+func (c *ClientWithResponses) UpdateCatalogItemWithBodyWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error) {
 	rsp, err := c.UpdateCatalogItemWithBody(ctx, serviceTypeId, catalogItemId, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1140,7 +1140,7 @@ func (c *ClientWithResponses) UpdateCatalogItemWithBodyWithResponse(ctx context.
 	return ParseUpdateCatalogItemResponse(rsp)
 }
 
-func (c *ClientWithResponses) UpdateCatalogItemWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, serviceTypeId string, catalogItemId string, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error) {
+func (c *ClientWithResponses) UpdateCatalogItemWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error) {
 	rsp, err := c.UpdateCatalogItemWithApplicationMergePatchPlusJSONBody(ctx, serviceTypeId, catalogItemId, body, reqEditors...)
 	if err != nil {
 		return nil, err

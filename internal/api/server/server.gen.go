@@ -56,12 +56,12 @@ type CatalogItem struct {
 	Fields []FieldConfiguration `json:"fields"`
 
 	// Parent Path to the parent ServiceType resource.
-	// Format: service-types/{service_type_id}
+	// Format: service-types/{serviceTypeId}
 	// Immutable after creation.
 	Parent *string `json:"parent,omitempty"`
 
 	// Path Resource path in the format:
-	// service-types/{service_type_id}/catalog-items/{catalog_item_id}
+	// service-types/{serviceTypeId}/catalog-items/{catalogItemId}
 	Path *string `json:"path,omitempty"`
 
 	// SchemaVersion Version of the ServiceType schema this catalog item references.
@@ -188,7 +188,7 @@ type ServiceType struct {
 		Name string `json:"name"`
 	} `json:"metadata"`
 
-	// Path Resource path in the format: service-types/{service_type_id}
+	// Path Resource path in the format: service-types/{serviceTypeId}
 	// This is the canonical identifier for the resource.
 	Path *string `json:"path,omitempty"`
 
@@ -226,6 +226,12 @@ type ServiceType struct {
 	// UpdateTime Timestamp when the resource was last modified (RFC 3339)
 	UpdateTime *time.Time `json:"update_time,omitempty"`
 }
+
+// CatalogItemIdPath defines model for CatalogItemIdPath.
+type CatalogItemIdPath = string
+
+// ServiceTypeIdPath defines model for ServiceTypeIdPath.
+type ServiceTypeIdPath = string
 
 // AlreadyExists Error response following RFC 7807 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
@@ -306,23 +312,23 @@ type ServerInterface interface {
 	// (POST /service-types)
 	CreateServiceType(w http.ResponseWriter, r *http.Request, params CreateServiceTypeParams)
 	// Get a service type
-	// (GET /service-types/{service_type_id})
-	GetServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId string)
+	// (GET /service-types/{serviceTypeId})
+	GetServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath)
 	// List catalog items
-	// (GET /service-types/{service_type_id}/catalog-items)
-	ListCatalogItems(w http.ResponseWriter, r *http.Request, serviceTypeId string, params ListCatalogItemsParams)
+	// (GET /service-types/{serviceTypeId}/catalog-items)
+	ListCatalogItems(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, params ListCatalogItemsParams)
 	// Create a catalog item
-	// (POST /service-types/{service_type_id}/catalog-items)
-	CreateCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId string, params CreateCatalogItemParams)
+	// (POST /service-types/{serviceTypeId}/catalog-items)
+	CreateCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, params CreateCatalogItemParams)
 	// Delete a catalog item
-	// (DELETE /service-types/{service_type_id}/catalog-items/{catalog_item_id})
-	DeleteCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId string, catalogItemId string)
+	// (DELETE /service-types/{serviceTypeId}/catalog-items/{catalogItemId})
+	DeleteCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath)
 	// Get a catalog item
-	// (GET /service-types/{service_type_id}/catalog-items/{catalog_item_id})
-	GetCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId string, catalogItemId string)
+	// (GET /service-types/{serviceTypeId}/catalog-items/{catalogItemId})
+	GetCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath)
 	// Update a catalog item
-	// (PATCH /service-types/{service_type_id}/catalog-items/{catalog_item_id})
-	UpdateCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId string, catalogItemId string)
+	// (PATCH /service-types/{serviceTypeId}/catalog-items/{catalogItemId})
+	UpdateCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -348,38 +354,38 @@ func (_ Unimplemented) CreateServiceType(w http.ResponseWriter, r *http.Request,
 }
 
 // Get a service type
-// (GET /service-types/{service_type_id})
-func (_ Unimplemented) GetServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId string) {
+// (GET /service-types/{serviceTypeId})
+func (_ Unimplemented) GetServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // List catalog items
-// (GET /service-types/{service_type_id}/catalog-items)
-func (_ Unimplemented) ListCatalogItems(w http.ResponseWriter, r *http.Request, serviceTypeId string, params ListCatalogItemsParams) {
+// (GET /service-types/{serviceTypeId}/catalog-items)
+func (_ Unimplemented) ListCatalogItems(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, params ListCatalogItemsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Create a catalog item
-// (POST /service-types/{service_type_id}/catalog-items)
-func (_ Unimplemented) CreateCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId string, params CreateCatalogItemParams) {
+// (POST /service-types/{serviceTypeId}/catalog-items)
+func (_ Unimplemented) CreateCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, params CreateCatalogItemParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Delete a catalog item
-// (DELETE /service-types/{service_type_id}/catalog-items/{catalog_item_id})
-func (_ Unimplemented) DeleteCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId string, catalogItemId string) {
+// (DELETE /service-types/{serviceTypeId}/catalog-items/{catalogItemId})
+func (_ Unimplemented) DeleteCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get a catalog item
-// (GET /service-types/{service_type_id}/catalog-items/{catalog_item_id})
-func (_ Unimplemented) GetCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId string, catalogItemId string) {
+// (GET /service-types/{serviceTypeId}/catalog-items/{catalogItemId})
+func (_ Unimplemented) GetCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Update a catalog item
-// (PATCH /service-types/{service_type_id}/catalog-items/{catalog_item_id})
-func (_ Unimplemented) UpdateCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId string, catalogItemId string) {
+// (PATCH /service-types/{serviceTypeId}/catalog-items/{catalogItemId})
+func (_ Unimplemented) UpdateCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -473,12 +479,12 @@ func (siw *ServerInterfaceWrapper) GetServiceType(w http.ResponseWriter, r *http
 
 	var err error
 
-	// ------------- Path parameter "service_type_id" -------------
-	var serviceTypeId string
+	// ------------- Path parameter "serviceTypeId" -------------
+	var serviceTypeId ServiceTypeIdPath
 
-	err = runtime.BindStyledParameterWithOptions("simple", "service_type_id", chi.URLParam(r, "service_type_id"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "serviceTypeId", chi.URLParam(r, "serviceTypeId"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_type_id", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "serviceTypeId", Err: err})
 		return
 	}
 
@@ -498,12 +504,12 @@ func (siw *ServerInterfaceWrapper) ListCatalogItems(w http.ResponseWriter, r *ht
 
 	var err error
 
-	// ------------- Path parameter "service_type_id" -------------
-	var serviceTypeId string
+	// ------------- Path parameter "serviceTypeId" -------------
+	var serviceTypeId ServiceTypeIdPath
 
-	err = runtime.BindStyledParameterWithOptions("simple", "service_type_id", chi.URLParam(r, "service_type_id"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "serviceTypeId", chi.URLParam(r, "serviceTypeId"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_type_id", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "serviceTypeId", Err: err})
 		return
 	}
 
@@ -542,12 +548,12 @@ func (siw *ServerInterfaceWrapper) CreateCatalogItem(w http.ResponseWriter, r *h
 
 	var err error
 
-	// ------------- Path parameter "service_type_id" -------------
-	var serviceTypeId string
+	// ------------- Path parameter "serviceTypeId" -------------
+	var serviceTypeId ServiceTypeIdPath
 
-	err = runtime.BindStyledParameterWithOptions("simple", "service_type_id", chi.URLParam(r, "service_type_id"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "serviceTypeId", chi.URLParam(r, "serviceTypeId"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_type_id", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "serviceTypeId", Err: err})
 		return
 	}
 
@@ -578,21 +584,21 @@ func (siw *ServerInterfaceWrapper) DeleteCatalogItem(w http.ResponseWriter, r *h
 
 	var err error
 
-	// ------------- Path parameter "service_type_id" -------------
-	var serviceTypeId string
+	// ------------- Path parameter "serviceTypeId" -------------
+	var serviceTypeId ServiceTypeIdPath
 
-	err = runtime.BindStyledParameterWithOptions("simple", "service_type_id", chi.URLParam(r, "service_type_id"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "serviceTypeId", chi.URLParam(r, "serviceTypeId"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_type_id", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "serviceTypeId", Err: err})
 		return
 	}
 
-	// ------------- Path parameter "catalog_item_id" -------------
-	var catalogItemId string
+	// ------------- Path parameter "catalogItemId" -------------
+	var catalogItemId CatalogItemIdPath
 
-	err = runtime.BindStyledParameterWithOptions("simple", "catalog_item_id", chi.URLParam(r, "catalog_item_id"), &catalogItemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "catalogItemId", chi.URLParam(r, "catalogItemId"), &catalogItemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalog_item_id", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalogItemId", Err: err})
 		return
 	}
 
@@ -612,21 +618,21 @@ func (siw *ServerInterfaceWrapper) GetCatalogItem(w http.ResponseWriter, r *http
 
 	var err error
 
-	// ------------- Path parameter "service_type_id" -------------
-	var serviceTypeId string
+	// ------------- Path parameter "serviceTypeId" -------------
+	var serviceTypeId ServiceTypeIdPath
 
-	err = runtime.BindStyledParameterWithOptions("simple", "service_type_id", chi.URLParam(r, "service_type_id"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "serviceTypeId", chi.URLParam(r, "serviceTypeId"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_type_id", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "serviceTypeId", Err: err})
 		return
 	}
 
-	// ------------- Path parameter "catalog_item_id" -------------
-	var catalogItemId string
+	// ------------- Path parameter "catalogItemId" -------------
+	var catalogItemId CatalogItemIdPath
 
-	err = runtime.BindStyledParameterWithOptions("simple", "catalog_item_id", chi.URLParam(r, "catalog_item_id"), &catalogItemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "catalogItemId", chi.URLParam(r, "catalogItemId"), &catalogItemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalog_item_id", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalogItemId", Err: err})
 		return
 	}
 
@@ -646,21 +652,21 @@ func (siw *ServerInterfaceWrapper) UpdateCatalogItem(w http.ResponseWriter, r *h
 
 	var err error
 
-	// ------------- Path parameter "service_type_id" -------------
-	var serviceTypeId string
+	// ------------- Path parameter "serviceTypeId" -------------
+	var serviceTypeId ServiceTypeIdPath
 
-	err = runtime.BindStyledParameterWithOptions("simple", "service_type_id", chi.URLParam(r, "service_type_id"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "serviceTypeId", chi.URLParam(r, "serviceTypeId"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_type_id", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "serviceTypeId", Err: err})
 		return
 	}
 
-	// ------------- Path parameter "catalog_item_id" -------------
-	var catalogItemId string
+	// ------------- Path parameter "catalogItemId" -------------
+	var catalogItemId CatalogItemIdPath
 
-	err = runtime.BindStyledParameterWithOptions("simple", "catalog_item_id", chi.URLParam(r, "catalog_item_id"), &catalogItemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "catalogItemId", chi.URLParam(r, "catalogItemId"), &catalogItemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalog_item_id", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalogItemId", Err: err})
 		return
 	}
 
@@ -798,22 +804,22 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/service-types", wrapper.CreateServiceType)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/service-types/{service_type_id}", wrapper.GetServiceType)
+		r.Get(options.BaseURL+"/service-types/{serviceTypeId}", wrapper.GetServiceType)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/service-types/{service_type_id}/catalog-items", wrapper.ListCatalogItems)
+		r.Get(options.BaseURL+"/service-types/{serviceTypeId}/catalog-items", wrapper.ListCatalogItems)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/service-types/{service_type_id}/catalog-items", wrapper.CreateCatalogItem)
+		r.Post(options.BaseURL+"/service-types/{serviceTypeId}/catalog-items", wrapper.CreateCatalogItem)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/service-types/{service_type_id}/catalog-items/{catalog_item_id}", wrapper.DeleteCatalogItem)
+		r.Delete(options.BaseURL+"/service-types/{serviceTypeId}/catalog-items/{catalogItemId}", wrapper.DeleteCatalogItem)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/service-types/{service_type_id}/catalog-items/{catalog_item_id}", wrapper.GetCatalogItem)
+		r.Get(options.BaseURL+"/service-types/{serviceTypeId}/catalog-items/{catalogItemId}", wrapper.GetCatalogItem)
 	})
 	r.Group(func(r chi.Router) {
-		r.Patch(options.BaseURL+"/service-types/{service_type_id}/catalog-items/{catalog_item_id}", wrapper.UpdateCatalogItem)
+		r.Patch(options.BaseURL+"/service-types/{serviceTypeId}/catalog-items/{catalogItemId}", wrapper.UpdateCatalogItem)
 	})
 
 	return r
@@ -968,7 +974,7 @@ func (response CreateServiceType500JSONResponse) VisitCreateServiceTypeResponse(
 }
 
 type GetServiceTypeRequestObject struct {
-	ServiceTypeId string `json:"service_type_id"`
+	ServiceTypeId ServiceTypeIdPath `json:"serviceTypeId"`
 }
 
 type GetServiceTypeResponseObject interface {
@@ -1023,7 +1029,7 @@ func (response GetServiceType500JSONResponse) VisitGetServiceTypeResponse(w http
 }
 
 type ListCatalogItemsRequestObject struct {
-	ServiceTypeId string `json:"service_type_id"`
+	ServiceTypeId ServiceTypeIdPath `json:"serviceTypeId"`
 	Params        ListCatalogItemsParams
 }
 
@@ -1079,7 +1085,7 @@ func (response ListCatalogItems500JSONResponse) VisitListCatalogItemsResponse(w 
 }
 
 type CreateCatalogItemRequestObject struct {
-	ServiceTypeId string `json:"service_type_id"`
+	ServiceTypeId ServiceTypeIdPath `json:"serviceTypeId"`
 	Params        CreateCatalogItemParams
 	Body          *CreateCatalogItemJSONRequestBody
 }
@@ -1154,8 +1160,8 @@ func (response CreateCatalogItem500JSONResponse) VisitCreateCatalogItemResponse(
 }
 
 type DeleteCatalogItemRequestObject struct {
-	ServiceTypeId string `json:"service_type_id"`
-	CatalogItemId string `json:"catalog_item_id"`
+	ServiceTypeId ServiceTypeIdPath `json:"serviceTypeId"`
+	CatalogItemId CatalogItemIdPath `json:"catalogItemId"`
 }
 
 type DeleteCatalogItemResponseObject interface {
@@ -1209,8 +1215,8 @@ func (response DeleteCatalogItem500JSONResponse) VisitDeleteCatalogItemResponse(
 }
 
 type GetCatalogItemRequestObject struct {
-	ServiceTypeId string `json:"service_type_id"`
-	CatalogItemId string `json:"catalog_item_id"`
+	ServiceTypeId ServiceTypeIdPath `json:"serviceTypeId"`
+	CatalogItemId CatalogItemIdPath `json:"catalogItemId"`
 }
 
 type GetCatalogItemResponseObject interface {
@@ -1265,8 +1271,8 @@ func (response GetCatalogItem500JSONResponse) VisitGetCatalogItemResponse(w http
 }
 
 type UpdateCatalogItemRequestObject struct {
-	ServiceTypeId string `json:"service_type_id"`
-	CatalogItemId string `json:"catalog_item_id"`
+	ServiceTypeId ServiceTypeIdPath `json:"serviceTypeId"`
+	CatalogItemId CatalogItemIdPath `json:"catalogItemId"`
 	Body          *UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody
 }
 
@@ -1342,22 +1348,22 @@ type StrictServerInterface interface {
 	// (POST /service-types)
 	CreateServiceType(ctx context.Context, request CreateServiceTypeRequestObject) (CreateServiceTypeResponseObject, error)
 	// Get a service type
-	// (GET /service-types/{service_type_id})
+	// (GET /service-types/{serviceTypeId})
 	GetServiceType(ctx context.Context, request GetServiceTypeRequestObject) (GetServiceTypeResponseObject, error)
 	// List catalog items
-	// (GET /service-types/{service_type_id}/catalog-items)
+	// (GET /service-types/{serviceTypeId}/catalog-items)
 	ListCatalogItems(ctx context.Context, request ListCatalogItemsRequestObject) (ListCatalogItemsResponseObject, error)
 	// Create a catalog item
-	// (POST /service-types/{service_type_id}/catalog-items)
+	// (POST /service-types/{serviceTypeId}/catalog-items)
 	CreateCatalogItem(ctx context.Context, request CreateCatalogItemRequestObject) (CreateCatalogItemResponseObject, error)
 	// Delete a catalog item
-	// (DELETE /service-types/{service_type_id}/catalog-items/{catalog_item_id})
+	// (DELETE /service-types/{serviceTypeId}/catalog-items/{catalogItemId})
 	DeleteCatalogItem(ctx context.Context, request DeleteCatalogItemRequestObject) (DeleteCatalogItemResponseObject, error)
 	// Get a catalog item
-	// (GET /service-types/{service_type_id}/catalog-items/{catalog_item_id})
+	// (GET /service-types/{serviceTypeId}/catalog-items/{catalogItemId})
 	GetCatalogItem(ctx context.Context, request GetCatalogItemRequestObject) (GetCatalogItemResponseObject, error)
 	// Update a catalog item
-	// (PATCH /service-types/{service_type_id}/catalog-items/{catalog_item_id})
+	// (PATCH /service-types/{serviceTypeId}/catalog-items/{catalogItemId})
 	UpdateCatalogItem(ctx context.Context, request UpdateCatalogItemRequestObject) (UpdateCatalogItemResponseObject, error)
 }
 
@@ -1474,7 +1480,7 @@ func (sh *strictHandler) CreateServiceType(w http.ResponseWriter, r *http.Reques
 }
 
 // GetServiceType operation middleware
-func (sh *strictHandler) GetServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId string) {
+func (sh *strictHandler) GetServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath) {
 	var request GetServiceTypeRequestObject
 
 	request.ServiceTypeId = serviceTypeId
@@ -1500,7 +1506,7 @@ func (sh *strictHandler) GetServiceType(w http.ResponseWriter, r *http.Request, 
 }
 
 // ListCatalogItems operation middleware
-func (sh *strictHandler) ListCatalogItems(w http.ResponseWriter, r *http.Request, serviceTypeId string, params ListCatalogItemsParams) {
+func (sh *strictHandler) ListCatalogItems(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, params ListCatalogItemsParams) {
 	var request ListCatalogItemsRequestObject
 
 	request.ServiceTypeId = serviceTypeId
@@ -1527,7 +1533,7 @@ func (sh *strictHandler) ListCatalogItems(w http.ResponseWriter, r *http.Request
 }
 
 // CreateCatalogItem operation middleware
-func (sh *strictHandler) CreateCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId string, params CreateCatalogItemParams) {
+func (sh *strictHandler) CreateCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, params CreateCatalogItemParams) {
 	var request CreateCatalogItemRequestObject
 
 	request.ServiceTypeId = serviceTypeId
@@ -1561,7 +1567,7 @@ func (sh *strictHandler) CreateCatalogItem(w http.ResponseWriter, r *http.Reques
 }
 
 // DeleteCatalogItem operation middleware
-func (sh *strictHandler) DeleteCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId string, catalogItemId string) {
+func (sh *strictHandler) DeleteCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath) {
 	var request DeleteCatalogItemRequestObject
 
 	request.ServiceTypeId = serviceTypeId
@@ -1588,7 +1594,7 @@ func (sh *strictHandler) DeleteCatalogItem(w http.ResponseWriter, r *http.Reques
 }
 
 // GetCatalogItem operation middleware
-func (sh *strictHandler) GetCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId string, catalogItemId string) {
+func (sh *strictHandler) GetCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath) {
 	var request GetCatalogItemRequestObject
 
 	request.ServiceTypeId = serviceTypeId
@@ -1615,7 +1621,7 @@ func (sh *strictHandler) GetCatalogItem(w http.ResponseWriter, r *http.Request, 
 }
 
 // UpdateCatalogItem operation middleware
-func (sh *strictHandler) UpdateCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId string, catalogItemId string) {
+func (sh *strictHandler) UpdateCatalogItem(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath, catalogItemId CatalogItemIdPath) {
 	var request UpdateCatalogItemRequestObject
 
 	request.ServiceTypeId = serviceTypeId

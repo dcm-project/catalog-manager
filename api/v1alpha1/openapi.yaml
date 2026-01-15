@@ -145,21 +145,14 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /service-types/{service_type_id}:
+  /service-types/{serviceTypeId}:
     get:
       operationId: getServiceType
       summary: Get a service type
       description: |
         Retrieves a single service type by its ID.
       parameters:
-        - name: service_type_id
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
-          description: Unique identifier for the service type
-          example: vm-standard
+        - $ref: '#/components/parameters/ServiceTypeIdPath'
 
       responses:
         '200':
@@ -181,19 +174,14 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /service-types/{service_type_id}/catalog-items:
+  /service-types/{serviceTypeId}/catalog-items:
     get:
       operationId: listCatalogItems
       summary: List catalog items
       description: |
         Retrieves a paginated list of catalog items under a specific service type.
       parameters:
-        - name: service_type_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Parent service type ID
+        - $ref: '#/components/parameters/ServiceTypeIdPath'
 
         - name: page_token
           in: query
@@ -241,12 +229,7 @@ paths:
 
         Supports user-specified IDs via the 'id' query parameter for idempotency.
       parameters:
-        - name: service_type_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Parent service type ID
+        - $ref: '#/components/parameters/ServiceTypeIdPath'
 
         - name: id
           in: query
@@ -294,28 +277,16 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /service-types/{service_type_id}/catalog-items/{catalog_item_id}:
+  /service-types/{serviceTypeId}/catalog-items/{catalogItemId}:
     get:
       operationId: getCatalogItem
       summary: Get a catalog item
       description: |
         Retrieves a single catalog item by its ID.
       parameters:
-        - name: service_type_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Parent service type ID
+        - $ref: '#/components/parameters/ServiceTypeIdPath'
 
-        - name: catalog_item_id
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
-          description: Unique identifier for the catalog item
-          example: small-vm
+        - $ref: '#/components/parameters/CatalogItemIdPath'
 
       responses:
         '200':
@@ -346,19 +317,9 @@ paths:
         Note that api_version, service_type, schema_version, and parent are
         immutable after creation.
       parameters:
-        - name: service_type_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Parent service type ID
+        - $ref: '#/components/parameters/ServiceTypeIdPath'
 
-        - name: catalog_item_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Unique identifier for the catalog item
+        - $ref: '#/components/parameters/CatalogItemIdPath'
 
       requestBody:
         required: true
@@ -400,19 +361,9 @@ paths:
       description: |
         Deletes a catalog item.
       parameters:
-        - name: service_type_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Parent service type ID
+        - $ref: '#/components/parameters/ServiceTypeIdPath'
 
-        - name: catalog_item_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Unique identifier for the catalog item
+        - $ref: '#/components/parameters/CatalogItemIdPath'
 
       responses:
         '204':
@@ -431,6 +382,25 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
 components:
+  parameters:
+    ServiceTypeIdPath:
+      name: serviceTypeId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+      description: Unique identifier for the service type
+      example: vm
+    CatalogItemIdPath:
+      name: catalogItemId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+      description: Unique identifier for the catalog item
+      example: small-vm
   schemas:
     ServiceType:
       type: object
@@ -450,7 +420,7 @@ components:
           type: string
           readOnly: true
           description: |
-            Resource path in the format: service-types/{service_type_id}
+            Resource path in the format: service-types/{serviceTypeId}
             This is the canonical identifier for the resource.
           example: service-types/vm-standard
 
@@ -597,7 +567,7 @@ components:
           readOnly: true
           description: |
             Resource path in the format:
-            service-types/{service_type_id}/catalog-items/{catalog_item_id}
+            service-types/{serviceTypeId}/catalog-items/{catalogItemId}
           example: service-types/vm-standard/catalog-items/small-vm
 
         parent:
@@ -605,7 +575,7 @@ components:
           readOnly: true
           description: |
             Path to the parent ServiceType resource.
-            Format: service-types/{service_type_id}
+            Format: service-types/{serviceTypeId}
             Immutable after creation.
           example: service-types/vm-standard
 

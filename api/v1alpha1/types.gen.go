@@ -49,12 +49,12 @@ type CatalogItem struct {
 	Fields []FieldConfiguration `json:"fields"`
 
 	// Parent Path to the parent ServiceType resource.
-	// Format: service-types/{service_type_id}
+	// Format: service-types/{serviceTypeId}
 	// Immutable after creation.
 	Parent *string `json:"parent,omitempty"`
 
 	// Path Resource path in the format:
-	// service-types/{service_type_id}/catalog-items/{catalog_item_id}
+	// service-types/{serviceTypeId}/catalog-items/{catalogItemId}
 	Path *string `json:"path,omitempty"`
 
 	// SchemaVersion Version of the ServiceType schema this catalog item references.
@@ -181,7 +181,7 @@ type ServiceType struct {
 		Name string `json:"name"`
 	} `json:"metadata"`
 
-	// Path Resource path in the format: service-types/{service_type_id}
+	// Path Resource path in the format: service-types/{serviceTypeId}
 	// This is the canonical identifier for the resource.
 	Path *string `json:"path,omitempty"`
 
@@ -219,6 +219,12 @@ type ServiceType struct {
 	// UpdateTime Timestamp when the resource was last modified (RFC 3339)
 	UpdateTime *time.Time `json:"update_time,omitempty"`
 }
+
+// CatalogItemIdPath defines model for CatalogItemIdPath.
+type CatalogItemIdPath = string
+
+// ServiceTypeIdPath defines model for ServiceTypeIdPath.
+type ServiceTypeIdPath = string
 
 // AlreadyExists Error response following RFC 7807 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
