@@ -29,7 +29,7 @@ servers:
 paths:
   /health:
     get:
-      operationId: GetHealth
+      operationId: getHealth
       summary: Health check
       description: Health check for DCM Catalog Manager API
       responses:
