@@ -228,10 +228,6 @@ type AlreadyExists = Error
 // and AEP-193 Error Responses specification.
 type BadRequest = Error
 
-// FailedPrecondition Error response following RFC 7807 Problem Details for HTTP APIs
-// and AEP-193 Error Responses specification.
-type FailedPrecondition = Error
-
 // Forbidden Error response following RFC 7807 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type Forbidden = Error
@@ -267,13 +263,6 @@ type CreateServiceTypeParams struct {
 	Id *string `form:"id,omitempty" json:"id,omitempty"`
 }
 
-// DeleteServiceTypeParams defines parameters for DeleteServiceType.
-type DeleteServiceTypeParams struct {
-	// Force If true, cascade delete all child catalog items.
-	// If false (default), fails if catalog items exist.
-	Force *bool `form:"force,omitempty" json:"force,omitempty"`
-}
-
 // ListCatalogItemsParams defines parameters for ListCatalogItems.
 type ListCatalogItemsParams struct {
 	// PageToken Token for retrieving the next page of results
@@ -291,9 +280,6 @@ type CreateCatalogItemParams struct {
 
 // CreateServiceTypeJSONRequestBody defines body for CreateServiceType for application/json ContentType.
 type CreateServiceTypeJSONRequestBody = ServiceType
-
-// UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody defines body for UpdateServiceType for application/merge-patch+json ContentType.
-type UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody = ServiceType
 
 // CreateCatalogItemJSONRequestBody defines body for CreateCatalogItem for application/json ContentType.
 type CreateCatalogItemJSONRequestBody = CatalogItem

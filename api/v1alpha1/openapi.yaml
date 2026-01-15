@@ -181,102 +181,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-    patch:
-      operationId: updateServiceType
-      summary: Update a service type
-      description: |
-        Updates specific fields of a service type using JSON Merge Patch (RFC 7396).
-
-        Only the fields provided in the request body are updated; omitted fields
-        are preserved. Note that service_type and schema_version are immutable
-        after creation.
-      parameters:
-        - name: service_type_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Unique identifier for the service type
-
-      requestBody:
-        required: true
-        content:
-          application/merge-patch+json:
-            schema:
-              $ref: '#/components/schemas/ServiceType'
-
-      responses:
-        '200':
-          description: Service type updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceType'
-
-        '400':
-          description: Invalid update request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-    delete:
-      operationId: deleteServiceType
-      summary: Delete a service type
-      description: |
-        Deletes a service type.
-
-        By default, deletion fails if catalog items still reference this service type.
-        Use force=true to cascade delete all child catalog items.
-      parameters:
-        - name: service_type_id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Unique identifier for the service type
-
-        - name: force
-          in: query
-          required: false
-          schema:
-            type: boolean
-            default: false
-          description: |
-            If true, cascade delete all child catalog items.
-            If false (default), fails if catalog items exist.
-
-      responses:
-        '204':
-          description: Service type deleted successfully
-
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-        '409':
-          $ref: '#/components/responses/FailedPrecondition'
-
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
   /service-types/{service_type_id}/catalog-items:
     get:
       operationId: listCatalogItems
@@ -1020,19 +924,6 @@ components:
             title: Resource already exists
             detail: ServiceType with id 'vm-standard' already exists
             instance: 0c67gh6h-7e96-75ce-e3h8-e1g683hf498h
-
-    FailedPrecondition:
-      description: Failed Precondition
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            type: FAILED_PRECONDITION
-            status: 409
-            title: Operation failed precondition
-            detail: Cannot delete ServiceType with existing CatalogItems (use force=true to cascade)
-            instance: 1d78hi7i-8f07-86df-f4i9-f2h794ig509i
 
     InternalServerError:
       description: Internal Server Error

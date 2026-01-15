@@ -101,16 +101,8 @@ type ClientInterface interface {
 
 	CreateServiceType(ctx context.Context, params *CreateServiceTypeParams, body CreateServiceTypeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteServiceType request
-	DeleteServiceType(ctx context.Context, serviceTypeId string, params *DeleteServiceTypeParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetServiceType request
 	GetServiceType(ctx context.Context, serviceTypeId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UpdateServiceTypeWithBody request with any body
-	UpdateServiceTypeWithBody(ctx context.Context, serviceTypeId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	UpdateServiceTypeWithApplicationMergePatchPlusJSONBody(ctx context.Context, serviceTypeId string, body UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListCatalogItems request
 	ListCatalogItems(ctx context.Context, serviceTypeId string, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -180,44 +172,8 @@ func (c *Client) CreateServiceType(ctx context.Context, params *CreateServiceTyp
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteServiceType(ctx context.Context, serviceTypeId string, params *DeleteServiceTypeParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteServiceTypeRequest(c.Server, serviceTypeId, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) GetServiceType(ctx context.Context, serviceTypeId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetServiceTypeRequest(c.Server, serviceTypeId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UpdateServiceTypeWithBody(ctx context.Context, serviceTypeId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateServiceTypeRequestWithBody(c.Server, serviceTypeId, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UpdateServiceTypeWithApplicationMergePatchPlusJSONBody(ctx context.Context, serviceTypeId string, body UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateServiceTypeRequestWithApplicationMergePatchPlusJSONBody(c.Server, serviceTypeId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -466,62 +422,6 @@ func NewCreateServiceTypeRequestWithBody(server string, params *CreateServiceTyp
 	return req, nil
 }
 
-// NewDeleteServiceTypeRequest generates requests for DeleteServiceType
-func NewDeleteServiceTypeRequest(server string, serviceTypeId string, params *DeleteServiceTypeParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service_type_id", runtime.ParamLocationPath, serviceTypeId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/service-types/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.Force != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "force", runtime.ParamLocationQuery, *params.Force); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewGetServiceTypeRequest generates requests for GetServiceType
 func NewGetServiceTypeRequest(server string, serviceTypeId string) (*http.Request, error) {
 	var err error
@@ -552,53 +452,6 @@ func NewGetServiceTypeRequest(server string, serviceTypeId string) (*http.Reques
 	if err != nil {
 		return nil, err
 	}
-
-	return req, nil
-}
-
-// NewUpdateServiceTypeRequestWithApplicationMergePatchPlusJSONBody calls the generic UpdateServiceType builder with application/merge-patch+json body
-func NewUpdateServiceTypeRequestWithApplicationMergePatchPlusJSONBody(server string, serviceTypeId string, body UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUpdateServiceTypeRequestWithBody(server, serviceTypeId, "application/merge-patch+json", bodyReader)
-}
-
-// NewUpdateServiceTypeRequestWithBody generates requests for UpdateServiceType with any type of body
-func NewUpdateServiceTypeRequestWithBody(server string, serviceTypeId string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "service_type_id", runtime.ParamLocationPath, serviceTypeId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/service-types/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PATCH", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -934,16 +787,8 @@ type ClientWithResponsesInterface interface {
 
 	CreateServiceTypeWithResponse(ctx context.Context, params *CreateServiceTypeParams, body CreateServiceTypeJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateServiceTypeResponse, error)
 
-	// DeleteServiceTypeWithResponse request
-	DeleteServiceTypeWithResponse(ctx context.Context, serviceTypeId string, params *DeleteServiceTypeParams, reqEditors ...RequestEditorFn) (*DeleteServiceTypeResponse, error)
-
 	// GetServiceTypeWithResponse request
 	GetServiceTypeWithResponse(ctx context.Context, serviceTypeId string, reqEditors ...RequestEditorFn) (*GetServiceTypeResponse, error)
-
-	// UpdateServiceTypeWithBodyWithResponse request with any body
-	UpdateServiceTypeWithBodyWithResponse(ctx context.Context, serviceTypeId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateServiceTypeResponse, error)
-
-	UpdateServiceTypeWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, serviceTypeId string, body UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateServiceTypeResponse, error)
 
 	// ListCatalogItemsWithResponse request
 	ListCatalogItemsWithResponse(ctx context.Context, serviceTypeId string, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*ListCatalogItemsResponse, error)
@@ -1040,32 +885,6 @@ func (r CreateServiceTypeResponse) StatusCode() int {
 	return 0
 }
 
-type DeleteServiceTypeResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON401      *Unauthorized
-	JSON403      *Forbidden
-	JSON404      *NotFound
-	JSON409      *FailedPrecondition
-	JSON500      *InternalServerError
-}
-
-// Status returns HTTPResponse.Status
-func (r DeleteServiceTypeResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DeleteServiceTypeResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetServiceTypeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1086,33 +905,6 @@ func (r GetServiceTypeResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetServiceTypeResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UpdateServiceTypeResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *ServiceType
-	JSON400      *Error
-	JSON401      *Unauthorized
-	JSON403      *Forbidden
-	JSON404      *NotFound
-	JSON500      *InternalServerError
-}
-
-// Status returns HTTPResponse.Status
-func (r UpdateServiceTypeResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UpdateServiceTypeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1286,15 +1078,6 @@ func (c *ClientWithResponses) CreateServiceTypeWithResponse(ctx context.Context,
 	return ParseCreateServiceTypeResponse(rsp)
 }
 
-// DeleteServiceTypeWithResponse request returning *DeleteServiceTypeResponse
-func (c *ClientWithResponses) DeleteServiceTypeWithResponse(ctx context.Context, serviceTypeId string, params *DeleteServiceTypeParams, reqEditors ...RequestEditorFn) (*DeleteServiceTypeResponse, error) {
-	rsp, err := c.DeleteServiceType(ctx, serviceTypeId, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeleteServiceTypeResponse(rsp)
-}
-
 // GetServiceTypeWithResponse request returning *GetServiceTypeResponse
 func (c *ClientWithResponses) GetServiceTypeWithResponse(ctx context.Context, serviceTypeId string, reqEditors ...RequestEditorFn) (*GetServiceTypeResponse, error) {
 	rsp, err := c.GetServiceType(ctx, serviceTypeId, reqEditors...)
@@ -1302,23 +1085,6 @@ func (c *ClientWithResponses) GetServiceTypeWithResponse(ctx context.Context, se
 		return nil, err
 	}
 	return ParseGetServiceTypeResponse(rsp)
-}
-
-// UpdateServiceTypeWithBodyWithResponse request with arbitrary body returning *UpdateServiceTypeResponse
-func (c *ClientWithResponses) UpdateServiceTypeWithBodyWithResponse(ctx context.Context, serviceTypeId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateServiceTypeResponse, error) {
-	rsp, err := c.UpdateServiceTypeWithBody(ctx, serviceTypeId, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUpdateServiceTypeResponse(rsp)
-}
-
-func (c *ClientWithResponses) UpdateServiceTypeWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, serviceTypeId string, body UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateServiceTypeResponse, error) {
-	rsp, err := c.UpdateServiceTypeWithApplicationMergePatchPlusJSONBody(ctx, serviceTypeId, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUpdateServiceTypeResponse(rsp)
 }
 
 // ListCatalogItemsWithResponse request returning *ListCatalogItemsResponse
@@ -1523,60 +1289,6 @@ func ParseCreateServiceTypeResponse(rsp *http.Response) (*CreateServiceTypeRespo
 	return response, nil
 }
 
-// ParseDeleteServiceTypeResponse parses an HTTP response from a DeleteServiceTypeWithResponse call
-func ParseDeleteServiceTypeResponse(rsp *http.Response) (*DeleteServiceTypeResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DeleteServiceTypeResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest Unauthorized
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest Forbidden
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest NotFound
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest FailedPrecondition
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON409 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest InternalServerError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseGetServiceTypeResponse parses an HTTP response from a GetServiceTypeWithResponse call
 func ParseGetServiceTypeResponse(rsp *http.Response) (*GetServiceTypeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -1597,67 +1309,6 @@ func ParseGetServiceTypeResponse(rsp *http.Response) (*GetServiceTypeResponse, e
 			return nil, err
 		}
 		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest Unauthorized
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest Forbidden
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest NotFound
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest InternalServerError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUpdateServiceTypeResponse parses an HTTP response from a UpdateServiceTypeWithResponse call
-func ParseUpdateServiceTypeResponse(rsp *http.Response) (*UpdateServiceTypeResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UpdateServiceTypeResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ServiceType
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest Unauthorized
