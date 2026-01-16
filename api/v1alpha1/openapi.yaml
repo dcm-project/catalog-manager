@@ -482,18 +482,7 @@ components:
 
         metadata:
           type: object
-          required:
-            - name
           properties:
-            name:
-              type: string
-              maxLength: 253
-              pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
-              description: |
-                Unique name identifier within the service type namespace.
-                Must follow DNS-1123 label format.
-              example: standard-vm-01
-
             labels:
               type: object
               additionalProperties:
@@ -502,25 +491,7 @@ components:
                 Key-value pairs for categorization and filtering.
                 Both keys and values are strings.
               example:
-                environment: production
-                tier: standard
-                region: us-west-2
-
-        provider_hints:
-          type: object
-          additionalProperties: true
-          description: |
-            Optional provider-specific configuration hints.
-            This is an opaque dictionary keyed by provider identifier.
-            Providers acknowledge hints they recognize and ignore others,
-            enabling portability across multiple platforms.
-          example:
-            aws:
-              instance_type: t3.medium
-              ami: ami-0abcdef1234567890
-            gcp:
-              machine_type: n1-standard-2
-              boot_disk_type: pd-standard
+                category: networking
 
         spec:
           type: object

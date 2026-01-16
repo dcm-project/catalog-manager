@@ -175,21 +175,11 @@ type ServiceType struct {
 		// Labels Key-value pairs for categorization and filtering.
 		// Both keys and values are strings.
 		Labels *map[string]string `json:"labels,omitempty"`
-
-		// Name Unique name identifier within the service type namespace.
-		// Must follow DNS-1123 label format.
-		Name string `json:"name"`
 	} `json:"metadata"`
 
 	// Path Resource path in the format: service-types/{serviceTypeId}
 	// This is the canonical identifier for the resource.
 	Path *string `json:"path,omitempty"`
-
-	// ProviderHints Optional provider-specific configuration hints.
-	// This is an opaque dictionary keyed by provider identifier.
-	// Providers acknowledge hints they recognize and ignore others,
-	// enabling portability across multiple platforms.
-	ProviderHints *map[string]interface{} `json:"provider_hints,omitempty"`
 
 	// SchemaVersion Version of the service type schema (e.g., v1alpha1, v1beta1, v1).
 	// Immutable after creation.
