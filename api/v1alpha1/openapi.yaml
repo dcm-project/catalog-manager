@@ -178,6 +178,7 @@ paths:
       summary: List catalog items
       description: |
         Retrieves a paginated list of catalog items.
+        Supports filtering by service type.
       parameters:
         - name: page_token
           in: query
@@ -196,6 +197,16 @@ paths:
             maximum: 1000
             default: 100
           description: Maximum number of items to return per page
+
+        - name: service_type
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |
+            Filter catalog items by service type.
+            Only returns items where spec.service_type matches this value.
+          example: vm
 
       responses:
         '200':

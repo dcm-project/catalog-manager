@@ -251,6 +251,10 @@ type ListCatalogItemsParams struct {
 
 	// MaxPageSize Maximum number of items to return per page
 	MaxPageSize *int32 `form:"max_page_size,omitempty" json:"max_page_size,omitempty"`
+
+	// ServiceType Filter catalog items by service type.
+	// Only returns items where spec.service_type matches this value.
+	ServiceType *string `form:"service_type,omitempty" json:"service_type,omitempty"`
 }
 
 // CreateCatalogItemParams defines parameters for CreateCatalogItem.
