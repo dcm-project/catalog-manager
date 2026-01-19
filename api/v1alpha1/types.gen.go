@@ -48,22 +48,14 @@ type CatalogItem struct {
 	// in the service type specification.
 	Fields []FieldConfiguration `json:"fields"`
 
-	// Parent Path to the parent ServiceType resource.
-	// Format: service-types/{serviceTypeId}
-	// Immutable after creation.
-	Parent *string `json:"parent,omitempty"`
-
-	// Path Resource path in the format:
-	// service-types/{serviceTypeId}/catalog-items/{catalogItemId}
+	// Path Resource path in the format: catalog-items/{catalogItemId}
 	Path *string `json:"path,omitempty"`
 
 	// SchemaVersion Version of the ServiceType schema this catalog item references.
-	// Should match the parent ServiceType's schema_version.
 	// Immutable after creation.
 	SchemaVersion string `json:"schema_version"`
 
-	// ServiceType Service classification.
-	// Must match the parent ServiceType's service_type field.
+	// ServiceType The Service type this catalog item references.
 	// Immutable after creation.
 	ServiceType string `json:"service_type"`
 
@@ -240,6 +232,21 @@ type NotFound = Error
 // and AEP-193 Error Responses specification.
 type Unauthorized = Error
 
+// ListCatalogItemsParams defines parameters for ListCatalogItems.
+type ListCatalogItemsParams struct {
+	// PageToken Token for retrieving the next page of results
+	PageToken *string `form:"page_token,omitempty" json:"page_token,omitempty"`
+
+	// MaxPageSize Maximum number of items to return per page
+	MaxPageSize *int32 `form:"max_page_size,omitempty" json:"max_page_size,omitempty"`
+}
+
+// CreateCatalogItemParams defines parameters for CreateCatalogItem.
+type CreateCatalogItemParams struct {
+	// Id Optional user-specified catalog item ID
+	Id *string `form:"id,omitempty" json:"id,omitempty"`
+}
+
 // ListServiceTypesParams defines parameters for ListServiceTypes.
 type ListServiceTypesParams struct {
 	// PageToken Token for retrieving the next page of results.
@@ -259,26 +266,11 @@ type CreateServiceTypeParams struct {
 	Id *string `form:"id,omitempty" json:"id,omitempty"`
 }
 
-// ListCatalogItemsParams defines parameters for ListCatalogItems.
-type ListCatalogItemsParams struct {
-	// PageToken Token for retrieving the next page of results
-	PageToken *string `form:"page_token,omitempty" json:"page_token,omitempty"`
-
-	// MaxPageSize Maximum number of items to return per page
-	MaxPageSize *int32 `form:"max_page_size,omitempty" json:"max_page_size,omitempty"`
-}
-
-// CreateCatalogItemParams defines parameters for CreateCatalogItem.
-type CreateCatalogItemParams struct {
-	// Id Optional user-specified catalog item ID
-	Id *string `form:"id,omitempty" json:"id,omitempty"`
-}
-
-// CreateServiceTypeJSONRequestBody defines body for CreateServiceType for application/json ContentType.
-type CreateServiceTypeJSONRequestBody = ServiceType
-
 // CreateCatalogItemJSONRequestBody defines body for CreateCatalogItem for application/json ContentType.
 type CreateCatalogItemJSONRequestBody = CatalogItem
 
 // UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody defines body for UpdateCatalogItem for application/merge-patch+json ContentType.
 type UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody = CatalogItem
+
+// CreateServiceTypeJSONRequestBody defines body for CreateServiceType for application/json ContentType.
+type CreateServiceTypeJSONRequestBody = ServiceType
