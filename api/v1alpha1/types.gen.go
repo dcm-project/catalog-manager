@@ -41,23 +41,14 @@ type CatalogItem struct {
 
 	// DisplayName User-friendly display name for the catalog item.
 	// Mutable and does not need to be unique.
-	DisplayName *string `json:"display_name,omitempty"`
-
-	// Fields Array of field configurations for this catalog item.
-	// Each configuration defines constraints and defaults for fields
-	// in the service type specification.
-	Fields []FieldConfiguration `json:"fields"`
+	DisplayName string `json:"display_name"`
 
 	// Path Resource path in the format: catalog-items/{catalogItemId}
 	Path *string `json:"path,omitempty"`
 
-	// ServiceType The Service type this catalog item references.
-	// Immutable after creation.
-	ServiceType string `json:"service_type"`
-
-	// ServiceTypeVersion Version of the ServiceType this catalog item references.
-	// Immutable after creation.
-	ServiceTypeVersion *string `json:"service_type_version,omitempty"`
+	// Spec Specification for a catalog item, defining the service type reference
+	// and field configurations.
+	Spec CatalogItemSpec `json:"spec"`
 
 	// Uid System-assigned unique identifier (UUID4)
 	Uid *openapi_types.UUID `json:"uid,omitempty"`
@@ -67,7 +58,24 @@ type CatalogItem struct {
 
 	// Version Version of this catalog item.
 	// Immutable after creation.
-	Version *string `json:"version,omitempty"`
+	Version string `json:"version"`
+}
+
+// CatalogItemSpec Specification for a catalog item, defining the service type reference
+// and field configurations.
+type CatalogItemSpec struct {
+	// Fields Array of field configurations for this catalog item.
+	// Each configuration defines constraints and defaults for fields
+	// in the service type specification.
+	Fields []FieldConfiguration `json:"fields"`
+
+	// ServiceType The Service type this catalog item references.
+	// Immutable after creation.
+	ServiceType string `json:"service_type"`
+
+	// ServiceTypeVersion Version of the ServiceType this catalog item references.
+	// Immutable after creation.
+	ServiceTypeVersion string `json:"service_type_version"`
 }
 
 // Error Error response following RFC 7807 Problem Details for HTTP APIs
