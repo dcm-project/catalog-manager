@@ -568,6 +568,14 @@ components:
             Immutable after creation.
           example: v1alpha1
 
+        version:
+          type: string
+          pattern: '^v[0-9]+[a-z]+[0-9]+$'
+          description: |
+            Version of this catalog item.
+            Immutable after creation.
+          example: v1alpha1
+
         service_type:
           type: string
           description: |
@@ -575,11 +583,11 @@ components:
             Immutable after creation.
           example: vm
 
-        schema_version:
+        service_type_version:
           type: string
           pattern: '^v[0-9]+[a-z]+[0-9]+$'
           description: |
-            Version of the ServiceType schema this catalog item references.
+            Version of the ServiceType this catalog item references.
             Immutable after creation.
           example: v1alpha1
 

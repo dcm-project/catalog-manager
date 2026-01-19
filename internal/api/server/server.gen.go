@@ -58,19 +58,23 @@ type CatalogItem struct {
 	// Path Resource path in the format: catalog-items/{catalogItemId}
 	Path *string `json:"path,omitempty"`
 
-	// SchemaVersion Version of the ServiceType schema this catalog item references.
-	// Immutable after creation.
-	SchemaVersion string `json:"schema_version"`
-
 	// ServiceType The Service type this catalog item references.
 	// Immutable after creation.
 	ServiceType string `json:"service_type"`
+
+	// ServiceTypeVersion Version of the ServiceType this catalog item references.
+	// Immutable after creation.
+	ServiceTypeVersion *string `json:"service_type_version,omitempty"`
 
 	// Uid System-assigned unique identifier (UUID4)
 	Uid *openapi_types.UUID `json:"uid,omitempty"`
 
 	// UpdateTime Timestamp when the catalog item was last modified (RFC 3339)
 	UpdateTime *time.Time `json:"update_time,omitempty"`
+
+	// Version Version of this catalog item.
+	// Immutable after creation.
+	Version *string `json:"version,omitempty"`
 }
 
 // Error Error response following RFC 7807 Problem Details for HTTP APIs
