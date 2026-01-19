@@ -255,6 +255,10 @@ type ListCatalogItemsParams struct {
 	// ServiceType Filter catalog items by service type.
 	// Only returns items where spec.service_type matches this value.
 	ServiceType *string `form:"service_type,omitempty" json:"service_type,omitempty"`
+
+	// ShowDeleted If true, soft-deleted catalog items are included in the response.
+	// If false (default), soft-deleted items are excluded.
+	ShowDeleted *bool `form:"show_deleted,omitempty" json:"show_deleted,omitempty"`
 }
 
 // CreateCatalogItemParams defines parameters for CreateCatalogItem.

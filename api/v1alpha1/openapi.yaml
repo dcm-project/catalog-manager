@@ -208,6 +208,16 @@ paths:
             Only returns items where spec.service_type matches this value.
           example: vm
 
+        - name: show_deleted
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: |
+            If true, soft-deleted catalog items are included in the response.
+            If false (default), soft-deleted items are excluded.
+
       responses:
         '200':
           description: Successful response
