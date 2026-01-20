@@ -208,16 +208,6 @@ paths:
             Only returns items where spec.service_type matches this value.
           example: vm
 
-        - name: show_deleted
-          in: query
-          required: false
-          schema:
-            type: boolean
-            default: false
-          description: |
-            If true, soft-deleted catalog items are included in the response.
-            If false (default), soft-deleted items are excluded.
-
       responses:
         '200':
           description: Successful response
@@ -458,15 +448,6 @@ components:
             Mutable and does not need to be unique.
           example: Standard Virtual Machine
 
-        delete_time:
-          type: string
-          format: date-time
-          readOnly: true
-          nullable: true
-          description: |
-            Timestamp when the resource was soft deleted (RFC 3339).
-            Only set for soft-deleted resources.
-
         service_type:
           type: string
           description: |
@@ -590,15 +571,6 @@ components:
           readOnly: true
           description: Timestamp when the catalog item was last modified (RFC 3339)
           example: '2026-01-13T15:10:00Z'
-
-        delete_time:
-          type: string
-          format: date-time
-          readOnly: true
-          nullable: true
-          description: |
-            Timestamp when the resource was soft deleted (RFC 3339).
-            Only set for soft-deleted resources.
 
     CatalogItemSpec:
       type: object

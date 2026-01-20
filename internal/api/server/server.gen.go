@@ -42,10 +42,6 @@ type CatalogItem struct {
 	// CreateTime Timestamp when the catalog item was created (RFC 3339)
 	CreateTime *time.Time `json:"create_time,omitempty"`
 
-	// DeleteTime Timestamp when the resource was soft deleted (RFC 3339).
-	// Only set for soft-deleted resources.
-	DeleteTime *time.Time `json:"delete_time"`
-
 	// DisplayName User-friendly display name for the catalog item.
 	// Mutable and does not need to be unique.
 	DisplayName string `json:"display_name"`
@@ -175,10 +171,6 @@ type ServiceType struct {
 	// CreateTime Timestamp when the resource was created (RFC 3339)
 	CreateTime *time.Time `json:"create_time,omitempty"`
 
-	// DeleteTime Timestamp when the resource was soft deleted (RFC 3339).
-	// Only set for soft-deleted resources.
-	DeleteTime *time.Time `json:"delete_time"`
-
 	// DisplayName User-friendly display name for the service type.
 	// Mutable and does not need to be unique.
 	DisplayName *string `json:"display_name,omitempty"`
@@ -262,10 +254,6 @@ type ListCatalogItemsParams struct {
 	// ServiceType Filter catalog items by service type.
 	// Only returns items where spec.service_type matches this value.
 	ServiceType *string `form:"service_type,omitempty" json:"service_type,omitempty"`
-
-	// ShowDeleted If true, soft-deleted catalog items are included in the response.
-	// If false (default), soft-deleted items are excluded.
-	ShowDeleted *bool `form:"show_deleted,omitempty" json:"show_deleted,omitempty"`
 }
 
 // CreateCatalogItemParams defines parameters for CreateCatalogItem.
@@ -429,14 +417,6 @@ func (siw *ServerInterfaceWrapper) ListCatalogItems(w http.ResponseWriter, r *ht
 	err = runtime.BindQueryParameter("form", true, false, "service_type", r.URL.Query(), &params.ServiceType)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_type", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "show_deleted" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "show_deleted", r.URL.Query(), &params.ShowDeleted)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "show_deleted", Err: err})
 		return
 	}
 
