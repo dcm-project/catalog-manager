@@ -161,25 +161,21 @@ type ListServiceTypesResponse struct {
 
 // ServiceType defines model for ServiceType.
 type ServiceType struct {
+	// ApiVersion Version of the service type schema (e.g., v1alpha1, v1beta1, v1).
+	// Immutable after creation.
+	ApiVersion string `json:"api_version"`
+
 	// CreateTime Timestamp when the resource was created (RFC 3339)
 	CreateTime *time.Time `json:"create_time,omitempty"`
-
-	// DisplayName User-friendly display name for the service type.
-	// Mutable and does not need to be unique.
-	DisplayName *string `json:"display_name,omitempty"`
-	Metadata    struct {
+	Metadata   *struct {
 		// Labels Key-value pairs for categorization and filtering.
 		// Both keys and values are strings.
 		Labels *map[string]string `json:"labels,omitempty"`
-	} `json:"metadata"`
+	} `json:"metadata,omitempty"`
 
 	// Path Resource path in the format: service-types/{serviceTypeId}
 	// This is the canonical identifier for the resource.
 	Path *string `json:"path,omitempty"`
-
-	// SchemaVersion Version of the service type schema (e.g., v1alpha1, v1beta1, v1).
-	// Immutable after creation.
-	SchemaVersion string `json:"schema_version"`
 
 	// ServiceType Classification of the service type.
 	// Common values include: vm, container, database, cluster.
@@ -198,12 +194,15 @@ type ServiceType struct {
 	// The structure varies based on the service_type and schema_version.
 	Spec map[string]interface{} `json:"spec"`
 
-	// Uid System-assigned unique identifier (UUID4).
-	// Globally unique across all resources.
+	// Uid System-assigned unique identifier (UUID4)
 	Uid *openapi_types.UUID `json:"uid,omitempty"`
 
 	// UpdateTime Timestamp when the resource was last modified (RFC 3339)
 	UpdateTime *time.Time `json:"update_time,omitempty"`
+
+	// Version Version of this service type
+	// Immutable after creation.
+	Version string `json:"version"`
 }
 
 // CatalogItemIdPath defines model for CatalogItemIdPath.

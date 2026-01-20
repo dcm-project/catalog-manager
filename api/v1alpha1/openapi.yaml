@@ -404,49 +404,25 @@ components:
         patterns:
           - service-types/{service_type_id}
       required:
+        - api_version
         - service_type
-        - schema_version
-        - metadata
+        - version
         - spec
       properties:
-        path:
-          type: string
-          readOnly: true
-          description: |
-            Resource path in the format: service-types/{serviceTypeId}
-            This is the canonical identifier for the resource.
-          example: service-types/vm-standard
-
         uid:
           type: string
           format: uuid
           readOnly: true
+          description: System-assigned unique identifier (UUID4)
+          example: 650e8400-e29b-41d4-a716-446655440001
+
+        api_version:
+          type: string
+          pattern: '^v[0-9]+[a-z]+[0-9]+$'
           description: |
-            System-assigned unique identifier (UUID4).
-            Globally unique across all resources.
-          example: 550e8400-e29b-41d4-a716-446655440000
-
-        create_time:
-          type: string
-          format: date-time
-          readOnly: true
-          description: Timestamp when the resource was created (RFC 3339)
-          example: '2026-01-13T10:30:00Z'
-
-        update_time:
-          type: string
-          format: date-time
-          readOnly: true
-          description: Timestamp when the resource was last modified (RFC 3339)
-          example: '2026-01-13T12:45:00Z'
-
-        display_name:
-          type: string
-          maxLength: 63
-          description: |
-            User-friendly display name for the service type.
-            Mutable and does not need to be unique.
-          example: Standard Virtual Machine
+            Version of the service type schema (e.g., v1alpha1, v1beta1, v1).
+            Immutable after creation.
+          example: v1alpha1
 
         service_type:
           type: string
@@ -456,11 +432,11 @@ components:
             Administrators may define custom types beyond these.
           example: vm
 
-        schema_version:
+        version:
           type: string
           pattern: '^v[0-9]+[a-z]+[0-9]+$'
           description: |
-            Version of the service type schema (e.g., v1alpha1, v1beta1, v1).
+            Version of this service type
             Immutable after creation.
           example: v1alpha1
 
@@ -502,6 +478,28 @@ components:
                 - name: boot
                   capacity_gb: 50
                   type: ssd
+
+        path:
+          type: string
+          readOnly: true
+          description: |
+            Resource path in the format: service-types/{serviceTypeId}
+            This is the canonical identifier for the resource.
+          example: service-types/vm-standard
+
+        create_time:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Timestamp when the resource was created (RFC 3339)
+          example: '2026-01-13T10:30:00Z'
+
+        update_time:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Timestamp when the resource was last modified (RFC 3339)
+          example: '2026-01-13T12:45:00Z'
 
     CatalogItem:
       type: object
