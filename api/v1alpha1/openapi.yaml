@@ -441,11 +441,11 @@ components:
 
         version:
           type: string
-          pattern: '^v[0-9]+[a-z]+[0-9]+$'
+          pattern: '^\d+(\.\d+)?$'
           description: |
             Version of this service type
             Immutable after creation.
-          example: v1alpha1
+          example: "0.1"
 
         metadata:
           type: object
@@ -555,11 +555,11 @@ components:
 
         version:
           type: string
-          pattern: '^v[0-9]+[a-z]+[0-9]+$'
+          pattern: '^\d+(\.\d+)?$'
           description: |
             Version of this catalog item.
             Immutable after creation.
-          example: v1alpha1
+          example: "1.5"
 
         spec:
           $ref: '#/components/schemas/CatalogItemSpec'
