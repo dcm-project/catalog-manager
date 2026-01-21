@@ -382,7 +382,7 @@ components:
       required: true
       schema:
         type: string
-        pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+        pattern: '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
       description: Unique identifier for the service type
       example: vm
     CatalogItemIdPath:
@@ -391,7 +391,7 @@ components:
       required: true
       schema:
         type: string
-        pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+        pattern: '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
       description: Unique identifier for the catalog item
       example: small-vm
   schemas:
@@ -489,6 +489,7 @@ components:
         path:
           type: string
           readOnly: true
+          pattern: '^service-types/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
           description: |
             Resource path in the format: service-types/{serviceTypeId}
             This is the canonical identifier for the resource.
@@ -566,6 +567,7 @@ components:
         path:
           type: string
           readOnly: true
+          pattern: '^catalog-items/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
           description: |
             Resource path in the format: catalog-items/{catalogItemId}
           example: catalog-items/small-vm
