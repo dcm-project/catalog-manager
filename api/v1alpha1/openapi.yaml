@@ -102,7 +102,7 @@ paths:
           required: false
           schema:
             type: string
-            pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+            pattern: '^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$'
           description: |
             Optional user-specified ID for the service type.
             Must follow DNS-1123 label format (lowercase alphanumeric with hyphens).
@@ -238,7 +238,7 @@ paths:
           required: false
           schema:
             type: string
-            pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+            pattern: '^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$'
           description: Optional user-specified catalog item ID
           example: small-vm
 
@@ -411,9 +411,16 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
+          description: |
+            Unique identifier for the service type. This field is output-only and
+            immutable after creation. The ID can be optionally specified via
+            query parameter on creation; if not provided, the server generates a UUID.
+
+            Follows AEP-122 resource ID conventions.
           readOnly: true
-          description: System-assigned unique identifier (UUID4)
+          pattern: '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
+          minLength: 1
+          maxLength: 63
           example: 650e8400-e29b-41d4-a716-446655440001
 
         api_version:
@@ -517,9 +524,16 @@ components:
       properties:
         uid:
           type: string
-          format: uuid
+          description: |
+            Unique identifier for the catalog item. This field is output-only and
+            immutable after creation. The ID can be optionally specified via
+            query parameter on creation; if not provided, the server generates a UUID.
+
+            Follows AEP-122 resource ID conventions.
           readOnly: true
-          description: System-assigned unique identifier (UUID4)
+          pattern: '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
+          minLength: 1
+          maxLength: 63
           example: 650e8400-e29b-41d4-a716-446655440001
 
         api_version:

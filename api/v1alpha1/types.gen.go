@@ -5,8 +5,6 @@ package v1alpha1
 
 import (
 	"time"
-
-	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Defines values for ErrorType.
@@ -46,8 +44,12 @@ type CatalogItem struct {
 	// and field configurations.
 	Spec CatalogItemSpec `json:"spec"`
 
-	// Uid System-assigned unique identifier (UUID4)
-	Uid *openapi_types.UUID `json:"uid,omitempty"`
+	// Uid Unique identifier for the catalog item. This field is output-only and
+	// immutable after creation. The ID can be optionally specified via
+	// query parameter on creation; if not provided, the server generates a UUID.
+	//
+	// Follows AEP-122 resource ID conventions.
+	Uid *string `json:"uid,omitempty"`
 
 	// UpdateTime Timestamp when the catalog item was last modified (RFC 3339)
 	UpdateTime *time.Time `json:"update_time,omitempty"`
@@ -194,8 +196,12 @@ type ServiceType struct {
 	// The structure varies based on the service_type and schema_version.
 	Spec map[string]interface{} `json:"spec"`
 
-	// Uid System-assigned unique identifier (UUID4)
-	Uid *openapi_types.UUID `json:"uid,omitempty"`
+	// Uid Unique identifier for the service type. This field is output-only and
+	// immutable after creation. The ID can be optionally specified via
+	// query parameter on creation; if not provided, the server generates a UUID.
+	//
+	// Follows AEP-122 resource ID conventions.
+	Uid *string `json:"uid,omitempty"`
 
 	// UpdateTime Timestamp when the resource was last modified (RFC 3339)
 	UpdateTime *time.Time `json:"update_time,omitempty"`
