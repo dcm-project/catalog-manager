@@ -1,0 +1,107 @@
+openapi: 3.0.4
+
+info:
+  title: DCM Common Schema Fields
+  description: |
+    Common fields shared by all DCM service type specifications
+    (VM, Container, Database, Cluster).
+
+    These fields provide:
+    - Schema versioning for evolution
+    - Metadata for governance and tagging
+    - Provider hints for platform-specific configuration
+  version: v1alpha1
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+paths: {}
+
+components:
+  schemas:
+    ServiceMetadata:
+      type: object
+      description: |
+        Resource metadata for identification and governance.
+        Used by all service type specifications.
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: |
+            Resource name identifier.
+            Must be unique within the namespace.
+          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          minLength: 1
+          maxLength: 63
+          example: my-dev-vm
+
+        labels:
+          type: object
+          description: |
+            Key-value pairs for tagging and filtering.
+            Both keys and values must be strings.
+          additionalProperties:
+            type: string
+          example:
+            environment: production
+            owner: platform-team
+
+    ProviderHints:
+      type: object
+      description: |
+        Optional provider-specific configuration.
+
+        Allows platform-specific settings without breaking portability.
+        Providers use hints they recognize and ignore unknown hints.
+
+        Keys are provider identifiers (e.g., kubevirt, vmware, aws).
+        Values are provider-specific configuration objects.
+      additionalProperties:
+        type: object
+        additionalProperties: true
+      example:
+        kubevirt:
+          instanceType: u1.large
+        vmware:
+          vmxVersion: "17"
+        aws:
+          instanceType: t3.xlarge
+
+    CommonFields:
+      type: object
+      description: |
+        Common fields included in all service type specifications.
+        These provide versioning, extensibility, and provider-specific configuration.
+      required:
+        - serviceType
+        - schemaVersion
+        - metadata
+      properties:
+        serviceType:
+          type: string
+          description: |
+            Service type identifier.
+            Makes the payload self-describing and enables routing/validation.
+          enum:
+            - vm
+            - container
+            - database
+            - cluster
+          example: vm
+
+        schemaVersion:
+          type: string
+          description: |
+            Schema version identifier.
+            Enables schema evolution with backward compatibility.
+            Providers use this to determine which translation logic to apply.
+          pattern: '^v[0-9]+(alpha|beta)?[0-9]*$'
+          example: v1alpha1
+
+        metadata:
+          $ref: '#/components/schemas/ServiceMetadata'
+
+        providerHints:
+          $ref: '#/components/schemas/ProviderHints'
