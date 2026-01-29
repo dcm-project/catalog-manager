@@ -17,6 +17,18 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// List catalog item instances
+	// (GET /catalog-item-instances)
+	ListCatalogItemInstances(w http.ResponseWriter, r *http.Request, params ListCatalogItemInstancesParams)
+	// Create a catalog item instance
+	// (POST /catalog-item-instances)
+	CreateCatalogItemInstance(w http.ResponseWriter, r *http.Request, params CreateCatalogItemInstanceParams)
+	// Delete a catalog item instance
+	// (DELETE /catalog-item-instances/{catalogItemInstanceId})
+	DeleteCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath)
+	// Get a catalog item instance
+	// (GET /catalog-item-instances/{catalogItemInstanceId})
+	GetCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath)
 	// List catalog items
 	// (GET /catalog-items)
 	ListCatalogItems(w http.ResponseWriter, r *http.Request, params ListCatalogItemsParams)
@@ -49,6 +61,30 @@ type ServerInterface interface {
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
+
+// List catalog item instances
+// (GET /catalog-item-instances)
+func (_ Unimplemented) ListCatalogItemInstances(w http.ResponseWriter, r *http.Request, params ListCatalogItemInstancesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create a catalog item instance
+// (POST /catalog-item-instances)
+func (_ Unimplemented) CreateCatalogItemInstance(w http.ResponseWriter, r *http.Request, params CreateCatalogItemInstanceParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete a catalog item instance
+// (DELETE /catalog-item-instances/{catalogItemInstanceId})
+func (_ Unimplemented) DeleteCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get a catalog item instance
+// (GET /catalog-item-instances/{catalogItemInstanceId})
+func (_ Unimplemented) GetCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
 
 // List catalog items
 // (GET /catalog-items)
@@ -112,6 +148,126 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// ListCatalogItemInstances operation middleware
+func (siw *ServerInterfaceWrapper) ListCatalogItemInstances(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListCatalogItemInstancesParams
+
+	// ------------- Optional query parameter "page_token" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page_token", r.URL.Query(), &params.PageToken)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page_token", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "max_page_size" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "max_page_size", r.URL.Query(), &params.MaxPageSize)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "max_page_size", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "catalog_item_id" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "catalog_item_id", r.URL.Query(), &params.CatalogItemId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalog_item_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListCatalogItemInstances(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateCatalogItemInstance operation middleware
+func (siw *ServerInterfaceWrapper) CreateCatalogItemInstance(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateCatalogItemInstanceParams
+
+	// ------------- Optional query parameter "id" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "id", r.URL.Query(), &params.Id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateCatalogItemInstance(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteCatalogItemInstance operation middleware
+func (siw *ServerInterfaceWrapper) DeleteCatalogItemInstance(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "catalogItemInstanceId" -------------
+	var catalogItemInstanceId CatalogItemInstanceIdPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "catalogItemInstanceId", chi.URLParam(r, "catalogItemInstanceId"), &catalogItemInstanceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalogItemInstanceId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteCatalogItemInstance(w, r, catalogItemInstanceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetCatalogItemInstance operation middleware
+func (siw *ServerInterfaceWrapper) GetCatalogItemInstance(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "catalogItemInstanceId" -------------
+	var catalogItemInstanceId CatalogItemInstanceIdPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "catalogItemInstanceId", chi.URLParam(r, "catalogItemInstanceId"), &catalogItemInstanceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalogItemInstanceId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetCatalogItemInstance(w, r, catalogItemInstanceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // ListCatalogItems operation middleware
 func (siw *ServerInterfaceWrapper) ListCatalogItems(w http.ResponseWriter, r *http.Request) {
@@ -473,6 +629,18 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/catalog-item-instances", wrapper.ListCatalogItemInstances)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/catalog-item-instances", wrapper.CreateCatalogItemInstance)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/catalog-item-instances/{catalogItemInstanceId}", wrapper.DeleteCatalogItemInstance)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/catalog-item-instances/{catalogItemInstanceId}", wrapper.GetCatalogItemInstance)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/catalog-items", wrapper.ListCatalogItems)
 	})
 	r.Group(func(r chi.Router) {
@@ -514,6 +682,226 @@ type InternalServerErrorJSONResponse Error
 type NotFoundJSONResponse Error
 
 type UnauthorizedJSONResponse Error
+
+type ListCatalogItemInstancesRequestObject struct {
+	Params ListCatalogItemInstancesParams
+}
+
+type ListCatalogItemInstancesResponseObject interface {
+	VisitListCatalogItemInstancesResponse(w http.ResponseWriter) error
+}
+
+type ListCatalogItemInstances200JSONResponse CatalogItemInstanceList
+
+func (response ListCatalogItemInstances200JSONResponse) VisitListCatalogItemInstancesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListCatalogItemInstances401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response ListCatalogItemInstances401JSONResponse) VisitListCatalogItemInstancesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListCatalogItemInstances403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response ListCatalogItemInstances403JSONResponse) VisitListCatalogItemInstancesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ListCatalogItemInstances500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response ListCatalogItemInstances500JSONResponse) VisitListCatalogItemInstancesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateCatalogItemInstanceRequestObject struct {
+	Params CreateCatalogItemInstanceParams
+	Body   *CreateCatalogItemInstanceJSONRequestBody
+}
+
+type CreateCatalogItemInstanceResponseObject interface {
+	VisitCreateCatalogItemInstanceResponse(w http.ResponseWriter) error
+}
+
+type CreateCatalogItemInstance201JSONResponse CatalogItemInstance
+
+func (response CreateCatalogItemInstance201JSONResponse) VisitCreateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateCatalogItemInstance400JSONResponse Error
+
+func (response CreateCatalogItemInstance400JSONResponse) VisitCreateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateCatalogItemInstance401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateCatalogItemInstance401JSONResponse) VisitCreateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateCatalogItemInstance403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response CreateCatalogItemInstance403JSONResponse) VisitCreateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateCatalogItemInstance409JSONResponse struct{ AlreadyExistsJSONResponse }
+
+func (response CreateCatalogItemInstance409JSONResponse) VisitCreateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateCatalogItemInstance500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response CreateCatalogItemInstance500JSONResponse) VisitCreateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteCatalogItemInstanceRequestObject struct {
+	CatalogItemInstanceId CatalogItemInstanceIdPath `json:"catalogItemInstanceId"`
+}
+
+type DeleteCatalogItemInstanceResponseObject interface {
+	VisitDeleteCatalogItemInstanceResponse(w http.ResponseWriter) error
+}
+
+type DeleteCatalogItemInstance204Response struct {
+}
+
+func (response DeleteCatalogItemInstance204Response) VisitDeleteCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteCatalogItemInstance401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteCatalogItemInstance401JSONResponse) VisitDeleteCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteCatalogItemInstance403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteCatalogItemInstance403JSONResponse) VisitDeleteCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteCatalogItemInstance404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteCatalogItemInstance404JSONResponse) VisitDeleteCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteCatalogItemInstance500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response DeleteCatalogItemInstance500JSONResponse) VisitDeleteCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetCatalogItemInstanceRequestObject struct {
+	CatalogItemInstanceId CatalogItemInstanceIdPath `json:"catalogItemInstanceId"`
+}
+
+type GetCatalogItemInstanceResponseObject interface {
+	VisitGetCatalogItemInstanceResponse(w http.ResponseWriter) error
+}
+
+type GetCatalogItemInstance200JSONResponse CatalogItemInstance
+
+func (response GetCatalogItemInstance200JSONResponse) VisitGetCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetCatalogItemInstance401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetCatalogItemInstance401JSONResponse) VisitGetCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetCatalogItemInstance403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetCatalogItemInstance403JSONResponse) VisitGetCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetCatalogItemInstance404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetCatalogItemInstance404JSONResponse) VisitGetCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetCatalogItemInstance500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response GetCatalogItemInstance500JSONResponse) VisitGetCatalogItemInstanceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
 
 type ListCatalogItemsRequestObject struct {
 	Params ListCatalogItemsParams
@@ -993,6 +1381,18 @@ func (response GetServiceType500JSONResponse) VisitGetServiceTypeResponse(w http
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// List catalog item instances
+	// (GET /catalog-item-instances)
+	ListCatalogItemInstances(ctx context.Context, request ListCatalogItemInstancesRequestObject) (ListCatalogItemInstancesResponseObject, error)
+	// Create a catalog item instance
+	// (POST /catalog-item-instances)
+	CreateCatalogItemInstance(ctx context.Context, request CreateCatalogItemInstanceRequestObject) (CreateCatalogItemInstanceResponseObject, error)
+	// Delete a catalog item instance
+	// (DELETE /catalog-item-instances/{catalogItemInstanceId})
+	DeleteCatalogItemInstance(ctx context.Context, request DeleteCatalogItemInstanceRequestObject) (DeleteCatalogItemInstanceResponseObject, error)
+	// Get a catalog item instance
+	// (GET /catalog-item-instances/{catalogItemInstanceId})
+	GetCatalogItemInstance(ctx context.Context, request GetCatalogItemInstanceRequestObject) (GetCatalogItemInstanceResponseObject, error)
 	// List catalog items
 	// (GET /catalog-items)
 	ListCatalogItems(ctx context.Context, request ListCatalogItemsRequestObject) (ListCatalogItemsResponseObject, error)
@@ -1049,6 +1449,117 @@ type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
 	options     StrictHTTPServerOptions
+}
+
+// ListCatalogItemInstances operation middleware
+func (sh *strictHandler) ListCatalogItemInstances(w http.ResponseWriter, r *http.Request, params ListCatalogItemInstancesParams) {
+	var request ListCatalogItemInstancesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListCatalogItemInstances(ctx, request.(ListCatalogItemInstancesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListCatalogItemInstances")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListCatalogItemInstancesResponseObject); ok {
+		if err := validResponse.VisitListCatalogItemInstancesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateCatalogItemInstance operation middleware
+func (sh *strictHandler) CreateCatalogItemInstance(w http.ResponseWriter, r *http.Request, params CreateCatalogItemInstanceParams) {
+	var request CreateCatalogItemInstanceRequestObject
+
+	request.Params = params
+
+	var body CreateCatalogItemInstanceJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateCatalogItemInstance(ctx, request.(CreateCatalogItemInstanceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateCatalogItemInstance")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateCatalogItemInstanceResponseObject); ok {
+		if err := validResponse.VisitCreateCatalogItemInstanceResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteCatalogItemInstance operation middleware
+func (sh *strictHandler) DeleteCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath) {
+	var request DeleteCatalogItemInstanceRequestObject
+
+	request.CatalogItemInstanceId = catalogItemInstanceId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteCatalogItemInstance(ctx, request.(DeleteCatalogItemInstanceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteCatalogItemInstance")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteCatalogItemInstanceResponseObject); ok {
+		if err := validResponse.VisitDeleteCatalogItemInstanceResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCatalogItemInstance operation middleware
+func (sh *strictHandler) GetCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath) {
+	var request GetCatalogItemInstanceRequestObject
+
+	request.CatalogItemInstanceId = catalogItemInstanceId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCatalogItemInstance(ctx, request.(GetCatalogItemInstanceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCatalogItemInstance")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetCatalogItemInstanceResponseObject); ok {
+		if err := validResponse.VisitGetCatalogItemInstanceResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // ListCatalogItems operation middleware

@@ -55,6 +55,62 @@ type CatalogItem struct {
 	UpdateTime *time.Time `json:"update_time,omitempty"`
 }
 
+// CatalogItemInstance defines model for CatalogItemInstance.
+type CatalogItemInstance struct {
+	// CatalogInstanceSchemaVersion Version of the CatalogItemInstance schema itself (e.g., v1alpha1).
+	// Immutable after creation.
+	CatalogInstanceSchemaVersion string `json:"catalog_instance_schema_version"`
+
+	// CreateTime Timestamp when the catalog item was created (RFC 3339)
+	CreateTime *time.Time `json:"create_time,omitempty"`
+
+	// DisplayName User-friendly display name for the catalog item instance.
+	// Mutable and does not need to be unique.
+	DisplayName string `json:"display_name"`
+
+	// Path Resource path in the format: catalog-item-instances/{catalogItemInstanceId}
+	Path *string `json:"path,omitempty"`
+
+	// Spec Specification for a catalog item instance, defining the catalog item reference
+	// and field configurations.
+	Spec CatalogItemInstanceSpec `json:"spec"`
+
+	// Uid Unique identifier for the catalog item instance. This field is output-only and
+	// immutable after creation. The ID can be optionally specified via
+	// query parameter on creation; if not provided, the server generates a UUID.
+	//
+	// Follows AEP-122 resource ID conventions.
+	Uid *string `json:"uid,omitempty"`
+
+	// UpdateTime Timestamp when the catalog item was last modified (RFC 3339)
+	UpdateTime *time.Time `json:"update_time,omitempty"`
+}
+
+// CatalogItemInstanceList defines model for CatalogItemInstanceList.
+type CatalogItemInstanceList struct {
+	// NextPageToken Token for retrieving the next page.
+	// Empty string indicates this is the last page.
+	NextPageToken string `json:"next_page_token"`
+
+	// Results Array of catalog item instance resources
+	Results []CatalogItemInstance `json:"results"`
+}
+
+// CatalogItemInstanceSpec Specification for a catalog item instance, defining the catalog item reference
+// and field configurations.
+type CatalogItemInstanceSpec struct {
+	// CatalogItemId The Catalog item ID this catalog item instance references.
+	// Immutable after creation.
+	CatalogItemId string `json:"catalog_item_id"`
+
+	// CatalogItemVersion Version of the Catalog item this catalog item instance references.
+	// Immutable after creation.
+	CatalogItemVersion string `json:"catalog_item_version"`
+
+	// UserValues Array of user values for this catalog item instance.
+	UserValues []UserValue `json:"user_values"`
+}
+
 // CatalogItemList defines model for CatalogItemList.
 type CatalogItemList struct {
 	// NextPageToken Token for retrieving the next page.
@@ -199,8 +255,22 @@ type ServiceTypeList struct {
 	Results []ServiceType `json:"results"`
 }
 
+// UserValue defines model for UserValue.
+type UserValue struct {
+	// Path JSON path to the user value in the CatalogItem spec using dot notation.
+	// Examples: "spec.vcpu.count", "spec.memory.size_gb", "metadata.labels.tier"
+	Path string `json:"path"`
+
+	// Value Value for this user value.
+	// Type depends on the field's schema (can be string, number, boolean, object, array).
+	Value interface{} `json:"value"`
+}
+
 // CatalogItemIdPath defines model for CatalogItemIdPath.
 type CatalogItemIdPath = string
+
+// CatalogItemInstanceIdPath defines model for CatalogItemInstanceIdPath.
+type CatalogItemInstanceIdPath = string
 
 // ServiceTypeIdPath defines model for ServiceTypeIdPath.
 type ServiceTypeIdPath = string
@@ -228,6 +298,25 @@ type NotFound = Error
 // Unauthorized Error response following RFC 7807 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type Unauthorized = Error
+
+// ListCatalogItemInstancesParams defines parameters for ListCatalogItemInstances.
+type ListCatalogItemInstancesParams struct {
+	// PageToken Token for retrieving the next page of results
+	PageToken *string `form:"page_token,omitempty" json:"page_token,omitempty"`
+
+	// MaxPageSize Maximum number of items to return per page
+	MaxPageSize *int32 `form:"max_page_size,omitempty" json:"max_page_size,omitempty"`
+
+	// CatalogItemId Filter catalog item instances by catalog item ID.
+	// Only returns items where spec.catalog_item_id matches this value.
+	CatalogItemId *string `form:"catalog_item_id,omitempty" json:"catalog_item_id,omitempty"`
+}
+
+// CreateCatalogItemInstanceParams defines parameters for CreateCatalogItemInstance.
+type CreateCatalogItemInstanceParams struct {
+	// Id Optional user-specified catalog item instance ID
+	Id *string `form:"id,omitempty" json:"id,omitempty"`
+}
 
 // ListCatalogItemsParams defines parameters for ListCatalogItems.
 type ListCatalogItemsParams struct {
@@ -266,6 +355,9 @@ type CreateServiceTypeParams struct {
 	// If omitted, the server generates an ID.
 	Id *string `form:"id,omitempty" json:"id,omitempty"`
 }
+
+// CreateCatalogItemInstanceJSONRequestBody defines body for CreateCatalogItemInstance for application/json ContentType.
+type CreateCatalogItemInstanceJSONRequestBody = CatalogItemInstance
 
 // CreateCatalogItemJSONRequestBody defines body for CreateCatalogItem for application/json ContentType.
 type CreateCatalogItemJSONRequestBody = CatalogItem
