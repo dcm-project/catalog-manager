@@ -400,13 +400,13 @@ paths:
             default: 100
           description: Maximum number of items to return per page
 
-        - name: catalog_item_instance_id
+        - name: catalog_item_id
           in: query
           required: false
           schema:
             type: string
           description: |
-            Filter catalog item instances by catalog item instance ID.
+            Filter catalog item instances by catalog item ID.
             Only returns items where spec.catalog_item_id matches this value.
           example: small-vm
 
