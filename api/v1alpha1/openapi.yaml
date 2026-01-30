@@ -890,10 +890,10 @@ components:
         path:
           type: string
           readOnly: true
-          pattern: '^catalog-items/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
+          pattern: '^catalog-item-instances/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
           description: |
             Resource path in the format: catalog-item-instances/{catalogItemInstanceId}
-          example: catalog-items/small-vm
+          example: catalog-item-instances/small-vm
 
         create_time:
           type: string
