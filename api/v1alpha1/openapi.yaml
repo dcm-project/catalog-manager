@@ -850,7 +850,7 @@ components:
         patterns:
           - catalog-item-instances/{catalog_item_instance_id}
       required:
-        - api_version
+        - catalog_instance_schema_version
         - display_name
         - spec
       properties:
@@ -868,7 +868,7 @@ components:
           maxLength: 63
           example: 650e8400-e29b-41d4-a716-446655440001
 
-        api_version:
+        catalog_instance_schema_version:
           type: string
           pattern: '^v[0-9]+[a-z]+[0-9]+$'
           description: |
