@@ -852,7 +852,6 @@ components:
       required:
         - api_version
         - display_name
-        - version
         - spec
       properties:
         uid:
