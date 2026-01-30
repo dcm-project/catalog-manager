@@ -917,7 +917,7 @@ components:
       required:
         - catalog_item_id
         - catalog_item_version
-        - fields
+        - user_values
       properties:
         catalog_item_id:
           type: string
