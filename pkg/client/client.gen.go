@@ -396,9 +396,9 @@ func NewListCatalogItemInstancesRequest(server string, params *ListCatalogItemIn
 
 		}
 
-		if params.CatalogItemInstanceId != nil {
+		if params.CatalogItemId != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "catalog_item_instance_id", runtime.ParamLocationQuery, *params.CatalogItemInstanceId); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "catalog_item_id", runtime.ParamLocationQuery, *params.CatalogItemId); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err

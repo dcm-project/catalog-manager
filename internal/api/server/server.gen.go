@@ -69,9 +69,9 @@ type CatalogItem struct {
 
 // CatalogItemInstance defines model for CatalogItemInstance.
 type CatalogItemInstance struct {
-	// ApiVersion Version of the CatalogItemInstance schema itself (e.g., v1alpha1).
+	// CatalogInstanceSchemaVersion Version of the CatalogItemInstance schema itself (e.g., v1alpha1).
 	// Immutable after creation.
-	ApiVersion string `json:"api_version"`
+	CatalogInstanceSchemaVersion string `json:"catalog_instance_schema_version"`
 
 	// CreateTime Timestamp when the catalog item was created (RFC 3339)
 	CreateTime *time.Time `json:"create_time,omitempty"`
@@ -110,7 +110,7 @@ type CatalogItemInstanceSpec struct {
 	CatalogItemVersion string `json:"catalog_item_version"`
 
 	// UserValues Array of user values for this catalog item instance.
-	UserValues *[]UserValue `json:"user_values,omitempty"`
+	UserValues []UserValue `json:"user_values"`
 }
 
 // CatalogItemSpec Specification for a catalog item, defining the service type reference
@@ -327,9 +327,9 @@ type ListCatalogItemInstancesParams struct {
 	// MaxPageSize Maximum number of items to return per page
 	MaxPageSize *int32 `form:"max_page_size,omitempty" json:"max_page_size,omitempty"`
 
-	// CatalogItemInstanceId Filter catalog item instances by catalog item instance ID.
+	// CatalogItemId Filter catalog item instances by catalog item ID.
 	// Only returns items where spec.catalog_item_id matches this value.
-	CatalogItemInstanceId *string `form:"catalog_item_instance_id,omitempty" json:"catalog_item_instance_id,omitempty"`
+	CatalogItemId *string `form:"catalog_item_id,omitempty" json:"catalog_item_id,omitempty"`
 }
 
 // CreateCatalogItemInstanceParams defines parameters for CreateCatalogItemInstance.
@@ -546,11 +546,11 @@ func (siw *ServerInterfaceWrapper) ListCatalogItemInstances(w http.ResponseWrite
 		return
 	}
 
-	// ------------- Optional query parameter "catalog_item_instance_id" -------------
+	// ------------- Optional query parameter "catalog_item_id" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "catalog_item_instance_id", r.URL.Query(), &params.CatalogItemInstanceId)
+	err = runtime.BindQueryParameter("form", true, false, "catalog_item_id", r.URL.Query(), &params.CatalogItemId)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalog_item_instance_id", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalog_item_id", Err: err})
 		return
 	}
 
