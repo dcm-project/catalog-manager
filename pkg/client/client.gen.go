@@ -758,40 +758,40 @@ func WithBaseURL(baseURL string) ClientOption {
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
 	// ListCatalogItemsWithResponse request
-	ListCatalogItemsWithResponse(ctx context.Context, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*ListCatalogItemsResponse, error)
+	ListCatalogItemsWithResponse(ctx context.Context, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*ListCatalogItemsResp, error)
 
 	// CreateCatalogItemWithBodyWithResponse request with any body
-	CreateCatalogItemWithBodyWithResponse(ctx context.Context, params *CreateCatalogItemParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateCatalogItemResponse, error)
+	CreateCatalogItemWithBodyWithResponse(ctx context.Context, params *CreateCatalogItemParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateCatalogItemResp, error)
 
-	CreateCatalogItemWithResponse(ctx context.Context, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateCatalogItemResponse, error)
+	CreateCatalogItemWithResponse(ctx context.Context, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateCatalogItemResp, error)
 
 	// DeleteCatalogItemWithResponse request
-	DeleteCatalogItemWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*DeleteCatalogItemResponse, error)
+	DeleteCatalogItemWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*DeleteCatalogItemResp, error)
 
 	// GetCatalogItemWithResponse request
-	GetCatalogItemWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*GetCatalogItemResponse, error)
+	GetCatalogItemWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*GetCatalogItemResp, error)
 
 	// UpdateCatalogItemWithBodyWithResponse request with any body
-	UpdateCatalogItemWithBodyWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error)
+	UpdateCatalogItemWithBodyWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResp, error)
 
-	UpdateCatalogItemWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error)
+	UpdateCatalogItemWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResp, error)
 
 	// GetHealthWithResponse request
-	GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error)
+	GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResp, error)
 
 	// ListServiceTypesWithResponse request
-	ListServiceTypesWithResponse(ctx context.Context, params *ListServiceTypesParams, reqEditors ...RequestEditorFn) (*ListServiceTypesResponse, error)
+	ListServiceTypesWithResponse(ctx context.Context, params *ListServiceTypesParams, reqEditors ...RequestEditorFn) (*ListServiceTypesResp, error)
 
 	// CreateServiceTypeWithBodyWithResponse request with any body
-	CreateServiceTypeWithBodyWithResponse(ctx context.Context, params *CreateServiceTypeParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateServiceTypeResponse, error)
+	CreateServiceTypeWithBodyWithResponse(ctx context.Context, params *CreateServiceTypeParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateServiceTypeResp, error)
 
-	CreateServiceTypeWithResponse(ctx context.Context, params *CreateServiceTypeParams, body CreateServiceTypeJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateServiceTypeResponse, error)
+	CreateServiceTypeWithResponse(ctx context.Context, params *CreateServiceTypeParams, body CreateServiceTypeJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateServiceTypeResp, error)
 
 	// GetServiceTypeWithResponse request
-	GetServiceTypeWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*GetServiceTypeResponse, error)
+	GetServiceTypeWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*GetServiceTypeResp, error)
 }
 
-type ListCatalogItemsResponse struct {
+type ListCatalogItemsResp struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ListCatalogItemsResponse
@@ -801,7 +801,7 @@ type ListCatalogItemsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r ListCatalogItemsResponse) Status() string {
+func (r ListCatalogItemsResp) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -809,14 +809,14 @@ func (r ListCatalogItemsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r ListCatalogItemsResponse) StatusCode() int {
+func (r ListCatalogItemsResp) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type CreateCatalogItemResponse struct {
+type CreateCatalogItemResp struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *CatalogItem
@@ -828,7 +828,7 @@ type CreateCatalogItemResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r CreateCatalogItemResponse) Status() string {
+func (r CreateCatalogItemResp) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -836,14 +836,14 @@ func (r CreateCatalogItemResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r CreateCatalogItemResponse) StatusCode() int {
+func (r CreateCatalogItemResp) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type DeleteCatalogItemResponse struct {
+type DeleteCatalogItemResp struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON401      *Unauthorized
@@ -853,7 +853,7 @@ type DeleteCatalogItemResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteCatalogItemResponse) Status() string {
+func (r DeleteCatalogItemResp) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -861,14 +861,14 @@ func (r DeleteCatalogItemResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteCatalogItemResponse) StatusCode() int {
+func (r DeleteCatalogItemResp) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetCatalogItemResponse struct {
+type GetCatalogItemResp struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *CatalogItem
@@ -879,7 +879,7 @@ type GetCatalogItemResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetCatalogItemResponse) Status() string {
+func (r GetCatalogItemResp) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -887,14 +887,14 @@ func (r GetCatalogItemResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetCatalogItemResponse) StatusCode() int {
+func (r GetCatalogItemResp) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type UpdateCatalogItemResponse struct {
+type UpdateCatalogItemResp struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *CatalogItem
@@ -906,7 +906,7 @@ type UpdateCatalogItemResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r UpdateCatalogItemResponse) Status() string {
+func (r UpdateCatalogItemResp) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -914,21 +914,21 @@ func (r UpdateCatalogItemResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r UpdateCatalogItemResponse) StatusCode() int {
+func (r UpdateCatalogItemResp) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetHealthResponse struct {
+type GetHealthResp struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *Health
 }
 
 // Status returns HTTPResponse.Status
-func (r GetHealthResponse) Status() string {
+func (r GetHealthResp) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -936,14 +936,14 @@ func (r GetHealthResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetHealthResponse) StatusCode() int {
+func (r GetHealthResp) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type ListServiceTypesResponse struct {
+type ListServiceTypesResp struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ListServiceTypesResponse
@@ -954,7 +954,7 @@ type ListServiceTypesResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r ListServiceTypesResponse) Status() string {
+func (r ListServiceTypesResp) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -962,14 +962,14 @@ func (r ListServiceTypesResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r ListServiceTypesResponse) StatusCode() int {
+func (r ListServiceTypesResp) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type CreateServiceTypeResponse struct {
+type CreateServiceTypeResp struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *ServiceType
@@ -981,7 +981,7 @@ type CreateServiceTypeResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r CreateServiceTypeResponse) Status() string {
+func (r CreateServiceTypeResp) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -989,14 +989,14 @@ func (r CreateServiceTypeResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r CreateServiceTypeResponse) StatusCode() int {
+func (r CreateServiceTypeResp) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetServiceTypeResponse struct {
+type GetServiceTypeResp struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ServiceType
@@ -1007,7 +1007,7 @@ type GetServiceTypeResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetServiceTypeResponse) Status() string {
+func (r GetServiceTypeResp) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1015,127 +1015,127 @@ func (r GetServiceTypeResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetServiceTypeResponse) StatusCode() int {
+func (r GetServiceTypeResp) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-// ListCatalogItemsWithResponse request returning *ListCatalogItemsResponse
-func (c *ClientWithResponses) ListCatalogItemsWithResponse(ctx context.Context, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*ListCatalogItemsResponse, error) {
+// ListCatalogItemsWithResponse request returning *ListCatalogItemsResp
+func (c *ClientWithResponses) ListCatalogItemsWithResponse(ctx context.Context, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*ListCatalogItemsResp, error) {
 	rsp, err := c.ListCatalogItems(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseListCatalogItemsResponse(rsp)
+	return ParseListCatalogItemsResp(rsp)
 }
 
-// CreateCatalogItemWithBodyWithResponse request with arbitrary body returning *CreateCatalogItemResponse
-func (c *ClientWithResponses) CreateCatalogItemWithBodyWithResponse(ctx context.Context, params *CreateCatalogItemParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateCatalogItemResponse, error) {
+// CreateCatalogItemWithBodyWithResponse request with arbitrary body returning *CreateCatalogItemResp
+func (c *ClientWithResponses) CreateCatalogItemWithBodyWithResponse(ctx context.Context, params *CreateCatalogItemParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateCatalogItemResp, error) {
 	rsp, err := c.CreateCatalogItemWithBody(ctx, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseCreateCatalogItemResponse(rsp)
+	return ParseCreateCatalogItemResp(rsp)
 }
 
-func (c *ClientWithResponses) CreateCatalogItemWithResponse(ctx context.Context, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateCatalogItemResponse, error) {
+func (c *ClientWithResponses) CreateCatalogItemWithResponse(ctx context.Context, params *CreateCatalogItemParams, body CreateCatalogItemJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateCatalogItemResp, error) {
 	rsp, err := c.CreateCatalogItem(ctx, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseCreateCatalogItemResponse(rsp)
+	return ParseCreateCatalogItemResp(rsp)
 }
 
-// DeleteCatalogItemWithResponse request returning *DeleteCatalogItemResponse
-func (c *ClientWithResponses) DeleteCatalogItemWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*DeleteCatalogItemResponse, error) {
+// DeleteCatalogItemWithResponse request returning *DeleteCatalogItemResp
+func (c *ClientWithResponses) DeleteCatalogItemWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*DeleteCatalogItemResp, error) {
 	rsp, err := c.DeleteCatalogItem(ctx, catalogItemId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteCatalogItemResponse(rsp)
+	return ParseDeleteCatalogItemResp(rsp)
 }
 
-// GetCatalogItemWithResponse request returning *GetCatalogItemResponse
-func (c *ClientWithResponses) GetCatalogItemWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*GetCatalogItemResponse, error) {
+// GetCatalogItemWithResponse request returning *GetCatalogItemResp
+func (c *ClientWithResponses) GetCatalogItemWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, reqEditors ...RequestEditorFn) (*GetCatalogItemResp, error) {
 	rsp, err := c.GetCatalogItem(ctx, catalogItemId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetCatalogItemResponse(rsp)
+	return ParseGetCatalogItemResp(rsp)
 }
 
-// UpdateCatalogItemWithBodyWithResponse request with arbitrary body returning *UpdateCatalogItemResponse
-func (c *ClientWithResponses) UpdateCatalogItemWithBodyWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error) {
+// UpdateCatalogItemWithBodyWithResponse request with arbitrary body returning *UpdateCatalogItemResp
+func (c *ClientWithResponses) UpdateCatalogItemWithBodyWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResp, error) {
 	rsp, err := c.UpdateCatalogItemWithBody(ctx, catalogItemId, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseUpdateCatalogItemResponse(rsp)
+	return ParseUpdateCatalogItemResp(rsp)
 }
 
-func (c *ClientWithResponses) UpdateCatalogItemWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResponse, error) {
+func (c *ClientWithResponses) UpdateCatalogItemWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, catalogItemId CatalogItemIdPath, body UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateCatalogItemResp, error) {
 	rsp, err := c.UpdateCatalogItemWithApplicationMergePatchPlusJSONBody(ctx, catalogItemId, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseUpdateCatalogItemResponse(rsp)
+	return ParseUpdateCatalogItemResp(rsp)
 }
 
-// GetHealthWithResponse request returning *GetHealthResponse
-func (c *ClientWithResponses) GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error) {
+// GetHealthWithResponse request returning *GetHealthResp
+func (c *ClientWithResponses) GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResp, error) {
 	rsp, err := c.GetHealth(ctx, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetHealthResponse(rsp)
+	return ParseGetHealthResp(rsp)
 }
 
-// ListServiceTypesWithResponse request returning *ListServiceTypesResponse
-func (c *ClientWithResponses) ListServiceTypesWithResponse(ctx context.Context, params *ListServiceTypesParams, reqEditors ...RequestEditorFn) (*ListServiceTypesResponse, error) {
+// ListServiceTypesWithResponse request returning *ListServiceTypesResp
+func (c *ClientWithResponses) ListServiceTypesWithResponse(ctx context.Context, params *ListServiceTypesParams, reqEditors ...RequestEditorFn) (*ListServiceTypesResp, error) {
 	rsp, err := c.ListServiceTypes(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseListServiceTypesResponse(rsp)
+	return ParseListServiceTypesResp(rsp)
 }
 
-// CreateServiceTypeWithBodyWithResponse request with arbitrary body returning *CreateServiceTypeResponse
-func (c *ClientWithResponses) CreateServiceTypeWithBodyWithResponse(ctx context.Context, params *CreateServiceTypeParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateServiceTypeResponse, error) {
+// CreateServiceTypeWithBodyWithResponse request with arbitrary body returning *CreateServiceTypeResp
+func (c *ClientWithResponses) CreateServiceTypeWithBodyWithResponse(ctx context.Context, params *CreateServiceTypeParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateServiceTypeResp, error) {
 	rsp, err := c.CreateServiceTypeWithBody(ctx, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseCreateServiceTypeResponse(rsp)
+	return ParseCreateServiceTypeResp(rsp)
 }
 
-func (c *ClientWithResponses) CreateServiceTypeWithResponse(ctx context.Context, params *CreateServiceTypeParams, body CreateServiceTypeJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateServiceTypeResponse, error) {
+func (c *ClientWithResponses) CreateServiceTypeWithResponse(ctx context.Context, params *CreateServiceTypeParams, body CreateServiceTypeJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateServiceTypeResp, error) {
 	rsp, err := c.CreateServiceType(ctx, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseCreateServiceTypeResponse(rsp)
+	return ParseCreateServiceTypeResp(rsp)
 }
 
-// GetServiceTypeWithResponse request returning *GetServiceTypeResponse
-func (c *ClientWithResponses) GetServiceTypeWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*GetServiceTypeResponse, error) {
+// GetServiceTypeWithResponse request returning *GetServiceTypeResp
+func (c *ClientWithResponses) GetServiceTypeWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*GetServiceTypeResp, error) {
 	rsp, err := c.GetServiceType(ctx, serviceTypeId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetServiceTypeResponse(rsp)
+	return ParseGetServiceTypeResp(rsp)
 }
 
-// ParseListCatalogItemsResponse parses an HTTP response from a ListCatalogItemsWithResponse call
-func ParseListCatalogItemsResponse(rsp *http.Response) (*ListCatalogItemsResponse, error) {
+// ParseListCatalogItemsResp parses an HTTP response from a ListCatalogItemsWithResponse call
+func ParseListCatalogItemsResp(rsp *http.Response) (*ListCatalogItemsResp, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ListCatalogItemsResponse{
+	response := &ListCatalogItemsResp{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1174,15 +1174,15 @@ func ParseListCatalogItemsResponse(rsp *http.Response) (*ListCatalogItemsRespons
 	return response, nil
 }
 
-// ParseCreateCatalogItemResponse parses an HTTP response from a CreateCatalogItemWithResponse call
-func ParseCreateCatalogItemResponse(rsp *http.Response) (*CreateCatalogItemResponse, error) {
+// ParseCreateCatalogItemResp parses an HTTP response from a CreateCatalogItemWithResponse call
+func ParseCreateCatalogItemResp(rsp *http.Response) (*CreateCatalogItemResp, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &CreateCatalogItemResponse{
+	response := &CreateCatalogItemResp{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1235,15 +1235,15 @@ func ParseCreateCatalogItemResponse(rsp *http.Response) (*CreateCatalogItemRespo
 	return response, nil
 }
 
-// ParseDeleteCatalogItemResponse parses an HTTP response from a DeleteCatalogItemWithResponse call
-func ParseDeleteCatalogItemResponse(rsp *http.Response) (*DeleteCatalogItemResponse, error) {
+// ParseDeleteCatalogItemResp parses an HTTP response from a DeleteCatalogItemWithResponse call
+func ParseDeleteCatalogItemResp(rsp *http.Response) (*DeleteCatalogItemResp, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteCatalogItemResponse{
+	response := &DeleteCatalogItemResp{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1282,15 +1282,15 @@ func ParseDeleteCatalogItemResponse(rsp *http.Response) (*DeleteCatalogItemRespo
 	return response, nil
 }
 
-// ParseGetCatalogItemResponse parses an HTTP response from a GetCatalogItemWithResponse call
-func ParseGetCatalogItemResponse(rsp *http.Response) (*GetCatalogItemResponse, error) {
+// ParseGetCatalogItemResp parses an HTTP response from a GetCatalogItemWithResponse call
+func ParseGetCatalogItemResp(rsp *http.Response) (*GetCatalogItemResp, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetCatalogItemResponse{
+	response := &GetCatalogItemResp{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1336,15 +1336,15 @@ func ParseGetCatalogItemResponse(rsp *http.Response) (*GetCatalogItemResponse, e
 	return response, nil
 }
 
-// ParseUpdateCatalogItemResponse parses an HTTP response from a UpdateCatalogItemWithResponse call
-func ParseUpdateCatalogItemResponse(rsp *http.Response) (*UpdateCatalogItemResponse, error) {
+// ParseUpdateCatalogItemResp parses an HTTP response from a UpdateCatalogItemWithResponse call
+func ParseUpdateCatalogItemResp(rsp *http.Response) (*UpdateCatalogItemResp, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &UpdateCatalogItemResponse{
+	response := &UpdateCatalogItemResp{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1397,15 +1397,15 @@ func ParseUpdateCatalogItemResponse(rsp *http.Response) (*UpdateCatalogItemRespo
 	return response, nil
 }
 
-// ParseGetHealthResponse parses an HTTP response from a GetHealthWithResponse call
-func ParseGetHealthResponse(rsp *http.Response) (*GetHealthResponse, error) {
+// ParseGetHealthResp parses an HTTP response from a GetHealthWithResponse call
+func ParseGetHealthResp(rsp *http.Response) (*GetHealthResp, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetHealthResponse{
+	response := &GetHealthResp{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1423,15 +1423,15 @@ func ParseGetHealthResponse(rsp *http.Response) (*GetHealthResponse, error) {
 	return response, nil
 }
 
-// ParseListServiceTypesResponse parses an HTTP response from a ListServiceTypesWithResponse call
-func ParseListServiceTypesResponse(rsp *http.Response) (*ListServiceTypesResponse, error) {
+// ParseListServiceTypesResp parses an HTTP response from a ListServiceTypesWithResponse call
+func ParseListServiceTypesResp(rsp *http.Response) (*ListServiceTypesResp, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ListServiceTypesResponse{
+	response := &ListServiceTypesResp{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1477,15 +1477,15 @@ func ParseListServiceTypesResponse(rsp *http.Response) (*ListServiceTypesRespons
 	return response, nil
 }
 
-// ParseCreateServiceTypeResponse parses an HTTP response from a CreateServiceTypeWithResponse call
-func ParseCreateServiceTypeResponse(rsp *http.Response) (*CreateServiceTypeResponse, error) {
+// ParseCreateServiceTypeResp parses an HTTP response from a CreateServiceTypeWithResponse call
+func ParseCreateServiceTypeResp(rsp *http.Response) (*CreateServiceTypeResp, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &CreateServiceTypeResponse{
+	response := &CreateServiceTypeResp{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1538,15 +1538,15 @@ func ParseCreateServiceTypeResponse(rsp *http.Response) (*CreateServiceTypeRespo
 	return response, nil
 }
 
-// ParseGetServiceTypeResponse parses an HTTP response from a GetServiceTypeWithResponse call
-func ParseGetServiceTypeResponse(rsp *http.Response) (*GetServiceTypeResponse, error) {
+// ParseGetServiceTypeResp parses an HTTP response from a GetServiceTypeWithResponse call
+func ParseGetServiceTypeResp(rsp *http.Response) (*GetServiceTypeResp, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetServiceTypeResponse{
+	response := &GetServiceTypeResp{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
