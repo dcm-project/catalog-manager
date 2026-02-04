@@ -523,7 +523,7 @@ type ListCatalogItemsResponseObject interface {
 	VisitListCatalogItemsResponse(w http.ResponseWriter) error
 }
 
-type ListCatalogItems200JSONResponse ListCatalogItemsResponse
+type ListCatalogItems200JSONResponse CatalogItemList
 
 func (response ListCatalogItems200JSONResponse) VisitListCatalogItemsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -824,7 +824,7 @@ type ListServiceTypesResponseObject interface {
 	VisitListServiceTypesResponse(w http.ResponseWriter) error
 }
 
-type ListServiceTypes200JSONResponse ListServiceTypesResponse
+type ListServiceTypes200JSONResponse ServiceTypeList
 
 func (response ListServiceTypes200JSONResponse) VisitListServiceTypesResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
