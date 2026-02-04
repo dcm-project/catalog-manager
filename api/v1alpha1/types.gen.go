@@ -59,6 +59,16 @@ type CatalogItem struct {
 	Version string `json:"version"`
 }
 
+// CatalogItemList defines model for CatalogItemList.
+type CatalogItemList struct {
+	// NextPageToken Token for retrieving the next page.
+	// Empty string indicates this is the last page.
+	NextPageToken string `json:"next_page_token"`
+
+	// Results Array of catalog item resources
+	Results []CatalogItem `json:"results"`
+}
+
 // CatalogItemSpec Specification for a catalog item, defining the service type reference
 // and field configurations.
 type CatalogItemSpec struct {
@@ -139,28 +149,6 @@ type Health struct {
 	Status string `json:"status"`
 }
 
-// ListCatalogItemsResponse defines model for ListCatalogItemsResponse.
-type ListCatalogItemsResponse struct {
-	// NextPageToken Token for retrieving the next page.
-	// Empty string indicates this is the last page.
-	NextPageToken string `json:"next_page_token"`
-
-	// Results Array of catalog item resources
-	Results []CatalogItem `json:"results"`
-}
-
-// ListServiceTypesResponse defines model for ListServiceTypesResponse.
-type ListServiceTypesResponse struct {
-	// NextPageToken Token for retrieving the next page of results.
-	// Empty string indicates this is the last page.
-	// Opaque token - do not parse or construct manually.
-	NextPageToken string `json:"next_page_token"`
-
-	// Results Array of service type resources.
-	// May be empty if no results match the query.
-	Results []ServiceType `json:"results"`
-}
-
 // ServiceType defines model for ServiceType.
 type ServiceType struct {
 	// ApiVersion Version of the service type schema (e.g., v1alpha1, v1beta1, v1).
@@ -209,6 +197,18 @@ type ServiceType struct {
 	// Version Version of this service type
 	// Immutable after creation.
 	Version string `json:"version"`
+}
+
+// ServiceTypeList defines model for ServiceTypeList.
+type ServiceTypeList struct {
+	// NextPageToken Token for retrieving the next page of results.
+	// Empty string indicates this is the last page.
+	// Opaque token - do not parse or construct manually.
+	NextPageToken string `json:"next_page_token"`
+
+	// Results Array of service type resources.
+	// May be empty if no results match the query.
+	Results []ServiceType `json:"results"`
 }
 
 // CatalogItemIdPath defines model for CatalogItemIdPath.

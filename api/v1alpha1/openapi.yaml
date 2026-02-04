@@ -74,7 +74,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListServiceTypesResponse'
+                $ref: '#/components/schemas/ServiceTypeList'
 
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -214,7 +214,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListCatalogItemsResponse'
+                $ref: '#/components/schemas/CatalogItemList'
 
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -675,7 +675,7 @@ components:
             multipleOf: 1
             description: Number of CPU cores (1-16)
 
-    ListServiceTypesResponse:
+    ServiceTypeList:
       type: object
       required:
         - results
@@ -697,7 +697,7 @@ components:
             Opaque token - do not parse or construct manually.
           example: eyJvZmZzZXQiOjEwMH0=
 
-    ListCatalogItemsResponse:
+    CatalogItemList:
       type: object
       required:
         - results
