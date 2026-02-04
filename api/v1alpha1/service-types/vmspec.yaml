@@ -36,7 +36,6 @@ components:
             - memory
             - storage
             - guestOS
-            - access
           properties:
             vcpu:
               $ref: '#/components/schemas/Vcpu'
