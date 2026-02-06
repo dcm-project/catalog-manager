@@ -76,7 +76,6 @@ components:
         These provide versioning, extensibility, and provider-specific configuration.
       required:
         - serviceType
-        - schemaVersion
         - metadata
       properties:
         serviceType:
@@ -90,15 +89,6 @@ components:
             - database
             - cluster
           example: vm
-
-        schemaVersion:
-          type: string
-          description: |
-            Schema version identifier.
-            Enables schema evolution with backward compatibility.
-            Providers use this to determine which translation logic to apply.
-          pattern: '^v[0-9]+(alpha|beta)?[0-9]*$'
-          example: v1alpha1
 
         metadata:
           $ref: '#/components/schemas/ServiceMetadata'

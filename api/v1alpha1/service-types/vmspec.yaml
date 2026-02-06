@@ -24,7 +24,7 @@ components:
       description: |
         Provider-agnostic virtual machine specification.
 
-        Includes common fields (serviceType, schemaVersion, metadata, providerHints)
+        Includes common fields (serviceType, metadata, providerHints)
         plus VM-specific fields for compute, storage, and operating system.
 
         Providers translate this abstract specification to their native format.

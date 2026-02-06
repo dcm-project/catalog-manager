@@ -24,7 +24,7 @@ components:
       description: |
         Provider-agnostic container specification.
 
-        Includes common fields (serviceType, schemaVersion, metadata, providerHints)
+        Includes common fields (serviceType,  metadata, providerHints)
         plus container-specific fields for image, resources, process, and network.
 
         Providers translate this abstract specification to their native format.
