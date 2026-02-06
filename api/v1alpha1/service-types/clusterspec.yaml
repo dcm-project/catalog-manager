@@ -67,7 +67,7 @@ components:
       type: object
       description: |
         Control plane nodes configuration.
-        Managed services (EKS, GKE, AKS) may ignore these fields.
+        Managed services (ACM (with Hypershift),EKS, GKE, AKS) may ignore these fields.
       required:
         - count
         - cpu
