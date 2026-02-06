@@ -24,7 +24,7 @@ components:
       description: |
         Provider-agnostic Kubernetes cluster specification.
 
-        Includes common fields (serviceType, schemaVersion, metadata, providerHints)
+        Includes common fields (serviceType, metadata, providerHints)
         plus cluster-specific fields for version and node configuration.
 
         Providers translate this specification to their native format.
