@@ -53,10 +53,6 @@ type CatalogItem struct {
 
 	// UpdateTime Timestamp when the catalog item was last modified (RFC 3339)
 	UpdateTime *time.Time `json:"update_time,omitempty"`
-
-	// Version Version of this catalog item.
-	// Immutable after creation.
-	Version string `json:"version"`
 }
 
 // CatalogItemList defines model for CatalogItemList.
@@ -80,10 +76,6 @@ type CatalogItemSpec struct {
 	// ServiceType The Service type this catalog item references.
 	// Immutable after creation.
 	ServiceType string `json:"service_type"`
-
-	// ServiceTypeVersion Version of the ServiceType this catalog item references.
-	// Immutable after creation.
-	ServiceTypeVersion string `json:"service_type_version"`
 }
 
 // Error Error response following RFC 7807 Problem Details for HTTP APIs
@@ -193,10 +185,6 @@ type ServiceType struct {
 
 	// UpdateTime Timestamp when the resource was last modified (RFC 3339)
 	UpdateTime *time.Time `json:"update_time,omitempty"`
-
-	// Version Version of this service type
-	// Immutable after creation.
-	Version string `json:"version"`
 }
 
 // ServiceTypeList defines model for ServiceTypeList.
