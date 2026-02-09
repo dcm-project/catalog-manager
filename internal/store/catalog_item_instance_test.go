@@ -1,0 +1,297 @@
+package store_test
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+
+	"github.com/dcm-project/catalog-manager/internal/store"
+	"github.com/dcm-project/catalog-manager/internal/store/model"
+)
+
+var _ = Describe("CatalogItemInstance Store", func() {
+	var (
+		db                       *gorm.DB
+		catalogItemInstanceStore store.CatalogItemInstanceStore
+	)
+
+	BeforeEach(func() {
+		// Create in-memory SQLite database
+		var err error
+		db, err = gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
+			Logger: logger.Discard,
+		})
+		Expect(err).ToNot(HaveOccurred())
+
+		// Auto-migrate
+		err = db.AutoMigrate(&model.CatalogItemInstance{})
+		Expect(err).ToNot(HaveOccurred())
+
+		catalogItemInstanceStore = store.NewCatalogItemInstanceStore(db)
+	})
+
+	AfterEach(func() {
+		sqlDB, err := db.DB()
+		Expect(err).ToNot(HaveOccurred())
+		sqlDB.Close()
+	})
+
+	Describe("Create", func() {
+		It("should create a new catalog item instance successfully", func() {
+			cii := model.CatalogItemInstance{
+				ID:          "my-vm-instance",
+				ApiVersion:  "v1alpha1",
+				DisplayName: "My VM",
+				Spec: model.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues: []model.UserValue{
+						{
+							Path:  "spec.vcpu.count",
+							Value: 4,
+						},
+					},
+				},
+				Path: "catalog-item-instances/my-vm-instance",
+			}
+
+			created, err := catalogItemInstanceStore.Create(context.Background(), cii)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(created).ToNot(BeNil())
+
+			// Verify it was created
+			retrieved, err := catalogItemInstanceStore.Get(context.Background(), created.ID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(retrieved.ID).To(Equal(created.ID))
+			Expect(retrieved.DisplayName).To(Equal(created.DisplayName))
+			Expect(retrieved.Spec.CatalogItemId).To(Equal(created.Spec.CatalogItemId))
+			Expect(retrieved.SpecCatalogItemId).To(Equal(created.SpecCatalogItemId))
+		})
+
+		It("should return error when creating duplicate ID", func() {
+			cii := model.CatalogItemInstance{
+				ID:          "duplicate-cii",
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Original",
+				Spec: model.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []model.UserValue{},
+				},
+				Path: "catalog-item-instances/duplicate-cii",
+			}
+
+			_, err := catalogItemInstanceStore.Create(context.Background(), cii)
+			Expect(err).ToNot(HaveOccurred())
+
+			// Try to create again with same ID
+			cii2 := model.CatalogItemInstance{
+				ID:          "duplicate-cii",
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Duplicate",
+				Spec: model.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []model.UserValue{},
+				},
+				Path: "catalog-item-instances/duplicate-cii",
+			}
+
+			created2, err := catalogItemInstanceStore.Create(context.Background(), cii2)
+			Expect(created2).To(BeNil())
+			Expect(err).To(Equal(store.ErrCatalogItemInstanceIDTaken))
+		})
+	})
+
+	Describe("Get", func() {
+		It("should retrieve an existing catalog item instance", func() {
+			cii := model.CatalogItemInstance{
+				ID:          "get-test-cii",
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Test Instance",
+				Spec: model.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues: []model.UserValue{
+						{Path: "spec.vcpu.count", Value: 2},
+					},
+				},
+				Path: "catalog-item-instances/get-test-cii",
+			}
+
+			created, err := catalogItemInstanceStore.Create(context.Background(), cii)
+			Expect(err).ToNot(HaveOccurred())
+
+			retrieved, err := catalogItemInstanceStore.Get(context.Background(), created.ID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(retrieved.ID).To(Equal(created.ID))
+			Expect(retrieved.Spec.CatalogItemId).To(Equal("small-vm"))
+		})
+
+		It("should return error for non-existent catalog item instance", func() {
+			_, err := catalogItemInstanceStore.Get(context.Background(), "non-existent")
+			Expect(err).To(Equal(store.ErrCatalogItemInstanceNotFound))
+		})
+	})
+
+	Describe("Delete", func() {
+		It("should delete an existing catalog item instance", func() {
+			cii := model.CatalogItemInstance{
+				ID:          "delete-test-cii",
+				ApiVersion:  "v1alpha1",
+				DisplayName: "To Delete",
+				Spec: model.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []model.UserValue{},
+				},
+				Path: "catalog-item-instances/delete-test-cii",
+			}
+
+			created, err := catalogItemInstanceStore.Create(context.Background(), cii)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = catalogItemInstanceStore.Delete(context.Background(), created.ID)
+			Expect(err).ToNot(HaveOccurred())
+
+			// Verify deletion
+			_, err = catalogItemInstanceStore.Get(context.Background(), created.ID)
+			Expect(err).To(Equal(store.ErrCatalogItemInstanceNotFound))
+		})
+
+		It("should return error when deleting non-existent catalog item instance", func() {
+			err := catalogItemInstanceStore.Delete(context.Background(), "non-existent")
+			Expect(err).To(Equal(store.ErrCatalogItemInstanceNotFound))
+		})
+	})
+
+	Describe("List", func() {
+		It("should return empty list when no catalog item instances exist", func() {
+			results, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
+				PageSize: 100,
+			})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(results.CatalogItemInstances).To(BeEmpty())
+			Expect(results.NextPageToken).To(Equal(""))
+		})
+
+		It("should list all catalog item instances", func() {
+			// Create multiple catalog item instances
+			for i := 1; i <= 3; i++ {
+				cii := model.CatalogItemInstance{
+					ID:          fmt.Sprintf("cii-%d", i),
+					ApiVersion:  "v1alpha1",
+					DisplayName: fmt.Sprintf("Instance %d", i),
+					Spec: model.CatalogItemInstanceSpec{
+						CatalogItemId: "small-vm",
+						UserValues:    []model.UserValue{},
+					},
+					Path: fmt.Sprintf("catalog-item-instances/cii-%d", i),
+				}
+				time.Sleep(time.Millisecond)
+				_, err := catalogItemInstanceStore.Create(context.Background(), cii)
+				Expect(err).ToNot(HaveOccurred())
+			}
+
+			results, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
+				PageSize: 100,
+			})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(results.CatalogItemInstances).To(HaveLen(3))
+			Expect(results.NextPageToken).To(Equal(""))
+		})
+
+		It("should filter by catalog item ID", func() {
+			// Create instances for different catalog items
+			cii1 := model.CatalogItemInstance{
+				ID:          "vm-instance-1",
+				ApiVersion:  "v1alpha1",
+				DisplayName: "VM Instance",
+				Spec: model.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []model.UserValue{},
+				},
+				Path: "catalog-item-instances/vm-instance-1",
+			}
+			_, err := catalogItemInstanceStore.Create(context.Background(), cii1)
+			Expect(err).ToNot(HaveOccurred())
+
+			cii2 := model.CatalogItemInstance{
+				ID:          "db-instance-1",
+				ApiVersion:  "v1alpha1",
+				DisplayName: "DB Instance",
+				Spec: model.CatalogItemInstanceSpec{
+					CatalogItemId: "small-db",
+					UserValues:    []model.UserValue{},
+				},
+				Path: "catalog-item-instances/db-instance-1",
+			}
+			_, err = catalogItemInstanceStore.Create(context.Background(), cii2)
+			Expect(err).ToNot(HaveOccurred())
+
+			// Filter for small-vm catalog item
+			results, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
+				PageSize:      100,
+				CatalogItemId: "small-vm",
+			})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(results.CatalogItemInstances).To(HaveLen(1))
+			Expect(results.CatalogItemInstances[0].Spec.CatalogItemId).To(Equal("small-vm"))
+
+			// Filter for small-db catalog item
+			results, err = catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
+				PageSize:      100,
+				CatalogItemId: "small-db",
+			})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(results.CatalogItemInstances).To(HaveLen(1))
+			Expect(results.CatalogItemInstances[0].Spec.CatalogItemId).To(Equal("small-db"))
+		})
+
+		It("should handle pagination correctly", func() {
+			// Create 5 catalog item instances
+			for i := 1; i <= 5; i++ {
+				cii := model.CatalogItemInstance{
+					ID:          fmt.Sprintf("page-cii-%d", i),
+					ApiVersion:  "v1alpha1",
+					DisplayName: fmt.Sprintf("Instance %d", i),
+					Spec: model.CatalogItemInstanceSpec{
+						CatalogItemId: "small-vm",
+						UserValues:    []model.UserValue{},
+					},
+					Path: fmt.Sprintf("catalog-item-instances/page-cii-%d", i),
+				}
+				time.Sleep(time.Millisecond)
+				_, err := catalogItemInstanceStore.Create(context.Background(), cii)
+				Expect(err).ToNot(HaveOccurred())
+			}
+
+			// Get first page
+			results, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
+				PageSize: 2,
+			})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(results.CatalogItemInstances).To(HaveLen(2))
+			Expect(results.NextPageToken).ToNot(Equal(""))
+
+			// Get second page
+			results2, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
+				PageToken: &results.NextPageToken,
+				PageSize:  2,
+			})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(results2.CatalogItemInstances).To(HaveLen(2))
+			Expect(results2.NextPageToken).ToNot(Equal(""))
+
+			// Get second page
+			results3, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
+				PageToken: &results2.NextPageToken,
+				PageSize:  2,
+			})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(results3.CatalogItemInstances).To(HaveLen(1))
+			Expect(results3.NextPageToken).To(Equal(""))
+		})
+	})
+})

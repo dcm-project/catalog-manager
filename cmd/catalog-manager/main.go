@@ -10,6 +10,7 @@ import (
 	"github.com/dcm-project/catalog-manager/internal/apiserver"
 	"github.com/dcm-project/catalog-manager/internal/config"
 	"github.com/dcm-project/catalog-manager/internal/handlers/v1alpha1"
+	"github.com/dcm-project/catalog-manager/internal/store"
 )
 
 func main() {
@@ -19,14 +20,28 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
+	// Initialize database
+	db, err := store.InitDB(cfg)
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+
+	// Create store
+	dataStore := store.NewStore(db)
+	defer func() {
+		if err := dataStore.Close(); err != nil {
+			log.Printf("Failed to close database: %v", err)
+		}
+	}()
+
 	// Create TCP listener
-	listener, err := net.Listen("tcp", cfg.BindAddress)
+	listener, err := net.Listen("tcp", cfg.Service.BindAddress)
 	if err != nil {
 		log.Fatalf("Failed to create listener: %v", err)
 	}
 	defer listener.Close()
 
-	srv := apiserver.New(cfg, listener, v1alpha1.NewHandler())
+	srv := apiserver.New(cfg, listener, v1alpha1.NewHandler(dataStore))
 
 	// Create context with signal handling
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
