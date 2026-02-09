@@ -29,7 +29,7 @@ components:
 
         Providers translate this abstract specification to their native format.
       allOf:
-        - $ref: 'common.yaml#/components/schemas/CommonFields'
+        - $ref: '../common.yaml#/components/schemas/CommonFields'
         - type: object
           required:
             - vcpu
