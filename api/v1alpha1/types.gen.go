@@ -71,6 +71,13 @@ type CatalogItemInstance struct {
 	// Path Resource path in the format: catalog-item-instances/{catalogItemInstanceId}
 	Path *string `json:"path,omitempty"`
 
+	// ServiceTypeInstanceUid Unique identifier of the corresponding service type instance
+	// created for this catalog item instance.
+	// This field is output-only and immutable after creation.
+	//
+	// Follows AEP-122 resource ID conventions.
+	ServiceTypeInstanceUid *string `json:"service_type_instance_uid,omitempty"`
+
 	// Spec Specification for a catalog item instance, defining the catalog item reference
 	// and field configurations.
 	Spec CatalogItemInstanceSpec `json:"spec"`

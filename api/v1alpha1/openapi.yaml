@@ -859,6 +859,20 @@ components:
         spec:
           $ref: '#/components/schemas/CatalogItemInstanceSpec'
 
+        service_type_instance_uid:
+          type: string
+          description: |
+            Unique identifier of the corresponding service type instance
+            created for this catalog item instance.
+            This field is output-only and immutable after creation.
+
+            Follows AEP-122 resource ID conventions.
+          readOnly: true
+          pattern: '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
+          minLength: 1
+          maxLength: 63
+          example: 650e8400-e29b-41d4-a716-446655440001
+
         path:
           type: string
           readOnly: true
