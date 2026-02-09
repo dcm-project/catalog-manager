@@ -19,6 +19,18 @@ paths: {}
 
 components:
   schemas:
+    ServiceType:
+      type: string
+      description: |
+        Service type identifier.
+        Makes the payload self-describing and enables routing/validation.
+      enum:
+        - vm
+        - container
+        - database
+        - cluster
+      example: vm
+
     ServiceMetadata:
       type: object
       description: |
@@ -79,16 +91,7 @@ components:
         - metadata
       properties:
         serviceType:
-          type: string
-          description: |
-            Service type identifier.
-            Makes the payload self-describing and enables routing/validation.
-          enum:
-            - vm
-            - container
-            - database
-            - cluster
-          example: vm
+          $ref: '#/components/schemas/ServiceType'
 
         metadata:
           $ref: '#/components/schemas/ServiceMetadata'
