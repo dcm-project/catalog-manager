@@ -55,4 +55,38 @@ check-generate-api: generate-api
 check-aep:
 	spectral lint --fail-severity=warn ./api/v1alpha1/openapi.yaml
 
-.PHONY: build run clean fmt vet test tidy generate-types generate-spec generate-server generate-client generate-api check-generate-api check-aep
+
+# Generate Go types for service specifications (VM, Container, Database, Cluster)
+generate-service-types:
+	@echo "Generating common types..."
+	go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen \
+		--config=api/v1alpha1/servicetypes/types.gen.cfg \
+		-o api/v1alpha1/servicetypes/types.gen.go \
+		api/v1alpha1/servicetypes/common.yaml
+	@echo "Generating VM types..."
+	go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen \
+		--config=api/v1alpha1/servicetypes/vm/spec.gen.cfg \
+		--import-mapping=../common.yaml:github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes \
+		-o api/v1alpha1/servicetypes/vm/types.gen.go \
+		api/v1alpha1/servicetypes/vm/spec.yaml
+	@echo "Generating Container types..."
+	go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen \
+		--config=api/v1alpha1/servicetypes/container/spec.gen.cfg \
+		--import-mapping=../common.yaml:github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes \
+		-o api/v1alpha1/servicetypes/container/types.gen.go \
+		api/v1alpha1/servicetypes/container/spec.yaml
+	@echo "Generating Database types..."
+	go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen \
+		--config=api/v1alpha1/servicetypes/database/spec.gen.cfg \
+		--import-mapping=../common.yaml:github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes \
+		-o api/v1alpha1/servicetypes/database/types.gen.go \
+		api/v1alpha1/servicetypes/database/spec.yaml
+	@echo "Generating Cluster types..."
+	go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen \
+		--config=api/v1alpha1/servicetypes/cluster/spec.gen.cfg \
+		--import-mapping=../common.yaml:github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes \
+		-o api/v1alpha1/servicetypes/cluster/types.gen.go \
+		api/v1alpha1/servicetypes/cluster/spec.yaml
+	@echo "Service types generation complete!"
+
+.PHONY: build run clean fmt vet test tidy generate-types generate-spec generate-server generate-client generate-api check-generate-api check-aep generate-service-types
