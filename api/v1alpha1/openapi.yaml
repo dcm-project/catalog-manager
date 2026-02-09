@@ -311,8 +311,7 @@ paths:
       description: |
         Updates specific fields of a catalog item using JSON Merge Patch (RFC 7396).
 
-        Note that api_version and spec.service_type, spec.service_type_version are
-        immutable after creation.
+        Note that api_version and spec.service_type are immutable after creation.
       parameters:
         - $ref: '#/components/parameters/CatalogItemIdPath'
 
@@ -406,7 +405,6 @@ components:
       required:
         - api_version
         - service_type
-        - version
         - spec
       properties:
         uid:
@@ -438,14 +436,6 @@ components:
             Common values include: vm, container, database, cluster.
             Administrators may define custom types beyond these.
           example: vm
-
-        version:
-          type: string
-          pattern: '^\d+(\.\d+)?$'
-          description: |
-            Version of this service type
-            Immutable after creation.
-          example: "0.1"
 
         metadata:
           type: object
@@ -520,7 +510,6 @@ components:
       required:
         - api_version
         - display_name
-        - version
         - spec
       properties:
         uid:
@@ -552,14 +541,6 @@ components:
             User-friendly display name for the catalog item.
             Mutable and does not need to be unique.
           example: Small Development VM
-
-        version:
-          type: string
-          pattern: '^\d+(\.\d+)?$'
-          description: |
-            Version of this catalog item.
-            Immutable after creation.
-          example: "1.5"
 
         spec:
           $ref: '#/components/schemas/CatalogItemSpec'
@@ -593,7 +574,6 @@ components:
         and field configurations.
       required:
         - service_type
-        - service_type_version
         - fields
       properties:
         service_type:
@@ -602,14 +582,6 @@ components:
             The Service type this catalog item references.
             Immutable after creation.
           example: vm
-
-        service_type_version:
-          type: string
-          pattern: '^v[0-9]+[a-z]+[0-9]+$'
-          description: |
-            Version of the ServiceType this catalog item references.
-            Immutable after creation.
-          example: v1alpha1
 
         fields:
           type: array
