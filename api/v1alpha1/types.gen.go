@@ -57,9 +57,9 @@ type CatalogItem struct {
 
 // CatalogItemInstance defines model for CatalogItemInstance.
 type CatalogItemInstance struct {
-	// CatalogInstanceSchemaVersion Version of the CatalogItemInstance schema itself (e.g., v1alpha1).
+	// ApiVersion Version of the CatalogItemInstance schema itself (e.g., v1alpha1).
 	// Immutable after creation.
-	CatalogInstanceSchemaVersion string `json:"catalog_instance_schema_version"`
+	ApiVersion string `json:"api_version"`
 
 	// CreateTime Timestamp when the catalog item was created (RFC 3339)
 	CreateTime *time.Time `json:"create_time,omitempty"`
@@ -102,10 +102,6 @@ type CatalogItemInstanceSpec struct {
 	// CatalogItemId The Catalog item ID this catalog item instance references.
 	// Immutable after creation.
 	CatalogItemId string `json:"catalog_item_id"`
-
-	// CatalogItemVersion Version of the Catalog item this catalog item instance references.
-	// Immutable after creation.
-	CatalogItemVersion string `json:"catalog_item_version"`
 
 	// UserValues Array of user values for this catalog item instance.
 	UserValues []UserValue `json:"user_values"`

@@ -822,7 +822,7 @@ components:
         patterns:
           - catalog-item-instances/{catalog_item_instance_id}
       required:
-        - catalog_instance_schema_version
+        - api_version
         - display_name
         - spec
       properties:
@@ -840,7 +840,7 @@ components:
           maxLength: 63
           example: 650e8400-e29b-41d4-a716-446655440001
 
-        catalog_instance_schema_version:
+        api_version:
           type: string
           pattern: '^v[0-9]+[a-z]+[0-9]+$'
           description: |
@@ -888,7 +888,6 @@ components:
         and field configurations.
       required:
         - catalog_item_id
-        - catalog_item_version
         - user_values
       properties:
         catalog_item_id:
@@ -897,14 +896,6 @@ components:
             The Catalog item ID this catalog item instance references.
             Immutable after creation.
           example: vm
-
-        catalog_item_version:
-          type: string
-          pattern: '^v[0-9]+[a-z]+[0-9]+$'
-          description: |
-            Version of the Catalog item this catalog item instance references.
-            Immutable after creation.
-          example: v1alpha1
 
         user_values:
           type: array
