@@ -373,6 +373,163 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /catalog-item-instances:
+    get:
+      operationId: listCatalogItemInstances
+      summary: List catalog item instances
+      description: |
+        Retrieves a paginated list of catalog item instances.
+        Supports filtering by catalog item instance ID.
+      parameters:
+        - name: page_token
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Token for retrieving the next page of results
+
+        - name: max_page_size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 1000
+            default: 100
+          description: Maximum number of items to return per page
+
+        - name: catalog_item_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |
+            Filter catalog item instances by catalog item ID.
+            Only returns items where spec.catalog_item_id matches this value.
+          example: small-vm
+
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItemInstanceList'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      operationId: createCatalogItemInstance
+      summary: Create a catalog item instance
+      description: |
+        Creates a new catalog item instance.
+
+        Supports user-specified IDs via the 'catalog_item_instance_id' query parameter for idempotency.
+      parameters:
+        - name: id
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$'
+          description: Optional user-specified catalog item instance ID
+          example: small-vm
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogItemInstance'
+
+      responses:
+        '201':
+          description: Catalog item instance created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItemInstance'
+
+        '400':
+          description: Invalid request body or field paths
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '409':
+          $ref: '#/components/responses/AlreadyExists'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /catalog-item-instances/{catalogItemInstanceId}:
+    get:
+      operationId: getCatalogItemInstance
+      summary: Get a catalog item instance
+      description: |
+        Retrieves a single catalog item instance by its ID.
+      parameters:
+        - $ref: '#/components/parameters/CatalogItemInstanceIdPath'
+
+      responses:
+        '200':
+          description: Catalog item instance found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItemInstance'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      operationId: deleteCatalogItemInstance
+      summary: Delete a catalog item instance
+      description: |
+        Deletes a catalog item instance.
+      parameters:
+        - $ref: '#/components/parameters/CatalogItemInstanceIdPath'
+
+      responses:
+        '204':
+          description: Catalog item instance deleted successfully
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   parameters:
     ServiceTypeIdPath:
@@ -392,6 +549,15 @@ components:
         type: string
         pattern: '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
       description: Unique identifier for the catalog item
+      example: small-vm
+    CatalogItemInstanceIdPath:
+      name: catalogItemInstanceId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
+      description: Unique identifier for the catalog item instance
       example: small-vm
   schemas:
     ServiceType:
@@ -647,6 +813,130 @@ components:
             multipleOf: 1
             description: Number of CPU cores (1-16)
 
+    CatalogItemInstance:
+      type: object
+      x-aep-resource:
+        type: catalog-manager.dcm.io/catalog-item-instance
+        singular: catalog-item-instance
+        plural: catalog-item-instances
+        patterns:
+          - catalog-item-instances/{catalog_item_instance_id}
+      required:
+        - api_version
+        - display_name
+        - spec
+      properties:
+        uid:
+          type: string
+          description: |
+            Unique identifier for the catalog item instance. This field is output-only and
+            immutable after creation. The ID can be optionally specified via
+            query parameter on creation; if not provided, the server generates a UUID.
+
+            Follows AEP-122 resource ID conventions.
+          readOnly: true
+          pattern: '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
+          minLength: 1
+          maxLength: 63
+          example: 650e8400-e29b-41d4-a716-446655440001
+
+        api_version:
+          type: string
+          pattern: '^v[0-9]+[a-z]+[0-9]+$'
+          description: |
+            Version of the CatalogItemInstance schema itself (e.g., v1alpha1).
+            Immutable after creation.
+          example: v1alpha1
+
+        display_name:
+          type: string
+          maxLength: 63
+          description: |
+            User-friendly display name for the catalog item instance.
+            Mutable and does not need to be unique.
+          example: Small Development VM
+
+        spec:
+          $ref: '#/components/schemas/CatalogItemInstanceSpec'
+
+        service_type_instance_uid:
+          type: string
+          description: |
+            Unique identifier of the corresponding service type instance
+            created for this catalog item instance.
+            This field is output-only and immutable after creation.
+
+            Follows AEP-122 resource ID conventions.
+          readOnly: true
+          pattern: '^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
+          minLength: 1
+          maxLength: 63
+          example: 650e8400-e29b-41d4-a716-446655440001
+
+        path:
+          type: string
+          readOnly: true
+          pattern: '^catalog-item-instances/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$'
+          description: |
+            Resource path in the format: catalog-item-instances/{catalogItemInstanceId}
+          example: catalog-item-instances/small-vm
+
+        create_time:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Timestamp when the catalog item was created (RFC 3339)
+          example: '2026-01-13T14:20:00Z'
+
+        update_time:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Timestamp when the catalog item was last modified (RFC 3339)
+          example: '2026-01-13T15:10:00Z'
+
+    CatalogItemInstanceSpec:
+      type: object
+      description: |
+        Specification for a catalog item instance, defining the catalog item reference
+        and field configurations.
+      required:
+        - catalog_item_id
+        - user_values
+      properties:
+        catalog_item_id:
+          type: string
+          description: |
+            The Catalog item ID this catalog item instance references.
+            Immutable after creation.
+          example: vm
+
+        user_values:
+          type: array
+          description: |
+            Array of user values for this catalog item instance.
+          items:
+            $ref: '#/components/schemas/UserValue'
+
+    UserValue:
+      type: object
+      required:
+        - path
+        - value
+      properties:
+        path:
+          type: string
+          description: |
+            JSON path to the user value in the CatalogItem spec using dot notation.
+            Examples: "spec.vcpu.count", "spec.memory.size_gb", "metadata.labels.tier"
+          example: spec.vcpu.count
+
+        value:
+          description: |
+            Value for this user value.
+            Type depends on the field's schema (can be string, number, boolean, object, array).
+          example: "2"
+
     ServiceTypeList:
       type: object
       required:
@@ -680,6 +970,25 @@ components:
           description: Array of catalog item resources
           items:
             $ref: '#/components/schemas/CatalogItem'
+
+        next_page_token:
+          type: string
+          description: |
+            Token for retrieving the next page.
+            Empty string indicates this is the last page.
+          example: eyJvZmZzZXQiOjUwfQ==
+
+    CatalogItemInstanceList:
+      type: object
+      required:
+        - results
+        - next_page_token
+      properties:
+        results:
+          type: array
+          description: Array of catalog item instance resources
+          items:
+            $ref: '#/components/schemas/CatalogItemInstance'
 
         next_page_token:
           type: string

@@ -90,6 +90,20 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// ListCatalogItemInstances request
+	ListCatalogItemInstances(ctx context.Context, params *ListCatalogItemInstancesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateCatalogItemInstanceWithBody request with any body
+	CreateCatalogItemInstanceWithBody(ctx context.Context, params *CreateCatalogItemInstanceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateCatalogItemInstance(ctx context.Context, params *CreateCatalogItemInstanceParams, body CreateCatalogItemInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteCatalogItemInstance request
+	DeleteCatalogItemInstance(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetCatalogItemInstance request
+	GetCatalogItemInstance(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListCatalogItems request
 	ListCatalogItems(ctx context.Context, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -122,6 +136,66 @@ type ClientInterface interface {
 
 	// GetServiceType request
 	GetServiceType(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) ListCatalogItemInstances(ctx context.Context, params *ListCatalogItemInstancesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListCatalogItemInstancesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateCatalogItemInstanceWithBody(ctx context.Context, params *CreateCatalogItemInstanceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateCatalogItemInstanceRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateCatalogItemInstance(ctx context.Context, params *CreateCatalogItemInstanceParams, body CreateCatalogItemInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateCatalogItemInstanceRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteCatalogItemInstance(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteCatalogItemInstanceRequest(c.Server, catalogItemInstanceId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetCatalogItemInstance(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCatalogItemInstanceRequest(c.Server, catalogItemInstanceId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) ListCatalogItems(ctx context.Context, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -266,6 +340,217 @@ func (c *Client) GetServiceType(ctx context.Context, serviceTypeId ServiceTypeId
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewListCatalogItemInstancesRequest generates requests for ListCatalogItemInstances
+func NewListCatalogItemInstancesRequest(server string, params *ListCatalogItemInstancesParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/catalog-item-instances")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.PageToken != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page_token", runtime.ParamLocationQuery, *params.PageToken); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MaxPageSize != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_page_size", runtime.ParamLocationQuery, *params.MaxPageSize); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.CatalogItemId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "catalog_item_id", runtime.ParamLocationQuery, *params.CatalogItemId); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateCatalogItemInstanceRequest calls the generic CreateCatalogItemInstance builder with application/json body
+func NewCreateCatalogItemInstanceRequest(server string, params *CreateCatalogItemInstanceParams, body CreateCatalogItemInstanceJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateCatalogItemInstanceRequestWithBody(server, params, "application/json", bodyReader)
+}
+
+// NewCreateCatalogItemInstanceRequestWithBody generates requests for CreateCatalogItemInstance with any type of body
+func NewCreateCatalogItemInstanceRequestWithBody(server string, params *CreateCatalogItemInstanceParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/catalog-item-instances")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Id != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "id", runtime.ParamLocationQuery, *params.Id); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteCatalogItemInstanceRequest generates requests for DeleteCatalogItemInstance
+func NewDeleteCatalogItemInstanceRequest(server string, catalogItemInstanceId CatalogItemInstanceIdPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "catalogItemInstanceId", runtime.ParamLocationPath, catalogItemInstanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/catalog-item-instances/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetCatalogItemInstanceRequest generates requests for GetCatalogItemInstance
+func NewGetCatalogItemInstanceRequest(server string, catalogItemInstanceId CatalogItemInstanceIdPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "catalogItemInstanceId", runtime.ParamLocationPath, catalogItemInstanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/catalog-item-instances/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewListCatalogItemsRequest generates requests for ListCatalogItems
@@ -757,6 +1042,20 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// ListCatalogItemInstancesWithResponse request
+	ListCatalogItemInstancesWithResponse(ctx context.Context, params *ListCatalogItemInstancesParams, reqEditors ...RequestEditorFn) (*ListCatalogItemInstancesResponse, error)
+
+	// CreateCatalogItemInstanceWithBodyWithResponse request with any body
+	CreateCatalogItemInstanceWithBodyWithResponse(ctx context.Context, params *CreateCatalogItemInstanceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateCatalogItemInstanceResponse, error)
+
+	CreateCatalogItemInstanceWithResponse(ctx context.Context, params *CreateCatalogItemInstanceParams, body CreateCatalogItemInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateCatalogItemInstanceResponse, error)
+
+	// DeleteCatalogItemInstanceWithResponse request
+	DeleteCatalogItemInstanceWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*DeleteCatalogItemInstanceResponse, error)
+
+	// GetCatalogItemInstanceWithResponse request
+	GetCatalogItemInstanceWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*GetCatalogItemInstanceResponse, error)
+
 	// ListCatalogItemsWithResponse request
 	ListCatalogItemsWithResponse(ctx context.Context, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*ListCatalogItemsResponse, error)
 
@@ -789,6 +1088,109 @@ type ClientWithResponsesInterface interface {
 
 	// GetServiceTypeWithResponse request
 	GetServiceTypeWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*GetServiceTypeResponse, error)
+}
+
+type ListCatalogItemInstancesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CatalogItemInstanceList
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r ListCatalogItemInstancesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListCatalogItemInstancesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateCatalogItemInstanceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *CatalogItemInstance
+	JSON400      *Error
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON409      *AlreadyExists
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateCatalogItemInstanceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateCatalogItemInstanceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteCatalogItemInstanceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON404      *NotFound
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteCatalogItemInstanceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteCatalogItemInstanceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetCatalogItemInstanceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CatalogItemInstance
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON404      *NotFound
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r GetCatalogItemInstanceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetCatalogItemInstanceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type ListCatalogItemsResponse struct {
@@ -1022,6 +1424,50 @@ func (r GetServiceTypeResponse) StatusCode() int {
 	return 0
 }
 
+// ListCatalogItemInstancesWithResponse request returning *ListCatalogItemInstancesResponse
+func (c *ClientWithResponses) ListCatalogItemInstancesWithResponse(ctx context.Context, params *ListCatalogItemInstancesParams, reqEditors ...RequestEditorFn) (*ListCatalogItemInstancesResponse, error) {
+	rsp, err := c.ListCatalogItemInstances(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListCatalogItemInstancesResponse(rsp)
+}
+
+// CreateCatalogItemInstanceWithBodyWithResponse request with arbitrary body returning *CreateCatalogItemInstanceResponse
+func (c *ClientWithResponses) CreateCatalogItemInstanceWithBodyWithResponse(ctx context.Context, params *CreateCatalogItemInstanceParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateCatalogItemInstanceResponse, error) {
+	rsp, err := c.CreateCatalogItemInstanceWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateCatalogItemInstanceResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateCatalogItemInstanceWithResponse(ctx context.Context, params *CreateCatalogItemInstanceParams, body CreateCatalogItemInstanceJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateCatalogItemInstanceResponse, error) {
+	rsp, err := c.CreateCatalogItemInstance(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateCatalogItemInstanceResponse(rsp)
+}
+
+// DeleteCatalogItemInstanceWithResponse request returning *DeleteCatalogItemInstanceResponse
+func (c *ClientWithResponses) DeleteCatalogItemInstanceWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*DeleteCatalogItemInstanceResponse, error) {
+	rsp, err := c.DeleteCatalogItemInstance(ctx, catalogItemInstanceId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteCatalogItemInstanceResponse(rsp)
+}
+
+// GetCatalogItemInstanceWithResponse request returning *GetCatalogItemInstanceResponse
+func (c *ClientWithResponses) GetCatalogItemInstanceWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*GetCatalogItemInstanceResponse, error) {
+	rsp, err := c.GetCatalogItemInstance(ctx, catalogItemInstanceId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetCatalogItemInstanceResponse(rsp)
+}
+
 // ListCatalogItemsWithResponse request returning *ListCatalogItemsResponse
 func (c *ClientWithResponses) ListCatalogItemsWithResponse(ctx context.Context, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*ListCatalogItemsResponse, error) {
 	rsp, err := c.ListCatalogItems(ctx, params, reqEditors...)
@@ -1125,6 +1571,215 @@ func (c *ClientWithResponses) GetServiceTypeWithResponse(ctx context.Context, se
 		return nil, err
 	}
 	return ParseGetServiceTypeResponse(rsp)
+}
+
+// ParseListCatalogItemInstancesResponse parses an HTTP response from a ListCatalogItemInstancesWithResponse call
+func ParseListCatalogItemInstancesResponse(rsp *http.Response) (*ListCatalogItemInstancesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListCatalogItemInstancesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CatalogItemInstanceList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateCatalogItemInstanceResponse parses an HTTP response from a CreateCatalogItemInstanceWithResponse call
+func ParseCreateCatalogItemInstanceResponse(rsp *http.Response) (*CreateCatalogItemInstanceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateCatalogItemInstanceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest CatalogItemInstance
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest AlreadyExists
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteCatalogItemInstanceResponse parses an HTTP response from a DeleteCatalogItemInstanceWithResponse call
+func ParseDeleteCatalogItemInstanceResponse(rsp *http.Response) (*DeleteCatalogItemInstanceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteCatalogItemInstanceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetCatalogItemInstanceResponse parses an HTTP response from a GetCatalogItemInstanceWithResponse call
+func ParseGetCatalogItemInstanceResponse(rsp *http.Response) (*GetCatalogItemInstanceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetCatalogItemInstanceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CatalogItemInstance
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseListCatalogItemsResponse parses an HTTP response from a ListCatalogItemsWithResponse call
