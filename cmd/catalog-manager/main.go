@@ -36,7 +36,5 @@ func main() {
 	if err := srv.Run(ctx); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
-
-	log.Println("Server stopped")
 }
 
