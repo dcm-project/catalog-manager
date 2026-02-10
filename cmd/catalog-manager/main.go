@@ -10,6 +10,7 @@ import (
 	"github.com/dcm-project/catalog-manager/internal/apiserver"
 	"github.com/dcm-project/catalog-manager/internal/config"
 	"github.com/dcm-project/catalog-manager/internal/handlers/v1alpha1"
+	"github.com/dcm-project/catalog-manager/internal/service"
 	"github.com/dcm-project/catalog-manager/internal/store"
 )
 
@@ -34,6 +35,9 @@ func main() {
 		}
 	}()
 
+	// Create service layer
+	svc := service.NewService(dataStore)
+
 	// Create TCP listener
 	listener, err := net.Listen("tcp", cfg.Service.BindAddress)
 	if err != nil {
@@ -41,7 +45,7 @@ func main() {
 	}
 	defer listener.Close()
 
-	srv := apiserver.New(cfg, listener, v1alpha1.NewHandler(dataStore))
+	srv := apiserver.New(cfg, listener, v1alpha1.NewHandler(svc))
 
 	// Create context with signal handling
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

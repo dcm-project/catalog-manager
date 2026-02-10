@@ -1,0 +1,151 @@
+package service
+
+import (
+	"context"
+	"fmt"
+	"regexp"
+
+	"github.com/dcm-project/catalog-manager/api/v1alpha1"
+	"github.com/dcm-project/catalog-manager/internal/store"
+	"github.com/google/uuid"
+)
+
+// DNS-1123 label validation pattern
+var dns1123Pattern = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
+
+// allowedServiceTypes defines the restricted set of valid service type values
+var allowedServiceTypes = map[string]bool{
+	"vm":        true,
+	"container": true,
+	"cluster":   true,
+	"db":        true,
+}
+
+// CreateServiceTypeRequest contains the parameters for creating a service type
+type CreateServiceTypeRequest struct {
+	ID          *string   // Optional user-specified ID
+	ApiVersion  string    // e.g., "v1alpha1"
+	ServiceType string    // Must be: vm, container, cluster, or db
+	Metadata    *struct { // Optional labels
+		Labels *map[string]string `json:"labels,omitempty"`
+	}
+	Spec map[string]any // Required, cannot be empty
+}
+
+// ServiceTypeListOptions contains options for listing service types
+type ServiceTypeListOptions struct {
+	PageToken   *string
+	MaxPageSize *int32
+}
+
+// ServiceTypeListResult contains the result of a List operation
+type ServiceTypeListResult struct {
+	ServiceTypes  []v1alpha1.ServiceType
+	NextPageToken *string
+}
+
+// ServiceTypeService defines the business logic for ServiceType operations
+type ServiceTypeService interface {
+	List(ctx context.Context, opts *ServiceTypeListOptions) (*ServiceTypeListResult, error)
+	Create(ctx context.Context, req *CreateServiceTypeRequest) (*v1alpha1.ServiceType, error)
+	Get(ctx context.Context, id string) (*v1alpha1.ServiceType, error)
+}
+
+type serviceTypeService struct {
+	store store.Store
+}
+
+// newServiceTypeService creates a new ServiceTypeService instance
+func newServiceTypeService(store store.Store) ServiceTypeService {
+	return &serviceTypeService{store: store}
+}
+
+// List returns a paginated list of service types
+func (s *serviceTypeService) List(ctx context.Context, opts *ServiceTypeListOptions) (*ServiceTypeListResult, error) {
+	// Convert service options to store options
+	var pageToken *string
+	maxPageSize := 100
+	if opts != nil {
+		pageToken = opts.PageToken
+		if opts.MaxPageSize != nil {
+			maxPageSize = int(*opts.MaxPageSize)
+		}
+	}
+
+	storeOpts := &store.ServiceTypeListOptions{
+		PageToken: pageToken,
+		PageSize:  maxPageSize,
+	}
+
+	// Call store layer
+	storeResult, err := s.store.ServiceType().List(ctx, storeOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert store models to API types
+	apiTypes := make([]v1alpha1.ServiceType, len(storeResult.ServiceTypes))
+	for i, storeModel := range storeResult.ServiceTypes {
+		apiTypes[i] = toAPIType(&storeModel)
+	}
+
+	return &ServiceTypeListResult{
+		ServiceTypes:  apiTypes,
+		NextPageToken: storeResult.NextPageToken,
+	}, nil
+}
+
+// Create creates a new service type with business validation
+func (s *serviceTypeService) Create(ctx context.Context, req *CreateServiceTypeRequest) (*v1alpha1.ServiceType, error) {
+	// Validate service type (must be one of the allowed values)
+	if !allowedServiceTypes[req.ServiceType] {
+		return nil, ErrInvalidServiceType
+	}
+
+	// Validate spec is not empty
+	if len(req.Spec) == 0 {
+		return nil, ErrEmptySpec
+	}
+
+	// Generate or validate ID
+	var id string
+	if req.ID != nil && *req.ID != "" {
+		// Validate user-provided ID (DNS-1123 format)
+		if !dns1123Pattern.MatchString(*req.ID) {
+			return nil, ErrInvalidID
+		}
+		id = *req.ID
+	} else {
+		// Generate UUID if not provided
+		id = uuid.New().String()
+	}
+
+	// Generate path
+	path := fmt.Sprintf("service-types/%s", id)
+
+	// Convert to store model
+	storeModel := toStoreModel(id, path, req)
+
+	// Call store layer
+	createdModel, err := s.store.ServiceType().Create(ctx, storeModel)
+	if err != nil {
+		return nil, mapStoreError(err)
+	}
+
+	// Convert result back to API type
+	apiType := toAPIType(createdModel)
+	return &apiType, nil
+}
+
+// Get retrieves a service type by ID
+func (s *serviceTypeService) Get(ctx context.Context, id string) (*v1alpha1.ServiceType, error) {
+	// Call store layer
+	storeModel, err := s.store.ServiceType().Get(ctx, id)
+	if err != nil {
+		return nil, mapStoreError(err)
+	}
+
+	// Convert to API type
+	apiType := toAPIType(storeModel)
+	return &apiType, nil
+}
