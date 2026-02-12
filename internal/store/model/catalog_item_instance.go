@@ -1,9 +1,6 @@
 package model
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"fmt"
 	"time"
 )
 
@@ -12,7 +9,7 @@ type CatalogItemInstance struct {
 	ID                     string                  `gorm:"column:id;primaryKey"`
 	ApiVersion             string                  `gorm:"column:api_version;not null"`
 	DisplayName            string                  `gorm:"column:display_name;not null"`
-	Spec                   CatalogItemInstanceSpec `gorm:"column:spec;type:jsonb;not null"`
+	Spec                   CatalogItemInstanceSpec `gorm:"column:spec;type:jsonb;not null;serializer:json"`
 	ServiceTypeInstanceUid string                  `gorm:"column:service_type_instance_uid"`
 	Path                   string                  `gorm:"column:path;not null"`
 	CreateTime             time.Time               `gorm:"column:create_time;autoCreateTime"`
@@ -34,25 +31,6 @@ type CatalogItemInstanceList []CatalogItemInstance
 type CatalogItemInstanceSpec struct {
 	CatalogItemId string      `json:"catalog_item_id"`
 	UserValues    []UserValue `json:"user_values"`
-}
-
-// Scan implements sql.Scanner for CatalogItemInstanceSpec
-func (s *CatalogItemInstanceSpec) Scan(value any) error {
-	if value == nil {
-		return fmt.Errorf("catalog item instance spec cannot be null")
-	}
-
-	bytes, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("failed to unmarshal JSONB value: %v", value)
-	}
-
-	return json.Unmarshal(bytes, s)
-}
-
-// Value implements driver.Valuer for CatalogItemInstanceSpec
-func (s CatalogItemInstanceSpec) Value() (driver.Value, error) {
-	return json.Marshal(s)
 }
 
 // UserValue represents a user-provided value for a field
