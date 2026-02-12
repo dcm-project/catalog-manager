@@ -9,12 +9,12 @@ type ServiceConfig struct {
 
 // DBConfig holds database configuration
 type DBConfig struct {
-	Type     string `envconfig:"DB_TYPE" default:"sqlite"`
+	Type     string `envconfig:"DB_TYPE" default:"pgsql"`
 	Hostname string `envconfig:"DB_HOST" default:"localhost"`
 	Port     string `envconfig:"DB_PORT" default:"5432"`
-	Name     string `envconfig:"DB_NAME" default:"catalog-manager.db"`
-	User     string `envconfig:"DB_USER" default:""`
-	Password string `envconfig:"DB_PASSWORD" default:""`
+	Name     string `envconfig:"DB_NAME" default:"catalog-manager"`
+	User     string `envconfig:"DB_USER" default:"admin"`
+	Password string `envconfig:"DB_PASSWORD" default:"adminpass"`
 }
 
 // Config holds all configuration for the application
