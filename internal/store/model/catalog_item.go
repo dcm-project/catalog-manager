@@ -18,11 +18,6 @@ type CatalogItem struct {
 	SpecServiceType string `gorm:"column:spec_service_type;not null;index"`
 }
 
-// TableName specifies the table name for CatalogItem
-func (CatalogItem) TableName() string {
-	return "catalog_items"
-}
-
 // CatalogItemList is a slice of CatalogItem for list results
 type CatalogItemList []CatalogItem
 

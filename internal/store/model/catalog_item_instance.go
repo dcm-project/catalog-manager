@@ -19,11 +19,6 @@ type CatalogItemInstance struct {
 	SpecCatalogItemId string `gorm:"column:spec_catalog_item_id;not null;index"`
 }
 
-// TableName specifies the table name for CatalogItemInstance
-func (CatalogItemInstance) TableName() string {
-	return "catalog_item_instances"
-}
-
 // CatalogItemInstanceList is a slice of CatalogItemInstance for list results
 type CatalogItemInstanceList []CatalogItemInstance
 

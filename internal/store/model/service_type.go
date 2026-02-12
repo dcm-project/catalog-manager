@@ -18,11 +18,6 @@ type ServiceType struct {
 
 type ServiceTypeList []ServiceType
 
-// TableName specifies the table name for ServiceType
-func (ServiceType) TableName() string {
-	return "service_types"
-}
-
 // Metadata represents the metadata field with labels
 type Metadata struct {
 	Labels map[string]string `json:"labels,omitempty"`
