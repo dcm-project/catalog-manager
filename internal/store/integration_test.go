@@ -57,7 +57,7 @@ var _ = Describe("Foreign Key Constraint Integration Tests", func() {
 				ID:          "vm-service",
 				ApiVersion:  "v1alpha1",
 				ServiceType: "vm",
-				Spec:        model.JSONMap{},
+				Spec:        map[string]any{},
 				Path:        "service-types/vm-service",
 			}
 			_, err := serviceTypeStore.Create(ctx, st)
@@ -149,7 +149,7 @@ var _ = Describe("Foreign Key Constraint Integration Tests", func() {
 				ID:          "vm-st",
 				ApiVersion:  "v1alpha1",
 				ServiceType: "vm",
-				Spec:        model.JSONMap{},
+				Spec:        map[string]any{},
 				Path:        "service-types/vm-st",
 			}
 			_, err := serviceTypeStore.Create(ctx, st)
@@ -182,7 +182,7 @@ var _ = Describe("Foreign Key Constraint Integration Tests", func() {
 				ID:          "vm-st-update",
 				ApiVersion:  "v1alpha1",
 				ServiceType: "vm",
-				Spec:        model.JSONMap{},
+				Spec:        map[string]any{},
 				Path:        "service-types/vm-st-update",
 			}
 			_, err := serviceTypeStore.Create(ctx, st)
@@ -230,7 +230,7 @@ var _ = Describe("Foreign Key Constraint Integration Tests", func() {
 				ID:          "vm-st-del",
 				ApiVersion:  "v1alpha1",
 				ServiceType: "vm",
-				Spec:        model.JSONMap{},
+				Spec:        map[string]any{},
 				Path:        "service-types/vm-st-del",
 			}
 			_, err := serviceTypeStore.Create(ctx, st)
@@ -283,7 +283,7 @@ var _ = Describe("Foreign Key Constraint Integration Tests", func() {
 				ID:          "vm-st-del-no-inst",
 				ApiVersion:  "v1alpha1",
 				ServiceType: "vm",
-				Spec:        model.JSONMap{},
+				Spec:        map[string]any{},
 				Path:        "service-types/vm-st-del-no-inst",
 			}
 			_, err := serviceTypeStore.Create(ctx, st)
@@ -350,7 +350,7 @@ var _ = Describe("Foreign Key Constraint Integration Tests", func() {
 				ID:          "vm-st-err",
 				ApiVersion:  "v1alpha1",
 				ServiceType: "vm",
-				Spec:        model.JSONMap{},
+				Spec:        map[string]any{},
 				Path:        "service-types/vm-st-err",
 			}
 			_, err = serviceTypeStore.Create(ctx, st)

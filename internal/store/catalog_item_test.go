@@ -48,7 +48,7 @@ var _ = Describe("CatalogItem Store", func() {
 				ID:          id,
 				ApiVersion:  "v1alpha1",
 				ServiceType: serviceType,
-				Spec:        model.JSONMap{},
+				Spec:        map[string]any{},
 				Path:        fmt.Sprintf("service-types/%s", id),
 			}
 			_, err := serviceTypeStore.Create(context.Background(), st)

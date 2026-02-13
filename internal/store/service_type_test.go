@@ -51,7 +51,7 @@ var _ = Describe("ServiceType Store", func() {
 				Metadata: model.Metadata{
 					Labels: map[string]string{"env": "test"},
 				},
-				Spec: model.JSONMap{
+				Spec: map[string]any{
 					"vcpu": map[string]any{"count": 2},
 				},
 				Path: "service-types/test-vm",
@@ -74,7 +74,7 @@ var _ = Describe("ServiceType Store", func() {
 				ID:          "duplicate-id",
 				ApiVersion:  "v1alpha1",
 				ServiceType: "vm",
-				Spec:        model.JSONMap{},
+				Spec:        map[string]any{},
 				Path:        "service-types/duplicate-id",
 			}
 
@@ -86,7 +86,7 @@ var _ = Describe("ServiceType Store", func() {
 				ID:          "duplicate-id",
 				ApiVersion:  "v1alpha1",
 				ServiceType: "container",
-				Spec:        model.JSONMap{},
+				Spec:        map[string]any{},
 				Path:        "service-types/duplicate-id",
 			}
 
@@ -98,7 +98,7 @@ var _ = Describe("ServiceType Store", func() {
 				ID:          "duplicate-id",
 				ApiVersion:  "v1alpha1",
 				ServiceType: "vm",
-				Spec:        model.JSONMap{},
+				Spec:        map[string]any{},
 				Path:        "service-types/duplicate-id",
 			}
 
@@ -110,7 +110,7 @@ var _ = Describe("ServiceType Store", func() {
 				ID:          "duplicate-service-type",
 				ApiVersion:  "v1alpha1",
 				ServiceType: "vm",
-				Spec:        model.JSONMap{},
+				Spec:        map[string]any{},
 				Path:        "service-types/duplicate-service-type",
 			}
 
@@ -125,7 +125,7 @@ var _ = Describe("ServiceType Store", func() {
 				ID:          "get-test",
 				ApiVersion:  "v1alpha1",
 				ServiceType: "database",
-				Spec:        model.JSONMap{"engine": "postgres"},
+				Spec:        map[string]any{"engine": "postgres"},
 				Path:        "service-types/get-test",
 			}
 
@@ -161,7 +161,7 @@ var _ = Describe("ServiceType Store", func() {
 					ID:          fmt.Sprintf("st-%d", i),
 					ApiVersion:  "v1alpha1",
 					ServiceType: fmt.Sprintf("vm-%d", i),
-					Spec:        model.JSONMap{},
+					Spec:        map[string]any{},
 					Path:        fmt.Sprintf("service-types/st-%d", i),
 				}
 				// Add small delay to ensure different create times
@@ -185,7 +185,7 @@ var _ = Describe("ServiceType Store", func() {
 					ID:          fmt.Sprintf("page-st-%d", i),
 					ApiVersion:  "v1alpha1",
 					ServiceType: fmt.Sprintf("vm-%d", i),
-					Spec:        model.JSONMap{},
+					Spec:        map[string]any{},
 					Path:        fmt.Sprintf("service-types/page-st-%d", i),
 				}
 				time.Sleep(time.Millisecond)
