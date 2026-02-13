@@ -350,6 +350,15 @@ var _ = Describe("CatalogItemInstance Store", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results.CatalogItemInstances).To(HaveLen(1))
 			Expect(results.CatalogItemInstances[0].Spec.CatalogItemId).To(Equal("small-db-filter"))
+
+			// Filter for non-existent catalog item
+			nonExistentFilter := "non-existent"
+			results, err = catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
+				PageSize:      100,
+				CatalogItemId: &nonExistentFilter,
+			})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(results.CatalogItemInstances).To(BeEmpty())
 		})
 
 		It("should handle pagination correctly", func() {
@@ -357,8 +366,8 @@ var _ = Describe("CatalogItemInstance Store", func() {
 			createTestServiceType("vm-st-page", "vm")
 			createTestCatalogItem("small-vm-page", "vm")
 
-			// Create 5 catalog item instances
-			for i := 1; i <= 5; i++ {
+			// Create 6 catalog item instances
+			for i := 1; i <= 6; i++ {
 				cii := model.CatalogItemInstance{
 					ID:          fmt.Sprintf("page-cii-%d", i),
 					ApiVersion:  "v1alpha1",
@@ -374,31 +383,26 @@ var _ = Describe("CatalogItemInstance Store", func() {
 				Expect(err).ToNot(HaveOccurred())
 			}
 
-			// Get first page
-			results, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
-				PageSize: 2,
-			})
-			Expect(err).ToNot(HaveOccurred())
-			Expect(results.CatalogItemInstances).To(HaveLen(2))
-			Expect(results.NextPageToken).ToNot(BeNil())
+			var pageToken *string
+			for _, pageSize := range []int{3, 2} {
+				results, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
+					PageSize:  pageSize,
+					PageToken: pageToken,
+				})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(results.CatalogItemInstances).To(HaveLen(pageSize))
+				Expect(results.NextPageToken).ToNot(BeNil())
+				pageToken = results.NextPageToken
+			}
 
-			// Get second page
-			results2, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
-				PageToken: results.NextPageToken,
-				PageSize:  2,
+			// Get last page (should have 1 item)
+			lastPageResults, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
+				PageToken: pageToken,
+				PageSize:  4,
 			})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(results2.CatalogItemInstances).To(HaveLen(2))
-			Expect(results2.NextPageToken).ToNot(BeNil())
-
-			// Get second page
-			results3, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
-				PageToken: results2.NextPageToken,
-				PageSize:  2,
-			})
-			Expect(err).ToNot(HaveOccurred())
-			Expect(results3.CatalogItemInstances).To(HaveLen(1))
-			Expect(results3.NextPageToken).To(BeNil())
+			Expect(lastPageResults.CatalogItemInstances).To(HaveLen(1))
+			Expect(lastPageResults.NextPageToken).To(BeNil())
 		})
 	})
 })

@@ -397,14 +397,20 @@ var _ = Describe("CatalogItem Store", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result.CatalogItems).To(HaveLen(1))
 			Expect(result.CatalogItems[0].Spec.ServiceType).To(Equal("database"))
+
+			// Filter for non-existent service type
+			serviceTypeNonExistent := "non-existent"
+			result, err = catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{PageSize: 100, ServiceType: &serviceTypeNonExistent})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result.CatalogItems).To(BeEmpty())
 		})
 
 		It("should handle pagination correctly", func() {
 			// Create prerequisite service type
 			createTestServiceType("vm-st-page", "vm")
 
-			// Create 5 catalog items
-			for i := 1; i <= 5; i++ {
+			// Create 6 catalog items
+			for i := 1; i <= 6; i++ {
 				ci := model.CatalogItem{
 					ID:          fmt.Sprintf("page-ci-%d", i),
 					ApiVersion:  "v1alpha1",
@@ -420,20 +426,26 @@ var _ = Describe("CatalogItem Store", func() {
 				Expect(err).ToNot(HaveOccurred())
 			}
 
-			// Get first page
-			result, err := catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{PageSize: 2})
-			Expect(err).ToNot(HaveOccurred())
-			Expect(result.CatalogItems).To(HaveLen(2))
-			Expect(result.NextPageToken).ToNot(BeNil())
+			var pageToken *string
+			for _, pageSize := range []int{3, 2} {
+				results, err := catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{
+					PageSize:  pageSize,
+					PageToken: pageToken,
+				})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(results.CatalogItems).To(HaveLen(pageSize))
+				Expect(results.NextPageToken).ToNot(BeNil())
+				pageToken = results.NextPageToken
+			}
 
-			// Get second page
-			result2, err := catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{
-				PageToken: result.NextPageToken,
-				PageSize:  2,
+			// Get last page (should have 1 item)
+			lastPageResults, err := catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{
+				PageToken: pageToken,
+				PageSize:  4,
 			})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(result2.CatalogItems).To(HaveLen(2))
-			Expect(result2.NextPageToken).ToNot(BeNil())
+			Expect(lastPageResults.CatalogItems).To(HaveLen(1))
+			Expect(lastPageResults.NextPageToken).To(BeNil())
 		})
 	})
 })

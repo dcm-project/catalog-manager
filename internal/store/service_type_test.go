@@ -179,8 +179,8 @@ var _ = Describe("ServiceType Store", func() {
 		})
 
 		It("should handle pagination correctly", func() {
-			// Create 5 service types
-			for i := 1; i <= 5; i++ {
+			// Create 6 service types
+			for i := 1; i <= 6; i++ {
 				st := model.ServiceType{
 					ID:          fmt.Sprintf("page-st-%d", i),
 					ApiVersion:  "v1alpha1",
@@ -193,31 +193,26 @@ var _ = Describe("ServiceType Store", func() {
 				Expect(err).ToNot(HaveOccurred())
 			}
 
-			// Get first page with size 2
-			results, err := serviceTypeStore.List(context.Background(), &store.ServiceTypeListOptions{
-				PageSize: 2,
-			})
-			Expect(err).ToNot(HaveOccurred())
-			Expect(results.ServiceTypes).To(HaveLen(2))
-			Expect(results.NextPageToken).ToNot(BeNil())
+			var pageToken *string
+			for _, pageSize := range []int{3, 2} {
+				results, err := serviceTypeStore.List(context.Background(), &store.ServiceTypeListOptions{
+					PageSize:  pageSize,
+					PageToken: pageToken,
+				})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(results.ServiceTypes).To(HaveLen(pageSize))
+				Expect(results.NextPageToken).ToNot(BeNil())
+				pageToken = results.NextPageToken
+			}
 
-			// Get second page
-			results2, err := serviceTypeStore.List(context.Background(), &store.ServiceTypeListOptions{
-				PageToken: results.NextPageToken,
-				PageSize:  2,
+			// Get last page (should have 1 item)
+			lastPageResults, err := serviceTypeStore.List(context.Background(), &store.ServiceTypeListOptions{
+				PageToken: pageToken,
+				PageSize:  4,
 			})
 			Expect(err).ToNot(HaveOccurred())
-			Expect(results2.ServiceTypes).To(HaveLen(2))
-			Expect(results2.NextPageToken).ToNot(BeNil())
-
-			// Get third page (should have 1 item)
-			results3, err := serviceTypeStore.List(context.Background(), &store.ServiceTypeListOptions{
-				PageToken: results2.NextPageToken,
-				PageSize:  2,
-			})
-			Expect(err).ToNot(HaveOccurred())
-			Expect(results3.ServiceTypes).To(HaveLen(1))
-			Expect(results3.NextPageToken).To(BeNil())
+			Expect(lastPageResults.ServiceTypes).To(HaveLen(1))
+			Expect(lastPageResults.NextPageToken).To(BeNil())
 		})
 	})
 })
