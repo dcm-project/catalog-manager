@@ -50,6 +50,13 @@ func InitDB(cfg *config.Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
+	// Enable foreign key constraints for SQLite
+	if cfg.Database.Type != "pgsql" {
+		if err := db.Exec("PRAGMA foreign_keys = ON").Error; err != nil {
+			return nil, fmt.Errorf("failed to enable foreign keys: %w", err)
+		}
+	}
+
 	// Configure connection pool
 	sqlDB, err := db.DB()
 	if err != nil {

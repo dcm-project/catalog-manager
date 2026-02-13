@@ -18,6 +18,8 @@ var (
 	ErrCatalogItemNotFound = errors.New("catalog item not found")
 	// ErrCatalogItemIDTaken is returned when a catalog item ID is already taken
 	ErrCatalogItemIDTaken = errors.New("catalog item ID already exists")
+	// ErrCatalogItemHasInstances is returned when attempting to delete a catalog item with existing instances
+	ErrCatalogItemHasInstances = errors.New("cannot delete catalog item with existing instances")
 )
 
 // CatalogItemListOptions contains options for listing catalog items
@@ -97,31 +99,46 @@ func (s *catalogItemStore) List(ctx context.Context, opts *CatalogItemListOption
 func (s *catalogItemStore) Create(ctx context.Context, catalogItem model.CatalogItem) (*model.CatalogItem, error) {
 	catalogItem.SpecServiceType = catalogItem.Spec.ServiceType
 	if err := s.db.WithContext(ctx).Clauses(clause.Returning{}).Create(&catalogItem).Error; err != nil {
-		return nil, s.mapUniqueConstraintError(ctx, err, catalogItem)
+		return nil, s.mapConstraintError(ctx, err, catalogItem)
 	}
 	return &catalogItem, nil
 }
 
-// mapUniqueConstraintError maps a DB unique constraint violation to a store sentinel error
-func (s *catalogItemStore) mapUniqueConstraintError(ctx context.Context, err error, attempted model.CatalogItem) error {
+// mapConstraintError maps a DB constraint violation to a store sentinel error
+func (s *catalogItemStore) mapConstraintError(ctx context.Context, err error, attempted model.CatalogItem) error {
 	if err == nil {
 		return nil
 	}
-	if !errors.Is(err, gorm.ErrDuplicatedKey) {
-		if !strings.Contains(strings.ToLower(err.Error()), "unique") &&
-			!strings.Contains(err.Error(), "duplicate key") {
+
+	errStr := strings.ToLower(err.Error())
+
+	// Check for foreign key violation first (before checking for generic constraint failed)
+	if strings.Contains(errStr, "foreign key") ||
+		strings.Contains(errStr, "violates foreign key constraint") {
+		// Verify which constraint failed by checking if service type exists
+		var st model.ServiceType
+		if err := s.db.WithContext(ctx).Where("service_type = ?", attempted.SpecServiceType).First(&st).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ErrServiceTypeNotFound
+			}
+		}
+		return err
+	}
+
+	// Handle unique constraint violations
+	if errors.Is(err, gorm.ErrDuplicatedKey) ||
+		strings.Contains(errStr, "unique") ||
+		strings.Contains(err.Error(), "duplicate key") {
+		var row model.CatalogItem
+		dberr := s.db.WithContext(ctx).Where("id = ?", attempted.ID).Limit(1).First(&row).Error
+		if dberr == nil {
+			return ErrCatalogItemIDTaken
+		}
+		if !errors.Is(dberr, gorm.ErrRecordNotFound) {
 			return err
 		}
 	}
 
-	var row model.CatalogItem
-	dberr := s.db.WithContext(ctx).Where("id = ?", attempted.ID).Limit(1).First(&row).Error
-	if dberr == nil {
-		return ErrCatalogItemIDTaken
-	}
-	if !errors.Is(dberr, gorm.ErrRecordNotFound) {
-		return err
-	}
 	return err
 }
 
@@ -139,12 +156,22 @@ func (s *catalogItemStore) Get(ctx context.Context, id string) (*model.CatalogIt
 
 // Update updates a catalog item (only mutable fields)
 func (s *catalogItemStore) Update(ctx context.Context, catalogItem *model.CatalogItem) error {
+	// Extract service type from spec for denormalized field
+	catalogItem.SpecServiceType = catalogItem.Spec.ServiceType
+
 	result := s.db.WithContext(ctx).Model(&model.CatalogItem{}).
 		Where("id = ?", catalogItem.ID).
-		Select("display_name", "spec").
+		Select("display_name", "spec", "spec_service_type").
 		Updates(catalogItem)
 
 	if result.Error != nil {
+		// Check for foreign key violation
+		errStr := strings.ToLower(result.Error.Error())
+		if strings.Contains(errStr, "foreign key") ||
+			strings.Contains(errStr, "violates foreign key constraint") ||
+			strings.Contains(errStr, "constraint failed: foreign key") {
+			return ErrServiceTypeNotFound
+		}
 		return fmt.Errorf("failed to update catalog item: %w", result.Error)
 	}
 	if result.RowsAffected == 0 {
@@ -157,6 +184,13 @@ func (s *catalogItemStore) Update(ctx context.Context, catalogItem *model.Catalo
 func (s *catalogItemStore) Delete(ctx context.Context, id string) error {
 	result := s.db.WithContext(ctx).Where("id = ?", id).Delete(&model.CatalogItem{})
 	if result.Error != nil {
+		// Check for foreign key violation (instances exist)
+		errStr := strings.ToLower(result.Error.Error())
+		if strings.Contains(errStr, "foreign key") ||
+			strings.Contains(errStr, "violates foreign key constraint") ||
+			strings.Contains(errStr, "constraint failed: foreign key") {
+			return ErrCatalogItemHasInstances
+		}
 		return fmt.Errorf("failed to delete catalog item: %w", result.Error)
 	}
 	if result.RowsAffected == 0 {

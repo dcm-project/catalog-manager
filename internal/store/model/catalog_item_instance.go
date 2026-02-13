@@ -16,7 +16,8 @@ type CatalogItemInstance struct {
 	UpdateTime             time.Time               `gorm:"column:update_time;autoUpdateTime"`
 
 	// Indexed field for filtering
-	SpecCatalogItemId string `gorm:"column:spec_catalog_item_id;not null;index"`
+	SpecCatalogItemId string       `gorm:"column:spec_catalog_item_id;not null;index"`
+	CatalogItemRef    *CatalogItem `gorm:"foreignKey:SpecCatalogItemId;references:ID;constraint:OnDelete:RESTRICT"`
 }
 
 // CatalogItemInstanceList is a slice of CatalogItemInstance for list results

@@ -15,7 +15,8 @@ type CatalogItem struct {
 	UpdateTime  time.Time       `gorm:"column:update_time;autoUpdateTime"`
 
 	// Indexed field for filtering
-	SpecServiceType string `gorm:"column:spec_service_type;not null;index"`
+	SpecServiceType string       `gorm:"column:spec_service_type;not null;index"`
+	ServiceTypeRef  *ServiceType `gorm:"foreignKey:SpecServiceType;references:ServiceType;constraint:OnDelete:RESTRICT"`
 }
 
 // CatalogItemList is a slice of CatalogItem for list results

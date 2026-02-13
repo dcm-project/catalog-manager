@@ -18,6 +18,8 @@ var (
 	ErrCatalogItemInstanceNotFound = errors.New("catalog item instance not found")
 	// ErrCatalogItemInstanceIDTaken is returned when a catalog item instance ID is already taken
 	ErrCatalogItemInstanceIDTaken = errors.New("catalog item instance ID already exists")
+	// ErrCatalogItemNotFoundRef is returned when the referenced catalog item does not exist
+	ErrCatalogItemNotFoundRef = errors.New("referenced catalog item does not exist")
 )
 
 // CatalogItemInstanceListOptions contains options for listing catalog item instances
@@ -96,31 +98,46 @@ func (s *catalogItemInstanceStore) List(ctx context.Context, opts *CatalogItemIn
 func (s *catalogItemInstanceStore) Create(ctx context.Context, catalogItemInstance model.CatalogItemInstance) (*model.CatalogItemInstance, error) {
 	catalogItemInstance.SpecCatalogItemId = catalogItemInstance.Spec.CatalogItemId
 	if err := s.db.WithContext(ctx).Clauses(clause.Returning{}).Create(&catalogItemInstance).Error; err != nil {
-		return nil, s.mapUniqueConstraintError(ctx, err, catalogItemInstance)
+		return nil, s.mapConstraintError(ctx, err, catalogItemInstance)
 	}
 	return &catalogItemInstance, nil
 }
 
-// mapUniqueConstraintError maps a DB unique constraint violation to a store sentinel error
-func (s *catalogItemInstanceStore) mapUniqueConstraintError(ctx context.Context, err error, attempted model.CatalogItemInstance) error {
+// mapConstraintError maps a DB constraint violation to a store sentinel error
+func (s *catalogItemInstanceStore) mapConstraintError(ctx context.Context, err error, attempted model.CatalogItemInstance) error {
 	if err == nil {
 		return nil
 	}
-	if !errors.Is(err, gorm.ErrDuplicatedKey) {
-		if !strings.Contains(strings.ToLower(err.Error()), "unique") &&
-			!strings.Contains(err.Error(), "duplicate key") {
+
+	errStr := strings.ToLower(err.Error())
+
+	// Check for foreign key violation first (before checking for generic constraint failed)
+	if strings.Contains(errStr, "foreign key") ||
+		strings.Contains(errStr, "violates foreign key constraint") {
+		// Verify which constraint failed by checking if catalog item exists
+		var ci model.CatalogItem
+		if err := s.db.WithContext(ctx).Where("id = ?", attempted.SpecCatalogItemId).First(&ci).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ErrCatalogItemNotFoundRef
+			}
+		}
+		return err
+	}
+
+	// Handle unique constraint violations
+	if errors.Is(err, gorm.ErrDuplicatedKey) ||
+		strings.Contains(errStr, "unique") ||
+		strings.Contains(err.Error(), "duplicate key") {
+		var row model.CatalogItemInstance
+		dberr := s.db.WithContext(ctx).Where("id = ?", attempted.ID).Limit(1).First(&row).Error
+		if dberr == nil {
+			return ErrCatalogItemInstanceIDTaken
+		}
+		if !errors.Is(dberr, gorm.ErrRecordNotFound) {
 			return err
 		}
 	}
 
-	var row model.CatalogItemInstance
-	dberr := s.db.WithContext(ctx).Where("id = ?", attempted.ID).Limit(1).First(&row).Error
-	if dberr == nil {
-		return ErrCatalogItemInstanceIDTaken
-	}
-	if !errors.Is(dberr, gorm.ErrRecordNotFound) {
-		return err
-	}
 	return err
 }
 
@@ -138,12 +155,22 @@ func (s *catalogItemInstanceStore) Get(ctx context.Context, id string) (*model.C
 
 // Update updates a catalog item (only mutable fields)
 func (s *catalogItemInstanceStore) Update(ctx context.Context, catalogItemInstance *model.CatalogItemInstance) (*model.CatalogItemInstance, error) {
+	// Extract catalog item ID from spec for denormalized field
+	catalogItemInstance.SpecCatalogItemId = catalogItemInstance.Spec.CatalogItemId
+
 	result := s.db.WithContext(ctx).Model(&model.CatalogItemInstance{}).
 		Where("id = ?", catalogItemInstance.ID).
-		Select("display_name", "spec").
+		Select("display_name", "spec", "spec_catalog_item_id").
 		Updates(catalogItemInstance)
 
 	if result.Error != nil {
+		// Check for foreign key violation
+		errStr := strings.ToLower(result.Error.Error())
+		if strings.Contains(errStr, "foreign key") ||
+			strings.Contains(errStr, "violates foreign key constraint") ||
+			strings.Contains(errStr, "constraint failed: foreign key") {
+			return nil, ErrCatalogItemNotFoundRef
+		}
 		return nil, fmt.Errorf("failed to update catalog item instance: %w", result.Error)
 	}
 	if result.RowsAffected == 0 {

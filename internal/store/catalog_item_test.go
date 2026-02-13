@@ -17,8 +17,10 @@ import (
 
 var _ = Describe("CatalogItem Store", func() {
 	var (
-		db               *gorm.DB
-		catalogItemStore store.CatalogItemStore
+		db                    *gorm.DB
+		catalogItemStore      store.CatalogItemStore
+		serviceTypeStore      store.ServiceTypeStore
+		createTestServiceType func(id, serviceType string)
 	)
 
 	BeforeEach(func() {
@@ -29,11 +31,29 @@ var _ = Describe("CatalogItem Store", func() {
 		})
 		Expect(err).ToNot(HaveOccurred())
 
-		// Auto-migrate
-		err = db.AutoMigrate(&model.CatalogItem{})
+		// Enable foreign key constraints in SQLite
+		err = db.Exec("PRAGMA foreign_keys = ON").Error
+		Expect(err).ToNot(HaveOccurred())
+
+		// Auto-migrate parent models first to create foreign key constraints
+		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{})
 		Expect(err).ToNot(HaveOccurred())
 
 		catalogItemStore = store.NewCatalogItemStore(db)
+		serviceTypeStore = store.NewServiceTypeStore(db)
+
+		// Helper function to create prerequisite ServiceTypes
+		createTestServiceType = func(id, serviceType string) {
+			st := model.ServiceType{
+				ID:          id,
+				ApiVersion:  "v1alpha1",
+				ServiceType: serviceType,
+				Spec:        model.JSONMap{},
+				Path:        fmt.Sprintf("service-types/%s", id),
+			}
+			_, err := serviceTypeStore.Create(context.Background(), st)
+			Expect(err).ToNot(HaveOccurred())
+		}
 	})
 
 	AfterEach(func() {
@@ -44,6 +64,9 @@ var _ = Describe("CatalogItem Store", func() {
 
 	Describe("Create", func() {
 		It("should create a new catalog item successfully", func() {
+			// Create prerequisite service type
+			createTestServiceType("vm-st", "vm")
+
 			ci := &model.CatalogItem{
 				ID:          "small-vm",
 				ApiVersion:  "v1alpha1",
@@ -74,6 +97,9 @@ var _ = Describe("CatalogItem Store", func() {
 		})
 
 		It("should return error when creating duplicate ID", func() {
+			// Create prerequisite service type
+			createTestServiceType("vm-st", "vm")
+
 			ci := &model.CatalogItem{
 				ID:          "duplicate-ci",
 				ApiVersion:  "v1alpha1",
@@ -103,10 +129,48 @@ var _ = Describe("CatalogItem Store", func() {
 			_, err = catalogItemStore.Create(context.Background(), ci2)
 			Expect(err).To(Equal(store.ErrCatalogItemIDTaken))
 		})
+
+		It("should return error when creating with non-existent service type", func() {
+			ci := &model.CatalogItem{
+				ID:          "invalid-st-ci",
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Invalid Service Type",
+				Spec: model.CatalogItemSpec{
+					ServiceType: "non-existent-service-type",
+					Fields:      []model.FieldConfiguration{},
+				},
+				Path: "catalog-items/invalid-st-ci",
+			}
+
+			_, err := catalogItemStore.Create(context.Background(), *ci)
+			Expect(err).To(Equal(store.ErrServiceTypeNotFound))
+		})
+
+		It("should create catalog item with valid service type", func() {
+			// Create prerequisite service type
+			createTestServiceType("valid-st", "valid-service")
+
+			ci := &model.CatalogItem{
+				ID:          "valid-ci",
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Valid Catalog Item",
+				Spec: model.CatalogItemSpec{
+					ServiceType: "valid-service",
+					Fields:      []model.FieldConfiguration{},
+				},
+				Path: "catalog-items/valid-ci",
+			}
+
+			_, err := catalogItemStore.Create(context.Background(), *ci)
+			Expect(err).ToNot(HaveOccurred())
+		})
 	})
 
 	Describe("Get", func() {
 		It("should retrieve an existing catalog item", func() {
+			// Create prerequisite service type
+			createTestServiceType("db-st", "database")
+
 			ci := &model.CatalogItem{
 				ID:          "get-test-ci",
 				ApiVersion:  "v1alpha1",
@@ -137,6 +201,9 @@ var _ = Describe("CatalogItem Store", func() {
 
 	Describe("Update", func() {
 		It("should update mutable fields successfully", func() {
+			// Create prerequisite service type
+			createTestServiceType("vm-st-update", "vm")
+
 			ci := &model.CatalogItem{
 				ID:          "update-test",
 				ApiVersion:  "v1alpha1",
@@ -172,6 +239,9 @@ var _ = Describe("CatalogItem Store", func() {
 		})
 
 		It("should return error when updating non-existent catalog item", func() {
+			// Create prerequisite service type
+			createTestServiceType("vm-st-nonexist", "vm")
+
 			ci := &model.CatalogItem{
 				ID:          "non-existent",
 				DisplayName: "Updated",
@@ -184,10 +254,38 @@ var _ = Describe("CatalogItem Store", func() {
 			err := catalogItemStore.Update(context.Background(), ci)
 			Expect(err).To(Equal(store.ErrCatalogItemNotFound))
 		})
+
+		It("should return error when updating with non-existent service type", func() {
+			// Create prerequisite service types
+			createTestServiceType("vm-st-orig", "vm")
+
+			ci := &model.CatalogItem{
+				ID:          "update-invalid-st",
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Original",
+				Spec: model.CatalogItemSpec{
+					ServiceType: "vm",
+					Fields:      []model.FieldConfiguration{},
+				},
+				Path: "catalog-items/update-invalid-st",
+			}
+
+			created, err := catalogItemStore.Create(context.Background(), *ci)
+			Expect(err).ToNot(HaveOccurred())
+			ci = created
+
+			// Try to update with non-existent service type
+			ci.Spec.ServiceType = "non-existent-service-type"
+			err = catalogItemStore.Update(context.Background(), ci)
+			Expect(err).To(Equal(store.ErrServiceTypeNotFound))
+		})
 	})
 
 	Describe("Delete", func() {
 		It("should delete an existing catalog item", func() {
+			// Create prerequisite service type
+			createTestServiceType("vm-st-del", "vm")
+
 			ci := &model.CatalogItem{
 				ID:          "delete-test",
 				ApiVersion:  "v1alpha1",
@@ -214,6 +312,9 @@ var _ = Describe("CatalogItem Store", func() {
 			err := catalogItemStore.Delete(context.Background(), "non-existent")
 			Expect(err).To(Equal(store.ErrCatalogItemNotFound))
 		})
+
+		// Note: Test for deleting with existing instances is in integration_test.go
+		// because it requires creating CatalogItemInstance records
 	})
 
 	Describe("List", func() {
@@ -225,6 +326,9 @@ var _ = Describe("CatalogItem Store", func() {
 		})
 
 		It("should list all catalog items", func() {
+			// Create prerequisite service type
+			createTestServiceType("vm-st-list", "vm")
+
 			// Create multiple catalog items
 			for i := 1; i <= 3; i++ {
 				ci := model.CatalogItem{
@@ -249,6 +353,10 @@ var _ = Describe("CatalogItem Store", func() {
 		})
 
 		It("should filter by service type", func() {
+			// Create prerequisite service types
+			createTestServiceType("vm-st-filter", "vm")
+			createTestServiceType("db-st-filter", "database")
+
 			// Create catalog items with different service types
 			ci1 := model.CatalogItem{
 				ID:          "vm-item",
@@ -290,6 +398,9 @@ var _ = Describe("CatalogItem Store", func() {
 		})
 
 		It("should handle pagination correctly", func() {
+			// Create prerequisite service type
+			createTestServiceType("vm-st-page", "vm")
+
 			// Create 5 catalog items
 			for i := 1; i <= 5; i++ {
 				ci := model.CatalogItem{
