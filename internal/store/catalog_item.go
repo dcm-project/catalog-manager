@@ -26,7 +26,7 @@ var (
 type CatalogItemListOptions struct {
 	PageToken   *string
 	PageSize    int
-	ServiceType string
+	ServiceType *string
 }
 
 // CatalogItemListResult contains the result of a List operation
@@ -76,8 +76,8 @@ func (s *catalogItemStore) List(ctx context.Context, opts *CatalogItemListOption
 	}
 
 	query = query.Order("id ASC").Limit(pageSize + 1).Offset(offset)
-	if opts != nil && opts.ServiceType != "" {
-		query = query.Where("spec_service_type = ?", opts.ServiceType)
+	if opts != nil && opts.ServiceType != nil && *opts.ServiceType != "" {
+		query = query.Where("spec_service_type = ?", *opts.ServiceType)
 	}
 
 	if err := query.Find(&catalogItems).Error; err != nil {

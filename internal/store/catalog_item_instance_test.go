@@ -332,18 +332,20 @@ var _ = Describe("CatalogItemInstance Store", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			// Filter for small-vm catalog item
+			smallVMFilter := "small-vm-filter"
 			results, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
 				PageSize:      100,
-				CatalogItemId: "small-vm-filter",
+				CatalogItemId: &smallVMFilter,
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results.CatalogItemInstances).To(HaveLen(1))
 			Expect(results.CatalogItemInstances[0].Spec.CatalogItemId).To(Equal("small-vm-filter"))
 
 			// Filter for small-db catalog item
+			smallDBFilter := "small-db-filter"
 			results, err = catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
 				PageSize:      100,
-				CatalogItemId: "small-db-filter",
+				CatalogItemId: &smallDBFilter,
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results.CatalogItemInstances).To(HaveLen(1))

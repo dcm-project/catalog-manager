@@ -26,7 +26,7 @@ var (
 type CatalogItemInstanceListOptions struct {
 	PageToken     *string
 	PageSize      int
-	CatalogItemId string
+	CatalogItemId *string
 }
 
 // CatalogItemInstanceListResult contains the result of a List operation
@@ -75,8 +75,8 @@ func (s *catalogItemInstanceStore) List(ctx context.Context, opts *CatalogItemIn
 	}
 
 	query = query.Order("id ASC").Limit(pageSize + 1).Offset(offset)
-	if opts != nil && opts.CatalogItemId != "" {
-		query = query.Where("spec_catalog_item_id = ?", opts.CatalogItemId)
+	if opts != nil && opts.CatalogItemId != nil && *opts.CatalogItemId != "" {
+		query = query.Where("spec_catalog_item_id = ?", *opts.CatalogItemId)
 	}
 
 	if err := query.Find(&catalogItemInstances).Error; err != nil {

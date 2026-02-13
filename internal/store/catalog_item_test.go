@@ -385,13 +385,15 @@ var _ = Describe("CatalogItem Store", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			// Filter for vm service type
-			result, err := catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{PageSize: 100, ServiceType: "vm"})
+			serviceTypeVM := "vm"
+			result, err := catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{PageSize: 100, ServiceType: &serviceTypeVM})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result.CatalogItems).To(HaveLen(1))
 			Expect(result.CatalogItems[0].Spec.ServiceType).To(Equal("vm"))
 
 			// Filter for database service type
-			result, err = catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{PageSize: 100, ServiceType: "database"})
+			serviceTypeDB := "database"
+			result, err = catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{PageSize: 100, ServiceType: &serviceTypeDB})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result.CatalogItems).To(HaveLen(1))
 			Expect(result.CatalogItems[0].Spec.ServiceType).To(Equal("database"))
