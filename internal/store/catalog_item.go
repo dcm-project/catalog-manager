@@ -114,8 +114,7 @@ func (s *catalogItemStore) mapConstraintError(ctx context.Context, err error, at
 	errStr := strings.ToLower(err.Error())
 
 	// Check for foreign key violation first (before checking for generic constraint failed)
-	if strings.Contains(errStr, "foreign key") ||
-		strings.Contains(errStr, "violates foreign key constraint") {
+	if strings.Contains(errStr, "foreign key") {
 		// Verify which constraint failed by checking if service type exists
 		var st model.ServiceType
 		if err := s.db.WithContext(ctx).Where("service_type = ?", attempted.SpecServiceType).First(&st).Error; err != nil {
@@ -129,7 +128,7 @@ func (s *catalogItemStore) mapConstraintError(ctx context.Context, err error, at
 	// Handle unique constraint violations
 	if errors.Is(err, gorm.ErrDuplicatedKey) ||
 		strings.Contains(errStr, "unique") ||
-		strings.Contains(err.Error(), "duplicate key") {
+		strings.Contains(errStr, "duplicate key") {
 		var row model.CatalogItem
 		dberr := s.db.WithContext(ctx).Where("id = ?", attempted.ID).Limit(1).First(&row).Error
 		if dberr == nil {
@@ -166,14 +165,7 @@ func (s *catalogItemStore) Update(ctx context.Context, catalogItem *model.Catalo
 		Updates(catalogItem)
 
 	if result.Error != nil {
-		// Check for foreign key violation
-		errStr := strings.ToLower(result.Error.Error())
-		if strings.Contains(errStr, "foreign key") ||
-			strings.Contains(errStr, "violates foreign key constraint") ||
-			strings.Contains(errStr, "constraint failed: foreign key") {
-			return ErrServiceTypeNotFound
-		}
-		return fmt.Errorf("failed to update catalog item: %w", result.Error)
+		return s.mapConstraintError(ctx, result.Error, *catalogItem)
 	}
 	if result.RowsAffected == 0 {
 		return ErrCatalogItemNotFound
@@ -187,9 +179,7 @@ func (s *catalogItemStore) Delete(ctx context.Context, id string) error {
 	if result.Error != nil {
 		// Check for foreign key violation (instances exist)
 		errStr := strings.ToLower(result.Error.Error())
-		if strings.Contains(errStr, "foreign key") ||
-			strings.Contains(errStr, "violates foreign key constraint") ||
-			strings.Contains(errStr, "constraint failed: foreign key") {
+		if strings.Contains(errStr, "foreign key") {
 			return ErrCatalogItemHasInstances
 		}
 		return fmt.Errorf("failed to delete catalog item: %w", result.Error)

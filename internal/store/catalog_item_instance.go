@@ -113,8 +113,7 @@ func (s *catalogItemInstanceStore) mapConstraintError(ctx context.Context, err e
 	errStr := strings.ToLower(err.Error())
 
 	// Check for foreign key violation first (before checking for generic constraint failed)
-	if strings.Contains(errStr, "foreign key") ||
-		strings.Contains(errStr, "violates foreign key constraint") {
+	if strings.Contains(errStr, "foreign key") {
 		// Verify which constraint failed by checking if catalog item exists
 		var ci model.CatalogItem
 		if err := s.db.WithContext(ctx).Where("id = ?", attempted.SpecCatalogItemId).First(&ci).Error; err != nil {
@@ -128,7 +127,7 @@ func (s *catalogItemInstanceStore) mapConstraintError(ctx context.Context, err e
 	// Handle unique constraint violations
 	if errors.Is(err, gorm.ErrDuplicatedKey) ||
 		strings.Contains(errStr, "unique") ||
-		strings.Contains(err.Error(), "duplicate key") {
+		strings.Contains(errStr, "duplicate key") {
 		var row model.CatalogItemInstance
 		dberr := s.db.WithContext(ctx).Where("id = ?", attempted.ID).Limit(1).First(&row).Error
 		if dberr == nil {
@@ -165,14 +164,7 @@ func (s *catalogItemInstanceStore) Update(ctx context.Context, catalogItemInstan
 		Updates(catalogItemInstance)
 
 	if result.Error != nil {
-		// Check for foreign key violation
-		errStr := strings.ToLower(result.Error.Error())
-		if strings.Contains(errStr, "foreign key") ||
-			strings.Contains(errStr, "violates foreign key constraint") ||
-			strings.Contains(errStr, "constraint failed: foreign key") {
-			return nil, ErrCatalogItemNotFoundRef
-		}
-		return nil, fmt.Errorf("failed to update catalog item instance: %w", result.Error)
+		return nil, s.mapConstraintError(ctx, result.Error, *catalogItemInstance)
 	}
 	if result.RowsAffected == 0 {
 		return nil, ErrCatalogItemInstanceNotFound
