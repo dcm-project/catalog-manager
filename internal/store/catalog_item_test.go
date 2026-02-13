@@ -322,7 +322,7 @@ var _ = Describe("CatalogItem Store", func() {
 			result, err := catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{PageSize: 100})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result.CatalogItems).To(BeEmpty())
-			Expect(result.NextPageToken).To(Equal(""))
+			Expect(result.NextPageToken).To(BeNil())
 		})
 
 		It("should list all catalog items", func() {
@@ -349,7 +349,7 @@ var _ = Describe("CatalogItem Store", func() {
 			result, err := catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{PageSize: 100})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result.CatalogItems).To(HaveLen(3))
-			Expect(result.NextPageToken).To(Equal(""))
+			Expect(result.NextPageToken).To(BeNil())
 		})
 
 		It("should filter by service type", func() {
@@ -422,16 +422,16 @@ var _ = Describe("CatalogItem Store", func() {
 			result, err := catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{PageSize: 2})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result.CatalogItems).To(HaveLen(2))
-			Expect(result.NextPageToken).ToNot(Equal(""))
+			Expect(result.NextPageToken).ToNot(BeNil())
 
 			// Get second page
 			result2, err := catalogItemStore.List(context.Background(), &store.CatalogItemListOptions{
-				PageToken: &result.NextPageToken,
+				PageToken: result.NextPageToken,
 				PageSize:  2,
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result2.CatalogItems).To(HaveLen(2))
-			Expect(result2.NextPageToken).ToNot(Equal(""))
+			Expect(result2.NextPageToken).ToNot(BeNil())
 		})
 	})
 })

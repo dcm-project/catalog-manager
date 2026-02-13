@@ -151,7 +151,7 @@ var _ = Describe("ServiceType Store", func() {
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results.ServiceTypes).To(BeEmpty())
-			Expect(results.NextPageToken).To(Equal(""))
+			Expect(results.NextPageToken).To(BeNil())
 		})
 
 		It("should list all service types", func() {
@@ -175,7 +175,7 @@ var _ = Describe("ServiceType Store", func() {
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results.ServiceTypes).To(HaveLen(3))
-			Expect(results.NextPageToken).To(Equal(""))
+			Expect(results.NextPageToken).To(BeNil())
 		})
 
 		It("should handle pagination correctly", func() {
@@ -199,25 +199,25 @@ var _ = Describe("ServiceType Store", func() {
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results.ServiceTypes).To(HaveLen(2))
-			Expect(results.NextPageToken).ToNot(Equal(""))
+			Expect(results.NextPageToken).ToNot(BeNil())
 
 			// Get second page
 			results2, err := serviceTypeStore.List(context.Background(), &store.ServiceTypeListOptions{
-				PageToken: &results.NextPageToken,
+				PageToken: results.NextPageToken,
 				PageSize:  2,
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results2.ServiceTypes).To(HaveLen(2))
-			Expect(results2.NextPageToken).ToNot(BeEmpty())
+			Expect(results2.NextPageToken).ToNot(BeNil())
 
 			// Get third page (should have 1 item)
 			results3, err := serviceTypeStore.List(context.Background(), &store.ServiceTypeListOptions{
-				PageToken: &results2.NextPageToken,
+				PageToken: results2.NextPageToken,
 				PageSize:  2,
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results3.ServiceTypes).To(HaveLen(1))
-			Expect(results3.NextPageToken).To(BeEmpty())
+			Expect(results3.NextPageToken).To(BeNil())
 		})
 	})
 })

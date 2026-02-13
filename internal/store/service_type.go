@@ -30,7 +30,7 @@ type ServiceTypeListOptions struct {
 // PolicyListResult contains the result of a List operation.
 type ServiceTypeListResult struct {
 	ServiceTypes  model.ServiceTypeList
-	NextPageToken string
+	NextPageToken *string
 }
 
 // ServiceTypeStore defines operations for ServiceType resources
@@ -87,7 +87,8 @@ func (s *serviceTypeStore) List(ctx context.Context, opts *ServiceTypeListOption
 		result.ServiceTypes = serviceTypes[:pageSize]
 		// Encode next offset as page token
 		nextOffset := offset + pageSize
-		result.NextPageToken = base64.StdEncoding.EncodeToString([]byte(strconv.Itoa(nextOffset)))
+		nextPageToken := base64.StdEncoding.EncodeToString([]byte(strconv.Itoa(nextOffset)))
+		result.NextPageToken = &nextPageToken
 	}
 
 	return result, nil

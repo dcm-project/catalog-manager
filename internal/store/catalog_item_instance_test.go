@@ -264,7 +264,7 @@ var _ = Describe("CatalogItemInstance Store", func() {
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results.CatalogItemInstances).To(BeEmpty())
-			Expect(results.NextPageToken).To(Equal(""))
+			Expect(results.NextPageToken).To(BeNil())
 		})
 
 		It("should list all catalog item instances", func() {
@@ -294,7 +294,7 @@ var _ = Describe("CatalogItemInstance Store", func() {
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results.CatalogItemInstances).To(HaveLen(3))
-			Expect(results.NextPageToken).To(Equal(""))
+			Expect(results.NextPageToken).To(BeNil())
 		})
 
 		It("should filter by catalog item ID", func() {
@@ -378,25 +378,25 @@ var _ = Describe("CatalogItemInstance Store", func() {
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results.CatalogItemInstances).To(HaveLen(2))
-			Expect(results.NextPageToken).ToNot(Equal(""))
+			Expect(results.NextPageToken).ToNot(BeNil())
 
 			// Get second page
 			results2, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
-				PageToken: &results.NextPageToken,
+				PageToken: results.NextPageToken,
 				PageSize:  2,
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results2.CatalogItemInstances).To(HaveLen(2))
-			Expect(results2.NextPageToken).ToNot(Equal(""))
+			Expect(results2.NextPageToken).ToNot(BeNil())
 
 			// Get second page
 			results3, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{
-				PageToken: &results2.NextPageToken,
+				PageToken: results2.NextPageToken,
 				PageSize:  2,
 			})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(results3.CatalogItemInstances).To(HaveLen(1))
-			Expect(results3.NextPageToken).To(Equal(""))
+			Expect(results3.NextPageToken).To(BeNil())
 		})
 	})
 })

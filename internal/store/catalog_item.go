@@ -32,7 +32,7 @@ type CatalogItemListOptions struct {
 // CatalogItemListResult contains the result of a List operation
 type CatalogItemListResult struct {
 	CatalogItems  model.CatalogItemList
-	NextPageToken string
+	NextPageToken *string
 }
 
 // CatalogItemStore defines operations for CatalogItem resources
@@ -90,7 +90,8 @@ func (s *catalogItemStore) List(ctx context.Context, opts *CatalogItemListOption
 	if len(catalogItems) > pageSize {
 		result.CatalogItems = catalogItems[:pageSize]
 		nextOffset := offset + pageSize
-		result.NextPageToken = base64.StdEncoding.EncodeToString([]byte(strconv.Itoa(nextOffset)))
+		nextPageToken := base64.StdEncoding.EncodeToString([]byte(strconv.Itoa(nextOffset)))
+		result.NextPageToken = &nextPageToken
 	}
 	return result, nil
 }
