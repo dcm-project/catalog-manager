@@ -51,6 +51,10 @@ func (m *mockService) ServiceType() service.ServiceTypeService {
 	return m.serviceTypeService
 }
 
+func (m *mockService) CatalogItem() service.CatalogItemService {
+	return nil
+}
+
 var _ = Describe("ServiceType Handler", func() {
 	var (
 		ctx           context.Context
