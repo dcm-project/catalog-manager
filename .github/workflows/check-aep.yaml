@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'api/**/openapi.yaml'
+      - 'api/v1alpha1/servicetypes/**/*.yaml'
       - '.spectral.yaml'
 
 jobs:
