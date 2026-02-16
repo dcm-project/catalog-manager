@@ -227,7 +227,7 @@ type ServiceType struct {
 	// This is an opaque dictionary containing service type-specific fields.
 	//
 	// Examples by service type:
-	// - VM: vcpu, memory, storage, guestOS, access
+	// - VM: vcpu, memory, storage, guest_os, access
 	// - Container: image, resources, process, network
 	// - Database: engine, version, resources
 	// - Cluster: version, nodes (control plane, workers)

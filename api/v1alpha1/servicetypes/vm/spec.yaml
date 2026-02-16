@@ -9,7 +9,7 @@ info:
     platforms (KubeVirt, VMware vSphere, OpenStack, AWS, Azure, Google Cloud, etc.).
 
     Platform-specific configuration (CPU topology, disk format, network model)
-    should be specified via providerHints.
+    should be specified via provider_hints.
   version: v1alpha1
   license:
     name: Apache 2.0
@@ -24,7 +24,7 @@ components:
       description: |
         Provider-agnostic virtual machine specification.
 
-        Includes common fields (serviceType, metadata, providerHints)
+        Includes common fields (service_type, metadata, provider_hints)
         plus VM-specific fields for compute, storage, and operating system.
 
         Providers translate this abstract specification to their native format.
@@ -35,7 +35,7 @@ components:
             - vcpu
             - memory
             - storage
-            - guestOS
+            - guest_os
           properties:
             vcpu:
               $ref: '#/components/schemas/Vcpu'
@@ -46,7 +46,7 @@ components:
             storage:
               $ref: '#/components/schemas/Storage'
 
-            guestOS:
+            guest_os:
               $ref: '#/components/schemas/GuestOS'
 
             access:
@@ -157,7 +157,7 @@ components:
       type: object
       description: VM access configuration
       properties:
-        sshPublicKey:
+        ssh_public_key:
           type: string
           description: |
             SSH public key for VM access.
