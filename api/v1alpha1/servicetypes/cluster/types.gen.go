@@ -74,8 +74,8 @@ type Nodes struct {
 	// Managed services (ACM (with Hypershift),EKS, GKE, AKS) may ignore these fields.
 	ControlPlane ControlPlaneNodes `json:"control_plane"`
 
-	// Worker Worker nodes configuration
-	Worker               WorkerNodes            `json:"worker"`
+	// Workers Worker nodes configuration
+	Workers              WorkerNodes            `json:"workers"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
@@ -353,12 +353,12 @@ func (a *Nodes) UnmarshalJSON(b []byte) error {
 		delete(object, "control_plane")
 	}
 
-	if raw, found := object["worker"]; found {
-		err = json.Unmarshal(raw, &a.Worker)
+	if raw, found := object["workers"]; found {
+		err = json.Unmarshal(raw, &a.Workers)
 		if err != nil {
-			return fmt.Errorf("error reading 'worker': %w", err)
+			return fmt.Errorf("error reading 'workers': %w", err)
 		}
-		delete(object, "worker")
+		delete(object, "workers")
 	}
 
 	if len(object) != 0 {
@@ -385,9 +385,9 @@ func (a Nodes) MarshalJSON() ([]byte, error) {
 		return nil, fmt.Errorf("error marshaling 'control_plane': %w", err)
 	}
 
-	object["worker"], err = json.Marshal(a.Worker)
+	object["workers"], err = json.Marshal(a.Workers)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'worker': %w", err)
+		return nil, fmt.Errorf("error marshaling 'workers': %w", err)
 	}
 
 	for fieldName, field := range a.AdditionalProperties {

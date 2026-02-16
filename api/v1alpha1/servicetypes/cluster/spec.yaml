@@ -55,11 +55,11 @@ components:
       description: Node configuration
       required:
         - control_plane
-        - worker
+        - workers
       properties:
         control_plane:
           $ref: '#/components/schemas/ControlPlaneNodes'
-        worker:
+        workers:
           $ref: '#/components/schemas/WorkerNodes'
       additionalProperties: true
 
