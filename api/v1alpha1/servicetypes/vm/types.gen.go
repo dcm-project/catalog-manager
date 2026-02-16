@@ -21,7 +21,7 @@ type Access struct {
 	// - Azure: SSH public key
 	// - GCP: instance metadata
 	// - VMware: guest customization
-	SshPublicKey         *string                `json:"sshPublicKey,omitempty"`
+	SshPublicKey         *string                `json:"ssh_public_key,omitempty"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
@@ -82,9 +82,9 @@ type VMSpec struct {
 	// Access VM access configuration
 	Access *Access `json:"access,omitempty"`
 
-	// GuestOS Guest operating system configuration.
+	// GuestOs Guest operating system configuration.
 	// Providers map the OS type to their image catalog.
-	GuestOS GuestOS `json:"guestOS"`
+	GuestOs GuestOS `json:"guest_os"`
 
 	// Memory Memory configuration (RAM)
 	Memory Memory `json:"memory"`
@@ -100,11 +100,11 @@ type VMSpec struct {
 	//
 	// Keys are provider identifiers (e.g., kubevirt, vmware, aws).
 	// Values are provider-specific configuration objects.
-	ProviderHints *externalRef0.ProviderHints `json:"providerHints,omitempty"`
+	ProviderHints *externalRef0.ProviderHints `json:"provider_hints,omitempty"`
 
 	// ServiceType Service type identifier.
 	// Makes the payload self-describing and enables routing/validation.
-	ServiceType externalRef0.ServiceType `json:"serviceType"`
+	ServiceType externalRef0.ServiceType `json:"service_type"`
 
 	// Storage Storage configuration
 	Storage Storage `json:"storage"`
@@ -147,12 +147,12 @@ func (a *Access) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	if raw, found := object["sshPublicKey"]; found {
+	if raw, found := object["ssh_public_key"]; found {
 		err = json.Unmarshal(raw, &a.SshPublicKey)
 		if err != nil {
-			return fmt.Errorf("error reading 'sshPublicKey': %w", err)
+			return fmt.Errorf("error reading 'ssh_public_key': %w", err)
 		}
-		delete(object, "sshPublicKey")
+		delete(object, "ssh_public_key")
 	}
 
 	if len(object) != 0 {
@@ -175,9 +175,9 @@ func (a Access) MarshalJSON() ([]byte, error) {
 	object := make(map[string]json.RawMessage)
 
 	if a.SshPublicKey != nil {
-		object["sshPublicKey"], err = json.Marshal(a.SshPublicKey)
+		object["ssh_public_key"], err = json.Marshal(a.SshPublicKey)
 		if err != nil {
-			return nil, fmt.Errorf("error marshaling 'sshPublicKey': %w", err)
+			return nil, fmt.Errorf("error marshaling 'ssh_public_key': %w", err)
 		}
 	}
 
@@ -502,12 +502,12 @@ func (a *VMSpec) UnmarshalJSON(b []byte) error {
 		delete(object, "access")
 	}
 
-	if raw, found := object["guestOS"]; found {
-		err = json.Unmarshal(raw, &a.GuestOS)
+	if raw, found := object["guest_os"]; found {
+		err = json.Unmarshal(raw, &a.GuestOs)
 		if err != nil {
-			return fmt.Errorf("error reading 'guestOS': %w", err)
+			return fmt.Errorf("error reading 'guest_os': %w", err)
 		}
-		delete(object, "guestOS")
+		delete(object, "guest_os")
 	}
 
 	if raw, found := object["memory"]; found {
@@ -526,20 +526,20 @@ func (a *VMSpec) UnmarshalJSON(b []byte) error {
 		delete(object, "metadata")
 	}
 
-	if raw, found := object["providerHints"]; found {
+	if raw, found := object["provider_hints"]; found {
 		err = json.Unmarshal(raw, &a.ProviderHints)
 		if err != nil {
-			return fmt.Errorf("error reading 'providerHints': %w", err)
+			return fmt.Errorf("error reading 'provider_hints': %w", err)
 		}
-		delete(object, "providerHints")
+		delete(object, "provider_hints")
 	}
 
-	if raw, found := object["serviceType"]; found {
+	if raw, found := object["service_type"]; found {
 		err = json.Unmarshal(raw, &a.ServiceType)
 		if err != nil {
-			return fmt.Errorf("error reading 'serviceType': %w", err)
+			return fmt.Errorf("error reading 'service_type': %w", err)
 		}
-		delete(object, "serviceType")
+		delete(object, "service_type")
 	}
 
 	if raw, found := object["storage"]; found {
@@ -584,9 +584,9 @@ func (a VMSpec) MarshalJSON() ([]byte, error) {
 		}
 	}
 
-	object["guestOS"], err = json.Marshal(a.GuestOS)
+	object["guest_os"], err = json.Marshal(a.GuestOs)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'guestOS': %w", err)
+		return nil, fmt.Errorf("error marshaling 'guest_os': %w", err)
 	}
 
 	object["memory"], err = json.Marshal(a.Memory)
@@ -600,15 +600,15 @@ func (a VMSpec) MarshalJSON() ([]byte, error) {
 	}
 
 	if a.ProviderHints != nil {
-		object["providerHints"], err = json.Marshal(a.ProviderHints)
+		object["provider_hints"], err = json.Marshal(a.ProviderHints)
 		if err != nil {
-			return nil, fmt.Errorf("error marshaling 'providerHints': %w", err)
+			return nil, fmt.Errorf("error marshaling 'provider_hints': %w", err)
 		}
 	}
 
-	object["serviceType"], err = json.Marshal(a.ServiceType)
+	object["service_type"], err = json.Marshal(a.ServiceType)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'serviceType': %w", err)
+		return nil, fmt.Errorf("error marshaling 'service_type': %w", err)
 	}
 
 	object["storage"], err = json.Marshal(a.Storage)

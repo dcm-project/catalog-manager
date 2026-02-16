@@ -48,14 +48,14 @@ type DatabaseSpec struct {
 	//
 	// Keys are provider identifiers (e.g., kubevirt, vmware, aws).
 	// Values are provider-specific configuration objects.
-	ProviderHints *externalRef0.ProviderHints `json:"providerHints,omitempty"`
+	ProviderHints *externalRef0.ProviderHints `json:"provider_hints,omitempty"`
 
 	// Resources Resource allocation for the database
 	Resources DatabaseResources `json:"resources"`
 
 	// ServiceType Service type identifier.
 	// Makes the payload self-describing and enables routing/validation.
-	ServiceType externalRef0.ServiceType `json:"serviceType"`
+	ServiceType externalRef0.ServiceType `json:"service_type"`
 
 	// Version Database engine version.
 	// Providers map this to their supported versions.
@@ -196,12 +196,12 @@ func (a *DatabaseSpec) UnmarshalJSON(b []byte) error {
 		delete(object, "metadata")
 	}
 
-	if raw, found := object["providerHints"]; found {
+	if raw, found := object["provider_hints"]; found {
 		err = json.Unmarshal(raw, &a.ProviderHints)
 		if err != nil {
-			return fmt.Errorf("error reading 'providerHints': %w", err)
+			return fmt.Errorf("error reading 'provider_hints': %w", err)
 		}
-		delete(object, "providerHints")
+		delete(object, "provider_hints")
 	}
 
 	if raw, found := object["resources"]; found {
@@ -212,12 +212,12 @@ func (a *DatabaseSpec) UnmarshalJSON(b []byte) error {
 		delete(object, "resources")
 	}
 
-	if raw, found := object["serviceType"]; found {
+	if raw, found := object["service_type"]; found {
 		err = json.Unmarshal(raw, &a.ServiceType)
 		if err != nil {
-			return fmt.Errorf("error reading 'serviceType': %w", err)
+			return fmt.Errorf("error reading 'service_type': %w", err)
 		}
-		delete(object, "serviceType")
+		delete(object, "service_type")
 	}
 
 	if raw, found := object["version"]; found {
@@ -258,9 +258,9 @@ func (a DatabaseSpec) MarshalJSON() ([]byte, error) {
 	}
 
 	if a.ProviderHints != nil {
-		object["providerHints"], err = json.Marshal(a.ProviderHints)
+		object["provider_hints"], err = json.Marshal(a.ProviderHints)
 		if err != nil {
-			return nil, fmt.Errorf("error marshaling 'providerHints': %w", err)
+			return nil, fmt.Errorf("error marshaling 'provider_hints': %w", err)
 		}
 	}
 
@@ -269,9 +269,9 @@ func (a DatabaseSpec) MarshalJSON() ([]byte, error) {
 		return nil, fmt.Errorf("error marshaling 'resources': %w", err)
 	}
 
-	object["serviceType"], err = json.Marshal(a.ServiceType)
+	object["service_type"], err = json.Marshal(a.ServiceType)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'serviceType': %w", err)
+		return nil, fmt.Errorf("error marshaling 'service_type': %w", err)
 	}
 
 	object["version"], err = json.Marshal(a.Version)

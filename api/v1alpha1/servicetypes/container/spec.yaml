@@ -9,7 +9,7 @@ info:
     platforms (Kubernetes, Docker, Podman, OpenShift, CRI-O, containerd).
 
     Platform-specific configuration (security contexts, probes, volumes)
-    should be specified via providerHints.
+    should be specified via provider_hints.
   version: v1alpha1
   license:
     name: Apache 2.0
@@ -24,7 +24,7 @@ components:
       description: |
         Provider-agnostic container specification.
 
-        Includes common fields (serviceType,  metadata, providerHints)
+        Includes common fields (service_type, metadata, provider_hints)
         plus container-specific fields for image, resources, process, and network.
 
         Providers translate this abstract specification to their native format.
@@ -184,9 +184,9 @@ components:
       type: object
       description: Container port specification
       required:
-        - containerPort
+        - container_port
       properties:
-        containerPort:
+        container_port:
           type: integer
           description: Port number inside container
           minimum: 1
