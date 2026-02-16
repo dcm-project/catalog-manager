@@ -53,7 +53,7 @@ check-generate-api: generate-api
 
 # Check AEP compliance
 check-aep:
-	spectral lint --fail-severity=warn ./api/v1alpha1/openapi.yaml
+	spectral lint --fail-severity=warn ./api/v1alpha1/openapi.yaml $$(find ./api/v1alpha1/servicetypes -name '*.yaml')
 
 
 # Generate Go types for service specifications (VM, Container, Database, Cluster)
