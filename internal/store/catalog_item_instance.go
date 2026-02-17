@@ -176,7 +176,7 @@ func (s *catalogItemInstanceStore) Update(ctx context.Context, catalogItemInstan
 func (s *catalogItemInstanceStore) Delete(ctx context.Context, id string) error {
 	result := s.db.WithContext(ctx).Where("id = ?", id).Delete(&model.CatalogItemInstance{})
 	if result.Error != nil {
-		return fmt.Errorf("failed to delete catalog item: %w", result.Error)
+		return fmt.Errorf("failed to delete catalog item instance: %w", result.Error)
 	}
 	if result.RowsAffected == 0 {
 		return ErrCatalogItemInstanceNotFound
