@@ -21,13 +21,13 @@ var (
 	ErrServiceTypeServiceTypeTaken = errors.New("service type service type already exists")
 )
 
-// PolicyListOptions contains options for listing policies.
+// ServiceTypeListOptions contains options for listing service types.
 type ServiceTypeListOptions struct {
 	PageToken *string
 	PageSize  int
 }
 
-// PolicyListResult contains the result of a List operation.
+// ServiceTypeListResult contains the result of a List operation.
 type ServiceTypeListResult struct {
 	ServiceTypes  model.ServiceTypeList
 	NextPageToken *string
@@ -102,7 +102,7 @@ func (s *serviceTypeStore) Create(ctx context.Context, serviceType model.Service
 }
 
 // mapUniqueConstraintError maps a DB unique constraint violation to a store sentinel error.
-// by querying the DB to see which constraint would be violated (ID, display_name+policy_type, or priority+policy_type).
+// by querying the DB to see which constraint would be violated (ID, service_type).
 func (s *serviceTypeStore) mapUniqueConstraintError(ctx context.Context, err error, attempted model.ServiceType) error {
 	if err == nil {
 		return nil
