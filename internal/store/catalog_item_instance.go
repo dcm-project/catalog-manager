@@ -57,8 +57,8 @@ func (s *catalogItemInstanceStore) List(ctx context.Context, opts *CatalogItemIn
 	var catalogItemInstances model.CatalogItemInstanceList
 	query := s.db.WithContext(ctx)
 
-	// Default and max page size
-	pageSize := 50
+	// Default max page size
+	pageSize := 100
 	if opts != nil && opts.PageSize > 0 {
 		pageSize = opts.PageSize
 	}

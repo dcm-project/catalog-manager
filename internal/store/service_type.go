@@ -54,8 +54,8 @@ func (s *serviceTypeStore) List(ctx context.Context, opts *ServiceTypeListOption
 	var serviceTypes model.ServiceTypeList
 	query := s.db.WithContext(ctx)
 
-	// Default page size
-	pageSize := 50
+	// Default max page size
+	pageSize := 100
 	if opts != nil && opts.PageSize > 0 {
 		pageSize = opts.PageSize
 	}
