@@ -47,12 +47,12 @@ type catalogItemInstanceStore struct {
 	db *gorm.DB
 }
 
-// NewCatalogItemStore creates a new CatalogItem store
+// NewCatalogItemInstanceStore creates a new CatalogItemInstance store
 func NewCatalogItemInstanceStore(db *gorm.DB) CatalogItemInstanceStore {
 	return &catalogItemInstanceStore{db: db}
 }
 
-// List returns a paginated list of catalog items
+// List returns a paginated list of catalog item instances
 func (s *catalogItemInstanceStore) List(ctx context.Context, opts *CatalogItemInstanceListOptions) (*CatalogItemInstanceListResult, error) {
 	var catalogItemInstances model.CatalogItemInstanceList
 	query := s.db.WithContext(ctx)
