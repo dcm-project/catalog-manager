@@ -87,14 +87,14 @@ components:
         Common fields included in all service type specifications.
         These provide versioning, extensibility, and provider-specific configuration.
       required:
-        - serviceType
+        - service_type
         - metadata
       properties:
-        serviceType:
+        service_type:
           $ref: '#/components/schemas/ServiceType'
 
         metadata:
           $ref: '#/components/schemas/ServiceMetadata'
 
-        providerHints:
+        provider_hints:
           $ref: '#/components/schemas/ProviderHints'

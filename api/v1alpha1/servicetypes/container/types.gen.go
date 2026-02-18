@@ -13,7 +13,7 @@ import (
 // ContainerPort Container port specification
 type ContainerPort struct {
 	// ContainerPort Port number inside container
-	ContainerPort        int                    `json:"containerPort"`
+	ContainerPort        int                    `json:"container_port"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
@@ -50,14 +50,14 @@ type ContainerSpec struct {
 	//
 	// Keys are provider identifiers (e.g., kubevirt, vmware, aws).
 	// Values are provider-specific configuration objects.
-	ProviderHints *externalRef0.ProviderHints `json:"providerHints,omitempty"`
+	ProviderHints *externalRef0.ProviderHints `json:"provider_hints,omitempty"`
 
 	// Resources Resource allocation (CPU and memory)
 	Resources ContainerResources `json:"resources"`
 
 	// ServiceType Service type identifier.
 	// Makes the payload self-describing and enables routing/validation.
-	ServiceType          externalRef0.ServiceType `json:"serviceType"`
+	ServiceType          externalRef0.ServiceType `json:"service_type"`
 	AdditionalProperties map[string]interface{}   `json:"-"`
 }
 
@@ -152,12 +152,12 @@ func (a *ContainerPort) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	if raw, found := object["containerPort"]; found {
+	if raw, found := object["container_port"]; found {
 		err = json.Unmarshal(raw, &a.ContainerPort)
 		if err != nil {
-			return fmt.Errorf("error reading 'containerPort': %w", err)
+			return fmt.Errorf("error reading 'container_port': %w", err)
 		}
-		delete(object, "containerPort")
+		delete(object, "container_port")
 	}
 
 	if len(object) != 0 {
@@ -179,9 +179,9 @@ func (a ContainerPort) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
-	object["containerPort"], err = json.Marshal(a.ContainerPort)
+	object["container_port"], err = json.Marshal(a.ContainerPort)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'containerPort': %w", err)
+		return nil, fmt.Errorf("error marshaling 'container_port': %w", err)
 	}
 
 	for fieldName, field := range a.AdditionalProperties {
@@ -329,12 +329,12 @@ func (a *ContainerSpec) UnmarshalJSON(b []byte) error {
 		delete(object, "process")
 	}
 
-	if raw, found := object["providerHints"]; found {
+	if raw, found := object["provider_hints"]; found {
 		err = json.Unmarshal(raw, &a.ProviderHints)
 		if err != nil {
-			return fmt.Errorf("error reading 'providerHints': %w", err)
+			return fmt.Errorf("error reading 'provider_hints': %w", err)
 		}
-		delete(object, "providerHints")
+		delete(object, "provider_hints")
 	}
 
 	if raw, found := object["resources"]; found {
@@ -345,12 +345,12 @@ func (a *ContainerSpec) UnmarshalJSON(b []byte) error {
 		delete(object, "resources")
 	}
 
-	if raw, found := object["serviceType"]; found {
+	if raw, found := object["service_type"]; found {
 		err = json.Unmarshal(raw, &a.ServiceType)
 		if err != nil {
-			return fmt.Errorf("error reading 'serviceType': %w", err)
+			return fmt.Errorf("error reading 'service_type': %w", err)
 		}
-		delete(object, "serviceType")
+		delete(object, "service_type")
 	}
 
 	if len(object) != 0 {
@@ -397,9 +397,9 @@ func (a ContainerSpec) MarshalJSON() ([]byte, error) {
 	}
 
 	if a.ProviderHints != nil {
-		object["providerHints"], err = json.Marshal(a.ProviderHints)
+		object["provider_hints"], err = json.Marshal(a.ProviderHints)
 		if err != nil {
-			return nil, fmt.Errorf("error marshaling 'providerHints': %w", err)
+			return nil, fmt.Errorf("error marshaling 'provider_hints': %w", err)
 		}
 	}
 
@@ -408,9 +408,9 @@ func (a ContainerSpec) MarshalJSON() ([]byte, error) {
 		return nil, fmt.Errorf("error marshaling 'resources': %w", err)
 	}
 
-	object["serviceType"], err = json.Marshal(a.ServiceType)
+	object["service_type"], err = json.Marshal(a.ServiceType)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'serviceType': %w", err)
+		return nil, fmt.Errorf("error marshaling 'service_type': %w", err)
 	}
 
 	for fieldName, field := range a.AdditionalProperties {

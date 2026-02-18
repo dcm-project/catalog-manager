@@ -25,11 +25,11 @@ type CommonFields struct {
 	//
 	// Keys are provider identifiers (e.g., kubevirt, vmware, aws).
 	// Values are provider-specific configuration objects.
-	ProviderHints *ProviderHints `json:"providerHints,omitempty"`
+	ProviderHints *ProviderHints `json:"provider_hints,omitempty"`
 
 	// ServiceType Service type identifier.
 	// Makes the payload self-describing and enables routing/validation.
-	ServiceType ServiceType `json:"serviceType"`
+	ServiceType ServiceType `json:"service_type"`
 }
 
 // ProviderHints Optional provider-specific configuration.

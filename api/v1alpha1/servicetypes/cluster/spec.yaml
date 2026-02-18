@@ -9,7 +9,7 @@ info:
     distributions (OpenShift, EKS, GKE, AKS, self-managed, etc.).
 
     Platform-specific configuration (CNI type, authentication, ingress settings)
-    should be specified via providerHints.
+    should be specified via provider_hints.
   version: v1alpha1
   license:
     name: Apache 2.0
@@ -24,7 +24,7 @@ components:
       description: |
         Provider-agnostic Kubernetes cluster specification.
 
-        Includes common fields (serviceType, metadata, providerHints)
+        Includes common fields (service_type, metadata, provider_hints)
         plus cluster-specific fields for version and node configuration.
 
         Providers translate this specification to their native format.
@@ -54,12 +54,12 @@ components:
       type: object
       description: Node configuration
       required:
-        - controlPlane
-        - worker
+        - control_plane
+        - workers
       properties:
-        controlPlane:
+        control_plane:
           $ref: '#/components/schemas/ControlPlaneNodes'
-        worker:
+        workers:
           $ref: '#/components/schemas/WorkerNodes'
       additionalProperties: true
 

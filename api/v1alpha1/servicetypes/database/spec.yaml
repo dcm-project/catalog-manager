@@ -7,7 +7,7 @@ info:
 
     This schema defines minimal portable fields for database provisioning.
     Database-specific configuration (HA, backups, connection settings,
-    engine parameters) should be specified via providerHints.
+    engine parameters) should be specified via provider_hints.
   version: v1alpha1
   license:
     name: Apache 2.0
@@ -22,7 +22,7 @@ components:
       description: |
         Provider-agnostic database specification.
 
-        Includes common fields (serviceType,  metadata, providerHints)
+        Includes common fields (service_type, metadata, provider_hints)
         plus fields for engine, version, and resources.
 
         Providers translate this specification to their native format.

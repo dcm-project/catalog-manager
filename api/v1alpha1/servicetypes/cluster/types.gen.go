@@ -33,11 +33,11 @@ type ClusterSpec struct {
 	//
 	// Keys are provider identifiers (e.g., kubevirt, vmware, aws).
 	// Values are provider-specific configuration objects.
-	ProviderHints *externalRef0.ProviderHints `json:"providerHints,omitempty"`
+	ProviderHints *externalRef0.ProviderHints `json:"provider_hints,omitempty"`
 
 	// ServiceType Service type identifier.
 	// Makes the payload self-describing and enables routing/validation.
-	ServiceType externalRef0.ServiceType `json:"serviceType"`
+	ServiceType externalRef0.ServiceType `json:"service_type"`
 
 	// Version Kubernetes version (e.g., "1.29", "1.30", "1.31").
 	//
@@ -72,10 +72,10 @@ type ControlPlaneNodesCount int
 type Nodes struct {
 	// ControlPlane Control plane nodes configuration.
 	// Managed services (ACM (with Hypershift),EKS, GKE, AKS) may ignore these fields.
-	ControlPlane ControlPlaneNodes `json:"controlPlane"`
+	ControlPlane ControlPlaneNodes `json:"control_plane"`
 
-	// Worker Worker nodes configuration
-	Worker               WorkerNodes            `json:"worker"`
+	// Workers Worker nodes configuration
+	Workers              WorkerNodes            `json:"workers"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
@@ -136,20 +136,20 @@ func (a *ClusterSpec) UnmarshalJSON(b []byte) error {
 		delete(object, "nodes")
 	}
 
-	if raw, found := object["providerHints"]; found {
+	if raw, found := object["provider_hints"]; found {
 		err = json.Unmarshal(raw, &a.ProviderHints)
 		if err != nil {
-			return fmt.Errorf("error reading 'providerHints': %w", err)
+			return fmt.Errorf("error reading 'provider_hints': %w", err)
 		}
-		delete(object, "providerHints")
+		delete(object, "provider_hints")
 	}
 
-	if raw, found := object["serviceType"]; found {
+	if raw, found := object["service_type"]; found {
 		err = json.Unmarshal(raw, &a.ServiceType)
 		if err != nil {
-			return fmt.Errorf("error reading 'serviceType': %w", err)
+			return fmt.Errorf("error reading 'service_type': %w", err)
 		}
-		delete(object, "serviceType")
+		delete(object, "service_type")
 	}
 
 	if raw, found := object["version"]; found {
@@ -190,15 +190,15 @@ func (a ClusterSpec) MarshalJSON() ([]byte, error) {
 	}
 
 	if a.ProviderHints != nil {
-		object["providerHints"], err = json.Marshal(a.ProviderHints)
+		object["provider_hints"], err = json.Marshal(a.ProviderHints)
 		if err != nil {
-			return nil, fmt.Errorf("error marshaling 'providerHints': %w", err)
+			return nil, fmt.Errorf("error marshaling 'provider_hints': %w", err)
 		}
 	}
 
-	object["serviceType"], err = json.Marshal(a.ServiceType)
+	object["service_type"], err = json.Marshal(a.ServiceType)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'serviceType': %w", err)
+		return nil, fmt.Errorf("error marshaling 'service_type': %w", err)
 	}
 
 	object["version"], err = json.Marshal(a.Version)
@@ -345,20 +345,20 @@ func (a *Nodes) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	if raw, found := object["controlPlane"]; found {
+	if raw, found := object["control_plane"]; found {
 		err = json.Unmarshal(raw, &a.ControlPlane)
 		if err != nil {
-			return fmt.Errorf("error reading 'controlPlane': %w", err)
+			return fmt.Errorf("error reading 'control_plane': %w", err)
 		}
-		delete(object, "controlPlane")
+		delete(object, "control_plane")
 	}
 
-	if raw, found := object["worker"]; found {
-		err = json.Unmarshal(raw, &a.Worker)
+	if raw, found := object["workers"]; found {
+		err = json.Unmarshal(raw, &a.Workers)
 		if err != nil {
-			return fmt.Errorf("error reading 'worker': %w", err)
+			return fmt.Errorf("error reading 'workers': %w", err)
 		}
-		delete(object, "worker")
+		delete(object, "workers")
 	}
 
 	if len(object) != 0 {
@@ -380,14 +380,14 @@ func (a Nodes) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
-	object["controlPlane"], err = json.Marshal(a.ControlPlane)
+	object["control_plane"], err = json.Marshal(a.ControlPlane)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'controlPlane': %w", err)
+		return nil, fmt.Errorf("error marshaling 'control_plane': %w", err)
 	}
 
-	object["worker"], err = json.Marshal(a.Worker)
+	object["workers"], err = json.Marshal(a.Workers)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'worker': %w", err)
+		return nil, fmt.Errorf("error marshaling 'workers': %w", err)
 	}
 
 	for fieldName, field := range a.AdditionalProperties {
