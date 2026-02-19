@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	"github.com/dcm-project/catalog-manager/internal/api/server"
+	"github.com/dcm-project/catalog-manager/internal/store"
 )
 
 const (
@@ -9,11 +10,13 @@ const (
 )
 
 type Handler struct {
-	// Future: storage layer will be injected here
+	store store.Store
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(store store.Store) *Handler {
+	return &Handler{
+		store: store,
+	}
 }
 
 // Compile-time verification

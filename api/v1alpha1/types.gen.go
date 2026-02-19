@@ -290,6 +290,10 @@ type BadRequest = Error
 // and AEP-193 Error Responses specification.
 type Forbidden = Error
 
+// HasInstances Error response following RFC 7807 Problem Details for HTTP APIs
+// and AEP-193 Error Responses specification.
+type HasInstances = Error
+
 // InternalServerError Error response following RFC 7807 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type InternalServerError = Error

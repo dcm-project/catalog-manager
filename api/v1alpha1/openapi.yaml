@@ -370,6 +370,9 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+        '409':
+          $ref: '#/components/responses/HasInstances'
+
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1143,6 +1146,19 @@ components:
             status: 409
             title: Resource already exists
             detail: ServiceType with id 'vm-standard' already exists
+            instance: 0c67gh6h-7e96-75ce-e3h8-e1g683hf498h
+
+    HasInstances:
+      description: Has Instances
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: FAILED_PRECONDITION
+            status: 409
+            title: Resource has instances
+            detail: CatalogItem 'vm-standard' has instances
             instance: 0c67gh6h-7e96-75ce-e3h8-e1g683hf498h
 
     InternalServerError:
