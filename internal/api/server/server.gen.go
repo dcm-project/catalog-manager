@@ -677,6 +677,8 @@ type BadRequestJSONResponse Error
 
 type ForbiddenJSONResponse Error
 
+type HasInstancesJSONResponse Error
+
 type InternalServerErrorJSONResponse Error
 
 type NotFoundJSONResponse Error
@@ -1053,6 +1055,15 @@ type DeleteCatalogItem404JSONResponse struct{ NotFoundJSONResponse }
 func (response DeleteCatalogItem404JSONResponse) VisitDeleteCatalogItemResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteCatalogItem409JSONResponse struct{ HasInstancesJSONResponse }
+
+func (response DeleteCatalogItem409JSONResponse) VisitDeleteCatalogItemResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
 
 	return json.NewEncoder(w).Encode(response)
 }
