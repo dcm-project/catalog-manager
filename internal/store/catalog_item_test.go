@@ -238,6 +238,43 @@ var _ = Describe("CatalogItem Store", func() {
 			Expect(retrieved.Spec.Fields).To(HaveLen(2))
 		})
 
+		It("should not update immutable fields", func() {
+			// Create prerequisite service type
+			createTestServiceType("vm-st-immutable", "vm")
+
+			originalPath := "catalog-items/immutable-update-test"
+			originalApiVersion := "v1alpha1"
+			ci := &model.CatalogItem{
+				ID:          "immutable-update-test",
+				ApiVersion:  originalApiVersion,
+				DisplayName: "Original Name",
+				Spec: model.CatalogItemSpec{
+					ServiceType: "vm",
+					Fields:      []model.FieldConfiguration{},
+				},
+				Path: originalPath,
+			}
+
+			created, err := catalogItemStore.Create(context.Background(), *ci)
+			Expect(err).ToNot(HaveOccurred())
+			ci = created
+
+			// Attempt to update immutable fields (and one mutable field to show update runs)
+			ci.Path = "catalog-items/tampered-path"
+			ci.ApiVersion = "v1beta1"
+			ci.DisplayName = "Updated Name"
+
+			err = catalogItemStore.Update(context.Background(), ci)
+			Expect(err).ToNot(HaveOccurred())
+
+			// Verify immutable fields are unchanged
+			retrieved, err := catalogItemStore.Get(context.Background(), "immutable-update-test")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(retrieved.Path).To(Equal(originalPath))
+			Expect(retrieved.ApiVersion).To(Equal(originalApiVersion))
+			Expect(retrieved.DisplayName).To(Equal("Updated Name"))
+		})
+
 		It("should return error when updating non-existent catalog item", func() {
 			// Create prerequisite service type
 			createTestServiceType("vm-st-nonexist", "vm")
