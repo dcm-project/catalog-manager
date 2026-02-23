@@ -87,6 +87,12 @@ generate-service-types:
 		--import-mapping=../common.yaml:github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes \
 		-o api/v1alpha1/servicetypes/cluster/types.gen.go \
 		api/v1alpha1/servicetypes/cluster/spec.yaml
+	@echo "Generating Three-Tier App Demo types..."
+	go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen \
+		--config=api/v1alpha1/servicetypes/three_tier_app_demo/spec.gen.cfg \
+		--import-mapping=../common.yaml:github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes \
+		-o api/v1alpha1/servicetypes/three_tier_app_demo/types.gen.go \
+		api/v1alpha1/servicetypes/three_tier_app_demo/spec.yaml
 	@echo "Service types generation complete!"
 
 .PHONY: build run clean fmt vet test tidy generate-types generate-spec generate-server generate-client generate-api check-generate-api check-aep generate-service-types

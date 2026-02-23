@@ -23,10 +23,14 @@ servicetypes/
 │   ├── spec.yaml           # Database OpenAPI specification
 │   ├── spec.gen.cfg        # oapi-codegen config for Database types
 │   └── types.gen.go        # Generated Database types
-└── cluster/
-    ├── spec.yaml           # Cluster OpenAPI specification
-    ├── spec.gen.cfg        # oapi-codegen config for Cluster types
-    └── types.gen.go        # Generated Cluster types
+├── cluster/
+│   ├── spec.yaml           # Cluster OpenAPI specification
+│   ├── spec.gen.cfg        # oapi-codegen config for Cluster types
+│   └── types.gen.go        # Generated Cluster types
+└── three_tier_app_demo/
+    ├── spec.yaml           # Three-Tier App Demo OpenAPI specification
+    ├── spec.gen.cfg        # oapi-codegen config for Three-Tier App Demo types
+    └── types.gen.go        # Generated Three-Tier App Demo types
 ```
 
 Each service type folder is self-contained with:
@@ -58,6 +62,12 @@ Each service type folder is self-contained with:
 - **`servicetypes/cluster`**: Kubernetes Cluster specification types
   - `ClusterSpec`
   - `Nodes`, `ControlPlaneNodes`, `WorkerNodes`
+
+- **`servicetypes/three_tier_app_demo`**: Three-tier demo specification types (exactly 3 components: database, app, web/nginx)
+  - `ThreeTierAppDemoSpec`
+  - `DatabaseTier` (engine, version, optional image)
+  - `AppTier` (image)
+  - `WebTier` (version, optional image)
 
 ## Usage
 
@@ -92,8 +102,8 @@ vmSpec := vm.VMSpec{
 }
 ```
 
-**Important**: The `ServiceType` enum constants (`Vm`, `Container`, `Database`, `Cluster`) 
-are defined in the `servicetypes` package. 
+**Important**: The `ServiceType` enum constants (`Vm`, `Container`, `Database`, `Cluster`, `ThreeTierAppDemo`)
+are defined in the `servicetypes` package.
 
 ## Regenerating Types
 
@@ -110,6 +120,7 @@ This command will:
 3. Generate Container types from `container/spec.yaml` with proper imports
 4. Generate Database types from `database/spec.yaml` with proper imports
 5. Generate Cluster types from `cluster/spec.yaml` with proper imports
+6. Generate Three-Tier App Demo types from `three_tier_app_demo/spec.yaml` with proper imports
 
 The command runs sequentially and provides progress feedback for each step.
 

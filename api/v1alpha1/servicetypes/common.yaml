@@ -29,6 +29,7 @@ components:
         - container
         - database
         - cluster
+        - three_tier_app_demo
       example: vm
 
     ServiceMetadata:
