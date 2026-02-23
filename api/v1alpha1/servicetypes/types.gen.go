@@ -5,10 +5,11 @@ package servicetypes
 
 // Defines values for ServiceType.
 const (
-	Cluster   ServiceType = "cluster"
-	Container ServiceType = "container"
-	Database  ServiceType = "database"
-	Vm        ServiceType = "vm"
+	Cluster          ServiceType = "cluster"
+	Container        ServiceType = "container"
+	Database         ServiceType = "database"
+	ThreeTierAppDemo ServiceType = "three_tier_app_demo"
+	Vm               ServiceType = "vm"
 )
 
 // CommonFields Common fields included in all service type specifications.
