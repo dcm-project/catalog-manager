@@ -11,7 +11,7 @@ import (
 func (h *Handler) ListServiceTypes(ctx context.Context, request server.ListServiceTypesRequestObject) (server.ListServiceTypesResponseObject, error) {
 	// Build service request from HTTP params
 	opts := &service.ServiceTypeListOptions{
-		PageToken: request.Params.PageToken,
+		PageToken:   request.Params.PageToken,
 		MaxPageSize: request.Params.MaxPageSize,
 	}
 
@@ -23,7 +23,7 @@ func (h *Handler) ListServiceTypes(ctx context.Context, request server.ListServi
 
 	// Return HTTP response
 	response := server.ListServiceTypes200JSONResponse(v1alpha1.ServiceTypeList{
-		Results:       result.ServiceTypes,
+		Results: result.ServiceTypes,
 	})
 	if result.NextPageToken != nil {
 		response.NextPageToken = *result.NextPageToken

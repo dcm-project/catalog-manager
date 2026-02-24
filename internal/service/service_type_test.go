@@ -16,10 +16,10 @@ import (
 
 var _ = Describe("ServiceType Service", func() {
 	var (
-		ctx    context.Context
-		db     *gorm.DB
-		str    store.Store
-		svc    service.Service
+		ctx context.Context
+		db  *gorm.DB
+		str store.Store
+		svc service.Service
 	)
 
 	BeforeEach(func() {
@@ -80,16 +80,16 @@ var _ = Describe("ServiceType Service", func() {
 				Expect(result.ServiceType).To(Equal("cluster"))
 			})
 
-			It("should create a service type with 'db'", func() {
+			It("should create a service type with 'database'", func() {
 				req := &service.CreateServiceTypeRequest{
 					ApiVersion:  "v1alpha1",
-					ServiceType: "db",
+					ServiceType: "database",
 					Spec:        map[string]any{"engine": "postgres"},
 				}
 
 				result, err := svc.ServiceType().Create(ctx, req)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(result.ServiceType).To(Equal("db"))
+				Expect(result.ServiceType).To(Equal("database"))
 			})
 		})
 
@@ -105,10 +105,10 @@ var _ = Describe("ServiceType Service", func() {
 				Expect(err).To(Equal(service.ErrInvalidServiceType))
 			})
 
-			It("should reject 'database'", func() {
+			It("should reject 'db'", func() {
 				req := &service.CreateServiceTypeRequest{
 					ApiVersion:  "v1alpha1",
-					ServiceType: "database",
+					ServiceType: "db",
 					Spec:        map[string]any{"engine": "mysql"},
 				}
 
@@ -301,7 +301,7 @@ var _ = Describe("ServiceType Service", func() {
 		})
 
 		It("should paginate with page size and offset token", func() {
-			for _, st := range []string{"vm", "container", "cluster", "db"} {
+			for _, st := range []string{"vm", "container", "cluster", "database"} {
 				_, err := svc.ServiceType().Create(ctx, &service.CreateServiceTypeRequest{
 					ApiVersion:  "v1alpha1",
 					ServiceType: st,

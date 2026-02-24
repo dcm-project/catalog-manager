@@ -162,7 +162,7 @@ var _ = Describe("ServiceType Handler", func() {
 				Expect(badRequest.Type).To(Equal(v1alpha1API.INVALIDARGUMENT))
 			})
 
-})
+		})
 
 		Context("with conflict errors", func() {
 			It("should return 409 for duplicate ID", func() {
