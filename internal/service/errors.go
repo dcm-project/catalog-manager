@@ -16,9 +16,4 @@ var (
 	// ErrServiceTypeNotFound indicates the requested service type does not exist
 	ErrServiceTypeNotFound = errors.New("service type not found")
 
-	// ErrInvalidID indicates the ID does not conform to DNS-1123 format
-	ErrInvalidID = errors.New("invalid ID: must be DNS-1123 compliant (lowercase alphanumeric, hyphens, start/end with alphanumeric)")
-
-	// ErrEmptySpec indicates the spec field is empty or nil
-	ErrEmptySpec = errors.New("spec cannot be empty")
 )

@@ -3,15 +3,11 @@ package service
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/store"
 	"github.com/google/uuid"
 )
-
-// DNS-1123 label validation pattern
-var dns1123Pattern = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
 
 // allowedServiceTypes defines the restricted set of valid service type values
 var allowedServiceTypes = map[string]bool{
@@ -102,18 +98,9 @@ func (s *serviceTypeService) Create(ctx context.Context, req *CreateServiceTypeR
 		return nil, ErrInvalidServiceType
 	}
 
-	// Validate spec is not empty
-	if len(req.Spec) == 0 {
-		return nil, ErrEmptySpec
-	}
-
-	// Generate or validate ID
+	// Generate or use provided ID
 	var id string
 	if req.ID != nil && *req.ID != "" {
-		// Validate user-provided ID (DNS-1123 format)
-		if !dns1123Pattern.MatchString(*req.ID) {
-			return nil, ErrInvalidID
-		}
 		id = *req.ID
 	} else {
 		// Generate UUID if not provided

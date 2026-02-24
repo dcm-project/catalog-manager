@@ -12,8 +12,10 @@ import (
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/api/server"
 	"github.com/dcm-project/catalog-manager/internal/config"
+	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	nethttpmiddleware "github.com/oapi-codegen/nethttp-middleware"
 )
 
 const gracefulShutdownTimeout = 5 * time.Second
@@ -46,6 +48,17 @@ func (s *Server) Run(ctx context.Context) error {
 	if len(swagger.Servers) > 0 {
 		baseURL = swagger.Servers[0].URL
 	}
+
+	// Disable server URL validation to avoid Host header mismatch issues
+	swagger.Servers = nil
+
+	// Add OpenAPI request validation middleware
+	router.Use(nethttpmiddleware.OapiRequestValidatorWithOptions(swagger, &nethttpmiddleware.Options{
+		Options: openapi3filter.Options{
+			AuthenticationFunc: openapi3filter.NoopAuthenticationFunc,
+		},
+		SilenceServersWarning: true,
+	}))
 
 	// Mount the generated handler with base URL from OpenAPI spec
 	server.HandlerFromMuxWithBaseURL(

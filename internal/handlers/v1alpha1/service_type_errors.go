@@ -11,7 +11,7 @@ import (
 // mapListServiceErrorToHTTP converts service domain errors to ListServiceTypes HTTP responses
 func mapListServiceErrorToHTTP(err error) server.ListServiceTypesResponseObject {
 	switch {
-	case errors.Is(err, service.ErrInvalidServiceType), errors.Is(err, service.ErrInvalidID), errors.Is(err, service.ErrEmptySpec):
+	case errors.Is(err, service.ErrInvalidServiceType):
 		// Validation errors -> 400 Bad Request
 		detail := err.Error()
 		return server.ListServiceTypes400JSONResponse{
@@ -39,7 +39,7 @@ func mapListServiceErrorToHTTP(err error) server.ListServiceTypesResponseObject 
 // mapCreateServiceErrorToHTTP converts service domain errors to CreateServiceType HTTP responses
 func mapCreateServiceErrorToHTTP(err error) server.CreateServiceTypeResponseObject {
 	switch {
-	case errors.Is(err, service.ErrInvalidServiceType), errors.Is(err, service.ErrInvalidID), errors.Is(err, service.ErrEmptySpec):
+	case errors.Is(err, service.ErrInvalidServiceType):
 		// Validation errors -> 400 Bad Request
 		return server.CreateServiceType400JSONResponse(v1alpha1.Error{
 			Type:   v1alpha1.INVALIDARGUMENT,

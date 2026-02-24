@@ -162,46 +162,7 @@ var _ = Describe("ServiceType Handler", func() {
 				Expect(badRequest.Type).To(Equal(v1alpha1API.INVALIDARGUMENT))
 			})
 
-			It("should return 400 for empty spec", func() {
-				mockSTService.createFunc = func(ctx context.Context, req *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
-					return nil, service.ErrEmptySpec
-				}
-
-				request := server.CreateServiceTypeRequestObject{
-					Body: &v1alpha1API.ServiceType{
-						ApiVersion:  "v1alpha1",
-						ServiceType: "vm",
-						Spec:        map[string]interface{}{},
-					},
-				}
-
-				response, err := handler.CreateServiceType(ctx, request)
-				Expect(err).ToNot(HaveOccurred())
-				badRequest := response.(server.CreateServiceType400JSONResponse)
-				Expect(badRequest.Status).To(Equal(int32(400)))
-			})
-
-			It("should return 400 for invalid ID", func() {
-				mockSTService.createFunc = func(ctx context.Context, req *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
-					return nil, service.ErrInvalidID
-				}
-
-				invalidID := "InvalidID"
-				request := server.CreateServiceTypeRequestObject{
-					Params: v1alpha1API.CreateServiceTypeParams{Id: &invalidID},
-					Body: &v1alpha1API.ServiceType{
-						ApiVersion:  "v1alpha1",
-						ServiceType: "vm",
-						Spec:        map[string]interface{}{"vcpu": 2},
-					},
-				}
-
-				response, err := handler.CreateServiceType(ctx, request)
-				Expect(err).ToNot(HaveOccurred())
-				badRequest := response.(server.CreateServiceType400JSONResponse)
-				Expect(badRequest.Status).To(Equal(int32(400)))
-			})
-		})
+})
 
 		Context("with conflict errors", func() {
 			It("should return 409 for duplicate ID", func() {

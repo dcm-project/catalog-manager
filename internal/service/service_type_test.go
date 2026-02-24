@@ -128,30 +128,6 @@ var _ = Describe("ServiceType Service", func() {
 			})
 		})
 
-		Context("with empty spec", func() {
-			It("should reject nil spec", func() {
-				req := &service.CreateServiceTypeRequest{
-					ApiVersion:  "v1alpha1",
-					ServiceType: "vm",
-					Spec:        nil,
-				}
-
-				_, err := svc.ServiceType().Create(ctx, req)
-				Expect(err).To(Equal(service.ErrEmptySpec))
-			})
-
-			It("should reject empty spec map", func() {
-				req := &service.CreateServiceTypeRequest{
-					ApiVersion:  "v1alpha1",
-					ServiceType: "vm",
-					Spec:        map[string]any{},
-				}
-
-				_, err := svc.ServiceType().Create(ctx, req)
-				Expect(err).To(Equal(service.ErrEmptySpec))
-			})
-		})
-
 		Context("with ID validation", func() {
 			It("should generate UUID when ID is not provided", func() {
 				req := &service.CreateServiceTypeRequest{
@@ -186,44 +162,6 @@ var _ = Describe("ServiceType Service", func() {
 				Expect(*retrieved.Uid).To(Equal(userID))
 			})
 
-			It("should reject invalid ID (uppercase)", func() {
-				invalidID := "MyServiceType"
-				req := &service.CreateServiceTypeRequest{
-					ID:          &invalidID,
-					ApiVersion:  "v1alpha1",
-					ServiceType: "vm",
-					Spec:        map[string]any{"vcpu": 2},
-				}
-
-				_, err := svc.ServiceType().Create(ctx, req)
-				Expect(err).To(Equal(service.ErrInvalidID))
-			})
-
-			It("should reject invalid ID (starts with hyphen)", func() {
-				invalidID := "-invalid"
-				req := &service.CreateServiceTypeRequest{
-					ID:          &invalidID,
-					ApiVersion:  "v1alpha1",
-					ServiceType: "vm",
-					Spec:        map[string]any{"vcpu": 2},
-				}
-
-				_, err := svc.ServiceType().Create(ctx, req)
-				Expect(err).To(Equal(service.ErrInvalidID))
-			})
-
-			It("should reject invalid ID (ends with hyphen)", func() {
-				invalidID := "invalid-"
-				req := &service.CreateServiceTypeRequest{
-					ID:          &invalidID,
-					ApiVersion:  "v1alpha1",
-					ServiceType: "vm",
-					Spec:        map[string]any{"vcpu": 2},
-				}
-
-				_, err := svc.ServiceType().Create(ctx, req)
-				Expect(err).To(Equal(service.ErrInvalidID))
-			})
 		})
 
 		Context("with store errors", func() {
