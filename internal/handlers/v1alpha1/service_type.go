@@ -18,7 +18,14 @@ func (h *Handler) ListServiceTypes(ctx context.Context, request server.ListServi
 	// Call service layer
 	result, err := h.service.ServiceType().List(ctx, opts)
 	if err != nil {
-		return mapListServiceErrorToHTTP(err), nil
+		return server.ListServiceTypes500JSONResponse{
+			InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
+				Type:   v1alpha1.INTERNAL,
+				Status: 500,
+				Title:  "Internal Server Error",
+				Detail: stringPtr(err.Error()),
+			},
+		}, nil
 	}
 
 	// Return HTTP response
