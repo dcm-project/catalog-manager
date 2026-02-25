@@ -676,10 +676,6 @@ components:
         plural: catalog-items
         patterns:
           - catalog-items/{catalog_item_id}
-      required:
-        - api_version
-        - display_name
-        - spec
       properties:
         uid:
           type: string
@@ -741,9 +737,6 @@ components:
       description: |
         Specification for a catalog item, defining the service type reference
         and field configurations.
-      required:
-        - service_type
-        - fields
       properties:
         service_type:
           type: string
