@@ -28,21 +28,21 @@ const (
 type CatalogItem struct {
 	// ApiVersion Version of the CatalogItem schema itself (e.g., v1alpha1).
 	// Immutable after creation.
-	ApiVersion string `json:"api_version"`
+	ApiVersion *string `json:"api_version,omitempty"`
 
 	// CreateTime Timestamp when the catalog item was created (RFC 3339)
 	CreateTime *time.Time `json:"create_time,omitempty"`
 
 	// DisplayName User-friendly display name for the catalog item.
 	// Mutable and does not need to be unique.
-	DisplayName string `json:"display_name"`
+	DisplayName *string `json:"display_name,omitempty"`
 
 	// Path Resource path in the format: catalog-items/{catalogItemId}
 	Path *string `json:"path,omitempty"`
 
 	// Spec Specification for a catalog item, defining the service type reference
 	// and field configurations.
-	Spec CatalogItemSpec `json:"spec"`
+	Spec *CatalogItemSpec `json:"spec,omitempty"`
 
 	// Uid Unique identifier for the catalog item. This field is output-only and
 	// immutable after creation. The ID can be optionally specified via
@@ -130,11 +130,11 @@ type CatalogItemSpec struct {
 	// Fields Array of field configurations for this catalog item.
 	// Each configuration defines constraints and defaults for fields
 	// in the service type specification.
-	Fields []FieldConfiguration `json:"fields"`
+	Fields *[]FieldConfiguration `json:"fields,omitempty"`
 
 	// ServiceType The Service type this catalog item references.
 	// Immutable after creation.
-	ServiceType string `json:"service_type"`
+	ServiceType *string `json:"service_type,omitempty"`
 }
 
 // Error Error response following RFC 7807 Problem Details for HTTP APIs
