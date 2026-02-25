@@ -1,0 +1,39 @@
+name: Build and Push Image
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to push (e.g. v1.0.0). Leave empty for latest+sha only.'
+        required: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.tags.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: tags
+        run: |
+          TAGS="latest,sha-${GITHUB_SHA:0:7}"
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAGS="${TAGS},${{ github.ref_name }}"
+          fi
+          if [[ -n "${{ github.event.inputs.version }}" ]]; then
+            TAGS="${TAGS},${{ github.event.inputs.version }}"
+          fi
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+
+  build-push:
+    needs: prepare
+    uses: dcm-project/shared-workflows/.github/workflows/build-push-quay.yaml@main
+    with:
+      image-name: catalog-manager
+      tags: ${{ needs.prepare.outputs.tags }}
+    secrets:
+      quay-username: ${{ secrets.QUAY_USERNAME }}
+      quay-password: ${{ secrets.QUAY_PASSWORD }}
