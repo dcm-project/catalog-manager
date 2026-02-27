@@ -1,15 +1,9 @@
 package service
 
 import (
-	"regexp"
-
 	"github.com/dcm-project/catalog-manager/internal/store"
 	"github.com/google/uuid"
 )
-
-// DNS-1123 label validation pattern
-var dns1123Pattern = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
-
 
 // Service is the main interface that aggregates all service interfaces
 type Service interface {
