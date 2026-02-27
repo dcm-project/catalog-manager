@@ -45,7 +45,7 @@ func (h *Handler) ListCatalogItems(ctx context.Context, request server.ListCatal
 
 func (h *Handler) CreateCatalogItem(ctx context.Context, request server.CreateCatalogItemRequestObject) (server.CreateCatalogItemResponseObject, error) {
 	// Build service request from HTTP params
-	req, err := validateAndGetbuildCreateCatalogItemRequest(request)
+	req, err := validateAndBuildCreateCatalogItemRequest(request)
 	if err != nil {
 		return server.CreateCatalogItem400JSONResponse(v1alpha1.Error{
 			Type:   v1alpha1.INVALIDARGUMENT,
@@ -65,7 +65,7 @@ func (h *Handler) CreateCatalogItem(ctx context.Context, request server.CreateCa
 	return server.CreateCatalogItem201JSONResponse(*result), nil
 }
 
-func validateAndGetbuildCreateCatalogItemRequest(request server.CreateCatalogItemRequestObject) (*service.CreateCatalogItemRequest, error) {
+func validateAndBuildCreateCatalogItemRequest(request server.CreateCatalogItemRequestObject) (*service.CreateCatalogItemRequest, error) {
 	if request.Body.ApiVersion == nil || *request.Body.ApiVersion != supportedAPIVersion {
 		return nil, ErrInvalidAPIVersion
 	}
