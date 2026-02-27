@@ -28,6 +28,12 @@ type CatalogItemSpec struct {
 	Fields      []FieldConfiguration `json:"fields"`
 }
 
+// DependsOn defines conditional default based on another field's value
+type DependsOn struct {
+	Path    string         `json:"path"`
+	Mapping map[string]any `json:"mapping"`
+}
+
 // FieldConfiguration represents a field configuration within a catalog item
 type FieldConfiguration struct {
 	Path             string         `json:"path"`
@@ -35,4 +41,5 @@ type FieldConfiguration struct {
 	Editable         bool           `json:"editable"`
 	Default          any            `json:"default,omitempty"`
 	ValidationSchema map[string]any `json:"validation_schema,omitempty"`
+	DependsOn        *DependsOn     `json:"depends_on,omitempty"`
 }

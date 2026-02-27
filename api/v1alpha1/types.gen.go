@@ -170,6 +170,12 @@ type FieldConfiguration struct {
 	// If editable=true, this is the initial/suggested value.
 	Default interface{} `json:"default"`
 
+	// DependsOn Conditional default or options. This field's value depends on another field.
+	// - For fixed fields: mapping[X] is the default value when source has X.
+	// - For editable fields: mapping[X] may be an array of options when source has X.
+	// Resolved client-side based on user selections.
+	DependsOn *FieldConfigurationDependsOn `json:"depends_on,omitempty"`
+
 	// DisplayName User-facing label for this field in UI/CLI.
 	// If omitted, derived from the path (e.g., "spec.vcpu.count" → "Vcpu Count").
 	DisplayName *string `json:"display_name,omitempty"`
@@ -189,6 +195,19 @@ type FieldConfiguration struct {
 	//
 	// Reference: https://json-schema.org/draft/2020-12/json-schema-validation
 	ValidationSchema *map[string]interface{} `json:"validation_schema,omitempty"`
+}
+
+// FieldConfigurationDependsOn Conditional default or options. This field's value depends on another field.
+// - For fixed fields: mapping[X] is the default value when source has X.
+// - For editable fields: mapping[X] may be an array of options when source has X.
+// Resolved client-side based on user selections.
+type FieldConfigurationDependsOn struct {
+	// Mapping Map of source values to defaults or option arrays.
+	// Values may be strings (default) or arrays (selectable options).
+	Mapping map[string]interface{} `json:"mapping"`
+
+	// Path JSON path to the source field (e.g. database.engine)
+	Path string `json:"path"`
 }
 
 // Health defines model for Health.

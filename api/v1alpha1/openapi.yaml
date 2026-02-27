@@ -809,6 +809,30 @@ components:
             multipleOf: 1
             description: Number of CPU cores (1-16)
 
+        depends_on:
+          $ref: '#/components/schemas/FieldConfigurationDependsOn'
+
+    FieldConfigurationDependsOn:
+      type: object
+      description: |
+        Conditional default or options. This field's value depends on another field.
+        - For fixed fields: mapping[X] is the default value when source has X.
+        - For editable fields: mapping[X] may be an array of options when source has X.
+        Resolved client-side based on user selections.
+      required:
+        - path
+        - mapping
+      properties:
+        path:
+          type: string
+          description: JSON path to the source field (e.g. database.engine)
+        mapping:
+          type: object
+          additionalProperties: true
+          description: |
+            Map of source values to defaults or option arrays.
+            Values may be strings (default) or arrays (selectable options).
+
     CatalogItemInstance:
       type: object
       x-aep-resource:
