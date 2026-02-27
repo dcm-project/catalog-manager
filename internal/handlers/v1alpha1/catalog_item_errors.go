@@ -15,8 +15,8 @@ var (
 	// ErrInvalidDisplayName indicates the display_name is invalid (empty or exceeds 63 characters)
 	ErrInvalidDisplayName = errors.New("invalid display_name: must be non-empty and not exceed 63 characters")
 
-	// ErrInvalidServiceType indicates the service type is not one of the allowed values (vm, container, cluster, database)
-	ErrInvalidServiceType = errors.New("invalid service type: must be one of: vm, container, cluster, database")
+	// ErrInvalidServiceType indicates the spec.service_type in the request body cannot be empty
+	ErrInvalidServiceType = errors.New("spec.service_type cannot be empty")
 
 	// ErrEmptySpec indicates the spec is empty (must have at least one field)
 	ErrEmptySpec = errors.New("spec cannot be empty: must have at least one field")

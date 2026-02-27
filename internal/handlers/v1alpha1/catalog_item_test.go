@@ -288,7 +288,7 @@ var _ = Describe("CatalogItem Handler", func() {
 				Expect(badRequest.Status).To(Equal(int32(400)))
 				Expect(badRequest.Type).To(Equal(v1alpha1API.INVALIDARGUMENT))
 				Expect(badRequest.Detail).ToNot(BeNil())
-				Expect(*badRequest.Detail).To(ContainSubstring("service type"))
+				Expect(*badRequest.Detail).To(ContainSubstring("spec.service_type"))
 			})
 
 			It("should return 400 when spec.fields is nil", func() {
