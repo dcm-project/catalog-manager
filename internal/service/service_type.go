@@ -6,7 +6,6 @@ import (
 
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/store"
-	"github.com/google/uuid"
 )
 
 // allowedServiceTypes defines the restricted set of valid service type values
@@ -98,14 +97,8 @@ func (s *serviceTypeService) Create(ctx context.Context, req *CreateServiceTypeR
 		return nil, ErrInvalidServiceType
 	}
 
-	// Generate or use provided ID
-	var id string
-	if req.ID != nil && *req.ID != "" {
-		id = *req.ID
-	} else {
-		// Generate UUID if not provided
-		id = uuid.New().String()
-	}
+	// Generate ID
+	id := getOrGenerateID(req.ID)
 
 	// Generate path
 	path := fmt.Sprintf("service-types/%s", id)
