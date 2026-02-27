@@ -42,6 +42,7 @@ type CatalogItemStore interface {
 	Get(ctx context.Context, id string) (*model.CatalogItem, error)
 	Update(ctx context.Context, catalogItem *model.CatalogItem) error
 	Delete(ctx context.Context, id string) error
+	SeedIfEmpty(ctx context.Context) error
 }
 
 type catalogItemStore struct {

@@ -34,6 +34,11 @@ func main() {
 		}
 	}()
 
+	// Seed service types and default catalog items if empty
+	if err := dataStore.Seed(context.Background()); err != nil {
+		log.Fatalf("Failed to seed database: %v", err)
+	}
+
 	// Create TCP listener
 	listener, err := net.Listen("tcp", cfg.Service.BindAddress)
 	if err != nil {

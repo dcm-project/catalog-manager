@@ -1,6 +1,8 @@
 package store
 
 import (
+	"context"
+
 	"gorm.io/gorm"
 )
 
@@ -9,6 +11,7 @@ type Store interface {
 	ServiceType() ServiceTypeStore
 	CatalogItem() CatalogItemStore
 	CatalogItemInstance() CatalogItemInstanceStore
+	Seed(ctx context.Context) error
 	Close() error
 }
 
@@ -43,6 +46,14 @@ func (s *DataStore) CatalogItem() CatalogItemStore {
 // CatalogItemInstance returns the CatalogItemInstance store
 func (s *DataStore) CatalogItemInstance() CatalogItemInstanceStore {
 	return s.catalogItemInstance
+}
+
+// Seed ensures required service types and default catalog items exist.
+func (s *DataStore) Seed(ctx context.Context) error {
+	if err := s.ServiceType().SeedServiceTypesIfEmpty(ctx); err != nil {
+		return err
+	}
+	return s.CatalogItem().SeedIfEmpty(ctx)
 }
 
 // Close closes the database connection

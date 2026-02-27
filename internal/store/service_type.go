@@ -38,6 +38,7 @@ type ServiceTypeStore interface {
 	List(ctx context.Context, opts *ServiceTypeListOptions) (*ServiceTypeListResult, error)
 	Create(ctx context.Context, serviceType model.ServiceType) (*model.ServiceType, error)
 	Get(ctx context.Context, id string) (*model.ServiceType, error)
+	SeedServiceTypesIfEmpty(ctx context.Context) error
 }
 
 type serviceTypeStore struct {
