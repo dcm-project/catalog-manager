@@ -1,0 +1,22 @@
+name: Build and Push to Quay
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to apply (e.g. v1.0.0)'
+        required: false
+        type: string
+
+jobs:
+  build-push:
+    uses: dcm-project/shared-workflows/.github/workflows/build-push-quay.yaml@main
+    with:
+      image-name: catalog-manager
+      version: ${{ inputs.version || '' }}
+    secrets:
+      quay-username: ${{ secrets.QUAY_USERNAME }}
+      quay-password: ${{ secrets.QUAY_PASSWORD }}
