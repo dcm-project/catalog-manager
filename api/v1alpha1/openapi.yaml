@@ -622,6 +622,7 @@ components:
         spec:
           type: object
           additionalProperties: true
+          minProperties: 1
           description: |
             Service-specific configuration schema (required).
             This is an opaque dictionary containing service type-specific fields.

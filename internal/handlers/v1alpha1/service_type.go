@@ -5,40 +5,67 @@ import (
 
 	v1alpha1 "github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/api/server"
+	"github.com/dcm-project/catalog-manager/internal/service"
 )
 
 func (h *Handler) ListServiceTypes(ctx context.Context, request server.ListServiceTypesRequestObject) (server.ListServiceTypesResponseObject, error) {
-	detail := "endpoint not implemented"
-	return server.ListServiceTypes500JSONResponse{
-		InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
-			Type:   v1alpha1.UNIMPLEMENTED,
-			Status: 500,
-			Title:  "Not Implemented",
-			Detail: &detail,
-		},
-	}, nil
+	// Build service request from HTTP params
+	opts := &service.ServiceTypeListOptions{
+		PageToken:   request.Params.PageToken,
+		MaxPageSize: request.Params.MaxPageSize,
+	}
+
+	// Call service layer
+	result, err := h.service.ServiceType().List(ctx, opts)
+	if err != nil {
+		return server.ListServiceTypes500JSONResponse{
+			InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
+				Type:   v1alpha1.INTERNAL,
+				Status: 500,
+				Title:  "Internal Server Error",
+				Detail: stringPtr(err.Error()),
+			},
+		}, nil
+	}
+
+	// Return HTTP response
+	response := server.ListServiceTypes200JSONResponse(v1alpha1.ServiceTypeList{
+		Results: result.ServiceTypes,
+	})
+	if result.NextPageToken != nil {
+		response.NextPageToken = *result.NextPageToken
+	}
+
+	return response, nil
 }
 
 func (h *Handler) CreateServiceType(ctx context.Context, request server.CreateServiceTypeRequestObject) (server.CreateServiceTypeResponseObject, error) {
-	detail := "endpoint not implemented"
-	return server.CreateServiceType500JSONResponse{
-		InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
-			Type:   v1alpha1.UNIMPLEMENTED,
-			Status: 500,
-			Title:  "Not Implemented",
-			Detail: &detail,
-		},
-	}, nil
+	// Build service request from HTTP params
+	req := &service.CreateServiceTypeRequest{
+		ID:          request.Params.Id,
+		ApiVersion:  request.Body.ApiVersion,
+		ServiceType: request.Body.ServiceType,
+		Metadata:    request.Body.Metadata,
+		Spec:        request.Body.Spec,
+	}
+
+	// Call service layer
+	result, err := h.service.ServiceType().Create(ctx, req)
+	if err != nil {
+		return mapCreateServiceErrorToHTTP(err), nil
+	}
+
+	// Return HTTP response
+	return server.CreateServiceType201JSONResponse(*result), nil
 }
 
 func (h *Handler) GetServiceType(ctx context.Context, request server.GetServiceTypeRequestObject) (server.GetServiceTypeResponseObject, error) {
-	detail := "endpoint not implemented"
-	return server.GetServiceType500JSONResponse{
-		InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
-			Type:   v1alpha1.UNIMPLEMENTED,
-			Status: 500,
-			Title:  "Not Implemented",
-			Detail: &detail,
-		},
-	}, nil
+	// Call service layer
+	result, err := h.service.ServiceType().Get(ctx, request.ServiceTypeId)
+	if err != nil {
+		return mapGetServiceErrorToHTTP(err), nil
+	}
+
+	// Return HTTP response
+	return server.GetServiceType200JSONResponse(*result), nil
 }

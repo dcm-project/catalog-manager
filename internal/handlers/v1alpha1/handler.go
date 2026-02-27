@@ -2,7 +2,7 @@ package v1alpha1
 
 import (
 	"github.com/dcm-project/catalog-manager/internal/api/server"
-	"github.com/dcm-project/catalog-manager/internal/store"
+	"github.com/dcm-project/catalog-manager/internal/service"
 )
 
 const (
@@ -10,14 +10,19 @@ const (
 )
 
 type Handler struct {
-	store store.Store
+	service service.Service
 }
 
-func NewHandler(store store.Store) *Handler {
+func NewHandler(svc service.Service) *Handler {
 	return &Handler{
-		store: store,
+		service: svc,
 	}
 }
 
 // Compile-time verification
 var _ server.StrictServerInterface = (*Handler)(nil)
+
+// stringPtr returns a pointer to the given string
+func stringPtr(s string) *string {
+	return &s
+}

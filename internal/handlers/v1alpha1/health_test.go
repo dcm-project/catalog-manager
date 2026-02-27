@@ -11,6 +11,7 @@ import (
 
 	"github.com/dcm-project/catalog-manager/internal/api/server"
 	v1alpha1 "github.com/dcm-project/catalog-manager/internal/handlers/v1alpha1"
+	"github.com/dcm-project/catalog-manager/internal/service"
 	"github.com/dcm-project/catalog-manager/internal/store"
 	"github.com/dcm-project/catalog-manager/internal/store/model"
 )
@@ -39,7 +40,8 @@ var _ = Describe("Health Handler", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		dataStore = store.NewStore(db)
-		handler = v1alpha1.NewHandler(dataStore)
+		svc := service.NewService(dataStore)
+		handler = v1alpha1.NewHandler(svc)
 	})
 
 	AfterEach(func() {
