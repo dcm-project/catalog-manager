@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	"errors"
+	"fmt"
 
 	v1alpha1 "github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/api/server"
@@ -10,10 +11,10 @@ import (
 
 var (
 	// ErrInvalidAPIVersion indicates the api_version is invalid (must be in the format v1alpha1)
-	ErrInvalidAPIVersion = errors.New("invalid api_version: must be set to v1alpha1")
+	ErrInvalidAPIVersion = fmt.Errorf("invalid api_version: must be set to %s", supportedAPIVersion)
 
 	// ErrInvalidDisplayName indicates the display_name is invalid (empty or exceeds 63 characters)
-	ErrInvalidDisplayName = errors.New("invalid display_name: must be non-empty and not exceed 63 characters")
+	ErrInvalidDisplayName = errors.New("invalid display_name: must not be non-empty")
 
 	// ErrInvalidServiceType indicates the spec.service_type in the request body cannot be empty
 	ErrInvalidServiceType = errors.New("spec.service_type cannot be empty")
@@ -23,9 +24,6 @@ var (
 
 	// ErrEmptyFields indicates the spec.fields array is empty (must have at least 1 field)
 	ErrEmptyFields = errors.New("spec.fields cannot be empty: must have at least one field")
-
-	// ErrInvalidFieldPath indicates a FieldConfiguration has an empty path
-	ErrInvalidFieldPath = errors.New("invalid field path: path cannot be empty")
 )
 
 // mapCreateCatalogItemErrorToHTTP converts service domain errors to CreateCatalogItem HTTP responses
