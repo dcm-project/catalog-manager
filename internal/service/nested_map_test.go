@@ -144,6 +144,12 @@ var _ = Describe("Nested Map Utilities", func() {
 		})
 
 		Context("with error cases", func() {
+			It("returns error for empty path and sets nothing", func() {
+				err := setNestedValue(m, "", "should-not-be-set")
+				Expect(err).To(HaveOccurred())
+				Expect(m).To(BeEmpty())
+			})
+
 			It("returns error when an integer intermediate blocks traversal", func() {
 				m["vcpu"] = 42
 				err := setNestedValue(m, "spec.vcpu.count", 4)

@@ -14,6 +14,9 @@ func stripSpecPrefix(path string) string {
 // Creates intermediate maps as needed.
 func setNestedValue(m map[string]any, path string, value any) error {
 	path = stripSpecPrefix(path)
+	if path == "" {
+		return fmt.Errorf("path cannot be empty")
+	}
 	parts := strings.Split(path, ".")
 
 	current := m
