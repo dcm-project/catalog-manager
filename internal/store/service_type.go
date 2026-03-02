@@ -38,6 +38,7 @@ type ServiceTypeStore interface {
 	List(ctx context.Context, opts *ServiceTypeListOptions) (*ServiceTypeListResult, error)
 	Create(ctx context.Context, serviceType model.ServiceType) (*model.ServiceType, error)
 	Get(ctx context.Context, id string) (*model.ServiceType, error)
+	GetByServiceType(ctx context.Context, serviceType string) (*model.ServiceType, error)
 }
 
 type serviceTypeStore struct {
@@ -147,4 +148,16 @@ func (s *serviceTypeStore) Get(ctx context.Context, id string) (*model.ServiceTy
 		return nil, err
 	}
 	return &serviceType, nil
+}
+
+// GetByServiceType retrieves a service type by its service_type value
+func (s *serviceTypeStore) GetByServiceType(ctx context.Context, serviceType string) (*model.ServiceType, error) {
+	var st model.ServiceType
+	if err := s.db.WithContext(ctx).Where("service_type = ?", serviceType).First(&st).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrServiceTypeNotFound
+		}
+		return nil, err
+	}
+	return &st, nil
 }

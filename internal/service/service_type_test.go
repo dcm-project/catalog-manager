@@ -32,7 +32,7 @@ var _ = Describe("ServiceType Service", func() {
 		err = db.AutoMigrate(&model.ServiceType{})
 		Expect(err).ToNot(HaveOccurred())
 		str = store.NewStore(db)
-		svc = service.NewService(str)
+		svc = service.NewService(str, nil)
 	})
 
 	AfterEach(func() {

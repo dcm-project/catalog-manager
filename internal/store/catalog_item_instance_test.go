@@ -257,6 +257,64 @@ var _ = Describe("CatalogItemInstance Store", func() {
 		})
 	})
 
+	Describe("SetServiceTypeInstanceUid", func() {
+		It("should update the service_type_instance_uid for an existing instance", func() {
+			createTestServiceType("vm-st-uid", "vm")
+			createTestCatalogItem("small-vm-uid", "vm")
+
+			cii := model.CatalogItemInstance{
+				ID:          "uid-test-cii",
+				ApiVersion:  "v1alpha1",
+				DisplayName: "UID Test",
+				Spec: model.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm-uid",
+					UserValues:    []model.UserValue{},
+				},
+				Path: "catalog-item-instances/uid-test-cii",
+			}
+			_, err := catalogItemInstanceStore.Create(context.Background(), cii)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = catalogItemInstanceStore.SetServiceTypeInstanceUid(context.Background(), "uid-test-cii", "pm-resource-123")
+			Expect(err).ToNot(HaveOccurred())
+
+			retrieved, err := catalogItemInstanceStore.Get(context.Background(), "uid-test-cii")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(retrieved.ServiceTypeInstanceUid).To(Equal("pm-resource-123"))
+		})
+
+		It("should overwrite an existing service_type_instance_uid", func() {
+			createTestServiceType("vm-st-uid2", "vm")
+			createTestCatalogItem("small-vm-uid2", "vm")
+
+			cii := model.CatalogItemInstance{
+				ID:                     "uid-overwrite-cii",
+				ApiVersion:             "v1alpha1",
+				DisplayName:            "UID Overwrite",
+				ServiceTypeInstanceUid: "old-uid",
+				Spec: model.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm-uid2",
+					UserValues:    []model.UserValue{},
+				},
+				Path: "catalog-item-instances/uid-overwrite-cii",
+			}
+			_, err := catalogItemInstanceStore.Create(context.Background(), cii)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = catalogItemInstanceStore.SetServiceTypeInstanceUid(context.Background(), "uid-overwrite-cii", "new-uid")
+			Expect(err).ToNot(HaveOccurred())
+
+			retrieved, err := catalogItemInstanceStore.Get(context.Background(), "uid-overwrite-cii")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(retrieved.ServiceTypeInstanceUid).To(Equal("new-uid"))
+		})
+
+		It("should return error for non-existent instance", func() {
+			err := catalogItemInstanceStore.SetServiceTypeInstanceUid(context.Background(), "non-existent", "some-uid")
+			Expect(err).To(Equal(store.ErrCatalogItemInstanceNotFound))
+		})
+	})
+
 	Describe("List", func() {
 		It("should return empty list when no catalog item instances exist", func() {
 			results, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{

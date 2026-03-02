@@ -42,6 +42,7 @@ type CatalogItemInstanceStore interface {
 	Get(ctx context.Context, id string) (*model.CatalogItemInstance, error)
 	Update(ctx context.Context, catalogItemInstance *model.CatalogItemInstance) (*model.CatalogItemInstance, error)
 	Delete(ctx context.Context, id string) error
+	SetServiceTypeInstanceUid(ctx context.Context, id string, uid string) error
 }
 type catalogItemInstanceStore struct {
 	db *gorm.DB
@@ -170,6 +171,20 @@ func (s *catalogItemInstanceStore) Update(ctx context.Context, catalogItemInstan
 		return nil, ErrCatalogItemInstanceNotFound
 	}
 	return catalogItemInstance, nil
+}
+
+// SetServiceTypeInstanceUid updates the service_type_instance_uid for a catalog item instance
+func (s *catalogItemInstanceStore) SetServiceTypeInstanceUid(ctx context.Context, id string, uid string) error {
+	result := s.db.WithContext(ctx).Model(&model.CatalogItemInstance{}).
+		Where("id = ?", id).
+		Update("service_type_instance_uid", uid)
+	if result.Error != nil {
+		return fmt.Errorf("failed to set service type instance uid: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return ErrCatalogItemInstanceNotFound
+	}
+	return nil
 }
 
 // Delete deletes a catalog item by ID

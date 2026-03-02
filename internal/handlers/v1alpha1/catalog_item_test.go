@@ -71,6 +71,10 @@ func (m *mockCatalogItemServiceWrapper) CatalogItem() service.CatalogItemService
 	return m.catalogItemService
 }
 
+func (m *mockCatalogItemServiceWrapper) CatalogItemInstance() service.CatalogItemInstanceService {
+	return nil
+}
+
 var _ = Describe("CatalogItem Handler", func() {
 	var (
 		ctx                  context.Context
