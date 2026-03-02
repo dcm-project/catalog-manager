@@ -14,11 +14,11 @@ import (
 
 var (
 	// ErrServiceTypeNotFound is returned when a service type is not found
-	ErrServiceTypeNotFound = errors.New("service type not found")
+	ErrServiceTypeNotFound = errors.New("store: service type not found")
 	// ErrServiceTypeIDTaken is returned when a service type ID is already taken
-	ErrServiceTypeIDTaken = errors.New("service type ID already exists")
+	ErrServiceTypeIDTaken = errors.New("store: service type ID already exists")
 	// ErrServiceTypeServiceTypeTaken is returned when a service type service type is already taken
-	ErrServiceTypeServiceTypeTaken = errors.New("service type service type already exists")
+	ErrServiceTypeServiceTypeTaken = errors.New("store: service type service type already exists")
 )
 
 // ServiceTypeListOptions contains options for listing service types.

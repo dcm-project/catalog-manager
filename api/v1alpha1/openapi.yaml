@@ -702,6 +702,7 @@ components:
 
         display_name:
           type: string
+          minLength: 1
           maxLength: 63
           description: |
             User-friendly display name for the catalog item.
@@ -741,6 +742,7 @@ components:
       properties:
         service_type:
           type: string
+          minLength: 1
           description: |
             The Service type this catalog item references.
             Immutable after creation.
@@ -763,6 +765,7 @@ components:
       properties:
         path:
           type: string
+          minLength: 1
           description: |
             JSON path to the field in the ServiceType spec using dot notation.
             Examples: "spec.vcpu.count", "spec.memory.size_gb", "metadata.labels.tier"
