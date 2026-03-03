@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/dcm-project/catalog-manager/internal/placement"
 	"github.com/dcm-project/catalog-manager/internal/store"
 	"github.com/google/uuid"
@@ -11,6 +13,7 @@ type Service interface {
 	ServiceType() ServiceTypeService
 	CatalogItem() CatalogItemService
 	CatalogItemInstance() CatalogItemInstanceService
+	Seed(ctx context.Context) error
 }
 
 // service is the implementation of the Service interface

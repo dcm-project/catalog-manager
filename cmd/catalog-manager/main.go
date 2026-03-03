@@ -42,8 +42,17 @@ func main() {
 		log.Fatalf("Failed to create placement manager client: %v", err)
 	}
 
+	// Create context with signal handling (used for seed and server)
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
 	// Create service layer
 	svc := service.NewService(dataStore, pmClient)
+
+	// Seed service types and default catalog items if empty
+	if err := svc.Seed(ctx); err != nil {
+		log.Fatalf("Failed to seed database: %v", err)
+	}
 
 	// Create TCP listener
 	listener, err := net.Listen("tcp", cfg.Service.BindAddress)
@@ -54,11 +63,7 @@ func main() {
 
 	srv := apiserver.New(cfg, listener, v1alpha1.NewHandler(svc))
 
-	// Create context with signal handling
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer cancel()
-
-	// Create and run server
+	// Run server
 	if err := srv.Run(ctx); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
