@@ -813,6 +813,30 @@ components:
             multipleOf: 1
             description: Number of CPU cores (1-16)
 
+        depends_on:
+          $ref: '#/components/schemas/FieldConfigurationDependsOn'
+
+    FieldConfigurationDependsOn:
+      type: object
+      description: |
+        Conditional default or options. This field's value depends on another field.
+        - For fixed fields: allowedValues[K] is the default when source has K.
+        - For editable fields: allowedValues[K] is the array of options when source has K.
+        Resolved client-side based on user selections.
+      required:
+        - path
+        - allowed_values
+      properties:
+        path:
+          type: string
+          description: JSON path of the field this one depends on (e.g., region).
+        allowed_values:
+          type: object
+          additionalProperties: true
+          description: |
+            If the field at path equals key K, this field's options are at allowed_values[K].
+            Values may be strings (default) or arrays (selectable options).
+
     CatalogItemInstance:
       type: object
       x-aep-resource:

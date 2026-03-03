@@ -34,5 +34,12 @@ type FieldConfiguration struct {
 	DisplayName      string         `json:"display_name,omitempty"`
 	Editable         bool           `json:"editable"`
 	Default          any            `json:"default,omitempty"`
+	DependsOn        *DependsOn     `json:"depends_on,omitempty"`
 	ValidationSchema map[string]any `json:"validation_schema,omitempty"`
+}
+
+// DependsOn represents conditional default or options based on another field's value.
+type DependsOn struct {
+	Path          string         `json:"path"`
+	AllowedValues map[string]any `json:"allowed_values"`
 }
