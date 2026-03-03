@@ -54,10 +54,6 @@ func catalogItemInstanceToAPIType(m *model.CatalogItemInstance) v1alpha1.Catalog
 		UpdateTime: &m.UpdateTime,
 	}
 
-	if m.ServiceTypeInstanceUid != "" {
-		apiType.ServiceTypeInstanceUid = &m.ServiceTypeInstanceUid
-	}
-
 	return apiType
 }
 

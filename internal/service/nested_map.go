@@ -40,4 +40,3 @@ func setNestedValue(m map[string]any, path string, value any) error {
 	current[parts[len(parts)-1]] = value
 	return nil
 }
-

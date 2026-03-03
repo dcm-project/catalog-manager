@@ -611,9 +611,6 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			Expect(capturedReq.CatalogItemInstanceID).To(Equal(instanceID))
 			Expect(capturedID).To(Equal(instanceID))
 			Expect(capturedReq.Spec).ToNot(BeNil())
-			// service_type_instance_uid should be set from PM response
-			Expect(result.ServiceTypeInstanceUid).ToNot(BeNil())
-			Expect(*result.ServiceTypeInstanceUid).To(Equal("pm-resource-123"))
 		})
 
 		It("should delete DB record when PM create fails", func() {
@@ -668,7 +665,7 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 
 			err = svc.CatalogItemInstance().Delete(ctx, instanceID)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(deletedResourceID).To(Equal("pm-to-delete"))
+			Expect(deletedResourceID).To(Equal("delete-pm-instance"))
 
 			// Verify local record deleted
 			_, getErr := svc.CatalogItemInstance().Get(ctx, instanceID)

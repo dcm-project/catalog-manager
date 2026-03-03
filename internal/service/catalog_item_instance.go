@@ -104,7 +104,7 @@ func (s *catalogItemInstanceService) Create(ctx context.Context, req *CreateCata
 
 	// Call Placement Manager — only after DB validation passes
 	if s.pmClient != nil {
-		pmResource, err := s.pmClient.CreateResource(ctx, placement.CreateResourceRequest{
+		_, err := s.pmClient.CreateResource(ctx, placement.CreateResourceRequest{
 			CatalogItemInstanceID: id,
 			Spec:                  resourceSpec,
 		}, id)
@@ -113,15 +113,6 @@ func (s *catalogItemInstanceService) Create(ctx context.Context, req *CreateCata
 			_ = s.store.CatalogItemInstance().Delete(ctx, id)
 			return nil, fmt.Errorf("%w: %s", ErrPlacementManagerCreateFailed, err.Error())
 		}
-
-		// Update UID in DB
-		if err := s.store.CatalogItemInstance().SetServiceTypeInstanceUid(ctx, id, pmResource.ID); err != nil {
-			// Rollback: delete PM resource + DB record
-			_ = s.pmClient.DeleteResource(ctx, pmResource.ID)
-			_ = s.store.CatalogItemInstance().Delete(ctx, id)
-			return nil, fmt.Errorf("failed to update service type instance uid: %w", err)
-		}
-		createdModel.ServiceTypeInstanceUid = pmResource.ID
 	}
 
 	// Convert result back to API type
@@ -144,15 +135,15 @@ func (s *catalogItemInstanceService) Get(ctx context.Context, id string) (*v1alp
 
 // Delete deletes a catalog item instance by ID
 func (s *catalogItemInstanceService) Delete(ctx context.Context, id string) error {
-	// Fetch the instance to get service_type_instance_uid
-	instance, err := s.store.CatalogItemInstance().Get(ctx, id)
+	// Fetch instance for 404 handling
+	_, err := s.store.CatalogItemInstance().Get(ctx, id)
 	if err != nil {
 		return mapCatalogItemInstanceStoreError(err)
 	}
 
-	// Delete PM resource if uid is non-empty
-	if s.pmClient != nil && instance.ServiceTypeInstanceUid != "" {
-		if err := s.pmClient.DeleteResource(ctx, instance.ServiceTypeInstanceUid); err != nil {
+	// Delete PM resource (PM resource ID is the catalog item instance id)
+	if s.pmClient != nil {
+		if err := s.pmClient.DeleteResource(ctx, id); err != nil {
 			return fmt.Errorf("%w: %s", ErrPlacementManagerDeleteFailed, err.Error())
 		}
 	}
