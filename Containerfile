@@ -20,4 +20,9 @@ COPY --from=builder /app/catalog-manager .
 
 EXPOSE 8080
 
+# DB configuration is provided via environment variables at runtime
+# (e.g., via docker-compose, Kubernetes manifests, or make run)
+# For local dev: make run sets DB_TYPE=sqlite DB_NAME=/tmp/catalog.db
+# SQLite: set DB_TYPE=sqlite and DB_NAME to path (e.g. /tmp/catalog.db)
+
 ENTRYPOINT ["./catalog-manager"]
