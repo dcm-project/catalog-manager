@@ -3,6 +3,7 @@ package v1alpha1_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -263,37 +264,10 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 			})
 		})
 
-		Context("with catalog item not found", func() {
-			It("should return 400 bad request", func() {
+		DescribeTable("maps service errors to HTTP responses",
+			func(serviceErr error, expectedStatus int32, expectedType v1alpha1API.ErrorType, expectedTitle string) {
 				mockCIIService.createFunc = func(ctx context.Context, req *service.CreateCatalogItemInstanceRequest) (*v1alpha1API.CatalogItemInstance, error) {
-					return nil, service.ErrCatalogItemNotFoundForInstance
-				}
-
-				request := server.CreateCatalogItemInstanceRequestObject{
-					Body: &v1alpha1API.CatalogItemInstance{
-						ApiVersion:  testApiVersion,
-						DisplayName: "Test",
-						Spec: v1alpha1API.CatalogItemInstanceSpec{
-							CatalogItemId: "nonexistent",
-							UserValues:    []v1alpha1API.UserValue{},
-						},
-					},
-				}
-
-				response, err := handler.CreateCatalogItemInstance(ctx, request)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(BeAssignableToTypeOf(server.CreateCatalogItemInstance400JSONResponse{}))
-
-				badRequest := response.(server.CreateCatalogItemInstance400JSONResponse)
-				Expect(badRequest.Status).To(Equal(int32(400)))
-				Expect(badRequest.Type).To(Equal(v1alpha1API.INVALIDARGUMENT))
-			})
-		})
-
-		Context("with service error", func() {
-			It("should return 500 internal server error", func() {
-				mockCIIService.createFunc = func(ctx context.Context, req *service.CreateCatalogItemInstanceRequest) (*v1alpha1API.CatalogItemInstance, error) {
-					return nil, errors.New("database error")
+					return nil, serviceErr
 				}
 
 				request := server.CreateCatalogItemInstanceRequestObject{
@@ -309,13 +283,31 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 
 				response, err := handler.CreateCatalogItemInstance(ctx, request)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(BeAssignableToTypeOf(server.CreateCatalogItemInstance500JSONResponse{}))
 
-				serverError := response.(server.CreateCatalogItemInstance500JSONResponse)
-				Expect(serverError.Status).To(Equal(int32(500)))
-				Expect(serverError.Type).To(Equal(v1alpha1API.INTERNAL))
-			})
-		})
+				switch expectedStatus {
+				case 400:
+					Expect(response).To(BeAssignableToTypeOf(server.CreateCatalogItemInstance400JSONResponse{}))
+					resp := response.(server.CreateCatalogItemInstance400JSONResponse)
+					Expect(resp.Status).To(Equal(expectedStatus))
+					Expect(resp.Type).To(Equal(expectedType))
+					Expect(resp.Title).To(Equal(expectedTitle))
+				case 500:
+					Expect(response).To(BeAssignableToTypeOf(server.CreateCatalogItemInstance500JSONResponse{}))
+					resp := response.(server.CreateCatalogItemInstance500JSONResponse)
+					Expect(resp.Status).To(Equal(expectedStatus))
+					Expect(resp.Type).To(Equal(expectedType))
+					Expect(resp.Title).To(Equal(expectedTitle))
+				default:
+					Fail(fmt.Sprintf("unexpected status in test case: %d", expectedStatus))
+				}
+			},
+			Entry("catalog item not found", service.ErrCatalogItemNotFoundForInstance, int32(400), v1alpha1API.INVALIDARGUMENT, "Bad Request"),
+			Entry("user value path not found", service.ErrUserValuePathNotFound, int32(400), v1alpha1API.INVALIDARGUMENT, "Bad Request"),
+			Entry("user value not editable", service.ErrUserValueNotEditable, int32(400), v1alpha1API.INVALIDARGUMENT, "Bad Request"),
+			Entry("user value validation failed", service.ErrUserValueValidationFailed, int32(400), v1alpha1API.INVALIDARGUMENT, "Bad Request"),
+			Entry("placement manager create failed", service.ErrPlacementManagerCreateFailed, int32(500), v1alpha1API.INTERNAL, "Placement Manager Error"),
+			Entry("generic service error", errors.New("database error"), int32(500), v1alpha1API.INTERNAL, "Internal Server Error"),
+		)
 	})
 
 	Describe("ListCatalogItemInstances", func() {
@@ -487,30 +479,10 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 			})
 		})
 
-		Context("with not found error", func() {
-			It("should return 404 not found", func() {
+		DescribeTable("maps service errors to HTTP responses",
+			func(serviceErr error, expectedStatus int32, expectedType v1alpha1API.ErrorType, expectedTitle string) {
 				mockCIIService.deleteFunc = func(ctx context.Context, id string) error {
-					return service.ErrCatalogItemInstanceNotFound
-				}
-
-				request := server.DeleteCatalogItemInstanceRequestObject{
-					CatalogItemInstanceId: "nonexistent",
-				}
-
-				response, err := handler.DeleteCatalogItemInstance(ctx, request)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(BeAssignableToTypeOf(server.DeleteCatalogItemInstance404JSONResponse{}))
-
-				notFound := response.(server.DeleteCatalogItemInstance404JSONResponse)
-				Expect(notFound.Status).To(Equal(int32(404)))
-				Expect(notFound.Type).To(Equal(v1alpha1API.NOTFOUND))
-			})
-		})
-
-		Context("with service error", func() {
-			It("should return 500 internal server error", func() {
-				mockCIIService.deleteFunc = func(ctx context.Context, id string) error {
-					return errors.New("database error")
+					return serviceErr
 				}
 
 				request := server.DeleteCatalogItemInstanceRequestObject{
@@ -519,12 +491,27 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 
 				response, err := handler.DeleteCatalogItemInstance(ctx, request)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(BeAssignableToTypeOf(server.DeleteCatalogItemInstance500JSONResponse{}))
 
-				serverError := response.(server.DeleteCatalogItemInstance500JSONResponse)
-				Expect(serverError.Status).To(Equal(int32(500)))
-				Expect(serverError.Type).To(Equal(v1alpha1API.INTERNAL))
-			})
-		})
+				switch expectedStatus {
+				case 404:
+					Expect(response).To(BeAssignableToTypeOf(server.DeleteCatalogItemInstance404JSONResponse{}))
+					resp := response.(server.DeleteCatalogItemInstance404JSONResponse)
+					Expect(resp.Status).To(Equal(expectedStatus))
+					Expect(resp.Type).To(Equal(expectedType))
+					Expect(resp.Title).To(Equal(expectedTitle))
+				case 500:
+					Expect(response).To(BeAssignableToTypeOf(server.DeleteCatalogItemInstance500JSONResponse{}))
+					resp := response.(server.DeleteCatalogItemInstance500JSONResponse)
+					Expect(resp.Status).To(Equal(expectedStatus))
+					Expect(resp.Type).To(Equal(expectedType))
+					Expect(resp.Title).To(Equal(expectedTitle))
+				default:
+					Fail(fmt.Sprintf("unexpected status in test case: %d", expectedStatus))
+				}
+			},
+			Entry("not found", service.ErrCatalogItemInstanceNotFound, int32(404), v1alpha1API.NOTFOUND, "Not Found"),
+			Entry("placement manager delete failed", service.ErrPlacementManagerDeleteFailed, int32(500), v1alpha1API.INTERNAL, "Placement Manager Error"),
+			Entry("generic service error", errors.New("database error"), int32(500), v1alpha1API.INTERNAL, "Internal Server Error"),
+		)
 	})
 })
