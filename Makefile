@@ -4,7 +4,7 @@ build:
 	go build -o bin/$(BINARY_NAME) ./cmd/$(BINARY_NAME)
 
 run:
-	go run ./cmd/$(BINARY_NAME)
+	DB_TYPE=sqlite DB_NAME=/tmp/catalog.db go run ./cmd/$(BINARY_NAME)
 
 clean:
 	rm -rf bin/
