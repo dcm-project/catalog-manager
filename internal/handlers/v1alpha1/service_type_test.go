@@ -59,6 +59,10 @@ func (m *mockService) CatalogItemInstance() service.CatalogItemInstanceService {
 	return nil
 }
 
+func (m *mockService) Seed(ctx context.Context) error {
+	return nil
+}
+
 var _ = Describe("ServiceType Handler", func() {
 	var (
 		ctx           context.Context

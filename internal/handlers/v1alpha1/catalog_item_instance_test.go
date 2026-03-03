@@ -68,6 +68,10 @@ func (m *mockCatalogItemInstanceServiceWrapper) CatalogItemInstance() service.Ca
 	return m.catalogItemInstanceService
 }
 
+func (m *mockCatalogItemInstanceServiceWrapper) Seed(ctx context.Context) error {
+	return nil
+}
+
 var _ = Describe("CatalogItemInstance Handler", func() {
 	var (
 		ctx             context.Context

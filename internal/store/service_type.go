@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"log"
 	"strconv"
 	"strings"
 
@@ -39,6 +40,7 @@ type ServiceTypeStore interface {
 	Create(ctx context.Context, serviceType model.ServiceType) (*model.ServiceType, error)
 	Get(ctx context.Context, id string) (*model.ServiceType, error)
 	GetByServiceType(ctx context.Context, serviceType string) (*model.ServiceType, error)
+	SeedIfEmpty(ctx context.Context, items []model.ServiceType) error
 }
 
 type serviceTypeStore struct {
@@ -160,4 +162,30 @@ func (s *serviceTypeStore) GetByServiceType(ctx context.Context, serviceType str
 		return nil, err
 	}
 	return &st, nil
+}
+
+// SeedIfEmpty inserts the given service types if the table has no rows.
+// Uses a transaction to avoid races when multiple instances start concurrently.
+func (s *serviceTypeStore) SeedIfEmpty(ctx context.Context, items []model.ServiceType) error {
+	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var n int64
+		if err := tx.Model(&model.ServiceType{}).Count(&n).Error; err != nil {
+			return err
+		}
+		if n > 0 {
+			return nil
+		}
+		var inserted int64
+		for _, m := range items {
+			result := tx.Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "id"}}, DoNothing: true}).Create(&m)
+			if err := result.Error; err != nil {
+				return err
+			}
+			inserted += result.RowsAffected
+		}
+		if inserted > 0 {
+			log.Printf("Seeded %d default service type(s)", inserted)
+		}
+		return nil
+	})
 }
