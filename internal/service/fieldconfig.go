@@ -1,0 +1,91 @@
+package service
+
+import (
+	"github.com/dcm-project/catalog-manager/api/v1alpha1"
+	"github.com/dcm-project/catalog-manager/internal/store/model"
+)
+
+// FieldConfigurationsToModel converts API field configurations to store model.
+func FieldConfigurationsToModel(f []v1alpha1.FieldConfiguration) []model.FieldConfiguration {
+	if f == nil {
+		return nil
+	}
+	out := make([]model.FieldConfiguration, len(f))
+	for i := range f {
+		out[i] = fieldConfigurationToModel(f[i])
+	}
+	return out
+}
+
+func fieldConfigurationToModel(f v1alpha1.FieldConfiguration) model.FieldConfiguration {
+	var displayName string
+	if f.DisplayName != nil {
+		displayName = *f.DisplayName
+	}
+	var vs map[string]any
+	if f.ValidationSchema != nil {
+		vs = make(map[string]any)
+		for k, v := range *f.ValidationSchema {
+			vs[k] = v
+		}
+	}
+	var dep *model.DependsOn
+	if f.DependsOn != nil {
+		av := make(map[string]any)
+		for k, v := range f.DependsOn.AllowedValues {
+			av[k] = v
+		}
+		dep = &model.DependsOn{Path: f.DependsOn.Path, AllowedValues: av}
+	}
+	return model.FieldConfiguration{
+		Path:             f.Path,
+		DisplayName:      displayName,
+		Editable:         f.Editable != nil && *f.Editable,
+		Default:          f.Default,
+		ValidationSchema: vs,
+		DependsOn:        dep,
+	}
+}
+
+// FieldConfigurationsFromModel converts store field configurations to API types.
+// Deep-copies ValidationSchema and DependsOn.AllowedValues to avoid shared references.
+func FieldConfigurationsFromModel(m []model.FieldConfiguration) []v1alpha1.FieldConfiguration {
+	if m == nil {
+		return nil
+	}
+	out := make([]v1alpha1.FieldConfiguration, len(m))
+	for i := range m {
+		out[i] = fieldConfigurationFromModel(m[i])
+	}
+	return out
+}
+
+func fieldConfigurationFromModel(f model.FieldConfiguration) v1alpha1.FieldConfiguration {
+	out := v1alpha1.FieldConfiguration{
+		Path:    f.Path,
+		Default: f.Default,
+	}
+	if f.DisplayName != "" {
+		displayName := f.DisplayName
+		out.DisplayName = &displayName
+	}
+	if f.Editable {
+		editable := true
+		out.Editable = &editable
+	}
+	if f.ValidationSchema != nil {
+		vs := make(map[string]interface{})
+		for k, v := range f.ValidationSchema {
+			vs[k] = v
+		}
+		out.ValidationSchema = &vs
+	}
+	if f.DependsOn != nil {
+		av := make(map[string]interface{})
+		for k, v := range f.DependsOn.AllowedValues {
+			av[k] = v
+		}
+		out.DependsOn = &v1alpha1.FieldConfigurationDependsOn{Path: f.DependsOn.Path, AllowedValues: av}
+	}
+	return out
+}

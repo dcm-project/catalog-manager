@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -42,6 +43,7 @@ type CatalogItemStore interface {
 	Get(ctx context.Context, id string) (*model.CatalogItem, error)
 	Update(ctx context.Context, catalogItem *model.CatalogItem) error
 	Delete(ctx context.Context, id string) error
+	SeedIfEmpty(ctx context.Context, items []model.CatalogItem) error
 }
 
 type catalogItemStore struct {
@@ -188,4 +190,30 @@ func (s *catalogItemStore) Delete(ctx context.Context, id string) error {
 		return ErrCatalogItemNotFound
 	}
 	return nil
+}
+
+// SeedIfEmpty inserts the given catalog items if the table has no rows.
+// Uses a transaction to avoid races when multiple instances start concurrently.
+func (s *catalogItemStore) SeedIfEmpty(ctx context.Context, items []model.CatalogItem) error {
+	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var n int64
+		if err := tx.Model(&model.CatalogItem{}).Count(&n).Error; err != nil {
+			return err
+		}
+		if n > 0 {
+			return nil
+		}
+		var inserted int64
+		for _, m := range items {
+			result := tx.Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "id"}}, DoNothing: true}).Create(&m)
+			if err := result.Error; err != nil {
+				return err
+			}
+			inserted += result.RowsAffected
+		}
+		if inserted > 0 {
+			log.Printf("Seeded %d default catalog item(s)", inserted)
+		}
+		return nil
+	})
 }
