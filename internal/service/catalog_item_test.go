@@ -442,6 +442,57 @@ var _ = Describe("CatalogItem Service", func() {
 			Expect(result).To(BeNil())
 		})
 
+		It("should reject a three-field cycle (A -> B -> C -> A)", func() {
+			editable := true
+			req := &service.CreateCatalogItemRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Three-Field Cycle",
+				Spec: v1alpha1.CatalogItemSpec{
+					ServiceType: &serviceTypeVM,
+					Fields: &[]v1alpha1.FieldConfiguration{
+						{
+							Path:     "spec.vcpu.count",
+							Default:  float64(2),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.memory.size_gb",
+								AllowedValues: map[string][]any{
+									"4": {float64(2), float64(4)},
+								},
+							},
+						},
+						{
+							Path:     "spec.memory.size_gb",
+							Default:  float64(4),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.disk.size_gb",
+								AllowedValues: map[string][]any{
+									"100": {float64(4), float64(8)},
+								},
+							},
+						},
+						{
+							Path:     "spec.disk.size_gb",
+							Default:  float64(100),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.vcpu.count",
+								AllowedValues: map[string][]any{
+									"2": {float64(100), float64(200)},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItem().Create(ctx, req)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cycle"))
+			Expect(result).To(BeNil())
+		})
+
 		It("should accept fields without cyclic depends_on references", func() {
 			editable := true
 			req := &service.CreateCatalogItemRequest{
