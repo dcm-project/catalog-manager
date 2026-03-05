@@ -49,9 +49,6 @@ func (s *Server) Run(ctx context.Context) error {
 		baseURL = swagger.Servers[0].URL
 	}
 
-	// Disable server URL validation to avoid Host header mismatch issues
-	swagger.Servers = nil
-
 	// Add OpenAPI request validation middleware
 	router.Use(nethttpmiddleware.OapiRequestValidatorWithOptions(swagger, &nethttpmiddleware.Options{
 		Options: openapi3filter.Options{
