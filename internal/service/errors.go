@@ -49,6 +49,9 @@ var (
 	// ErrDependsOnCycleDetected indicates the catalog item's field configurations contain a cyclic depends_on reference
 	ErrDependsOnCycleDetected = errors.New("depends_on cycle detected in field configurations")
 
+	// ErrDependsOnPathNotFound indicates a depends_on path does not reference any field in the catalog item
+	ErrDependsOnPathNotFound = errors.New("depends_on path does not reference an existing field")
+
 	// ErrUserValueDependsOnViolation indicates the user value is not allowed given the current value of the field it depends on
 	ErrUserValueDependsOnViolation = errors.New("user value violates depends_on constraint")
 

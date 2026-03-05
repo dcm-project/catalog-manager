@@ -40,7 +40,8 @@ func mapCreateCatalogItemErrorToHTTP(err error) server.CreateCatalogItemResponse
 			},
 		}
 	case errors.Is(err, service.ErrServiceTypeNotFound),
-		errors.Is(err, service.ErrDependsOnCycleDetected):
+		errors.Is(err, service.ErrDependsOnCycleDetected),
+		errors.Is(err, service.ErrDependsOnPathNotFound):
 		// Validation errors -> 400 Bad Request
 		return server.CreateCatalogItem400JSONResponse(v1alpha1.Error{
 			Type:   v1alpha1.INVALIDARGUMENT,
@@ -91,7 +92,8 @@ func mapGetCatalogItemErrorToHTTP(err error) server.GetCatalogItemResponseObject
 func mapUpdateCatalogItemErrorToHTTP(err error) server.UpdateCatalogItemResponseObject {
 	switch {
 	case errors.Is(err, service.ErrImmutableFieldUpdate),
-		errors.Is(err, service.ErrDependsOnCycleDetected):
+		errors.Is(err, service.ErrDependsOnCycleDetected),
+		errors.Is(err, service.ErrDependsOnPathNotFound):
 		// Validation errors -> 400 Bad Request
 		return server.UpdateCatalogItem400JSONResponse(v1alpha1.Error{
 			Type:   v1alpha1.INVALIDARGUMENT,

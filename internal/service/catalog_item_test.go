@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -473,6 +474,39 @@ var _ = Describe("CatalogItem Service", func() {
 			result, err := svc.CatalogItem().Create(ctx, req)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).ToNot(BeNil())
+		})
+	})
+
+	Describe("Create with invalid depends_on path", func() {
+		It("should reject when depends_on path does not reference an existing field", func() {
+			editable := true
+			req := &service.CreateCatalogItemRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Invalid DependsOn Path",
+				Spec: v1alpha1.CatalogItemSpec{
+					ServiceType: &serviceTypeVM,
+					Fields: &[]v1alpha1.FieldConfiguration{
+						{
+							Path:     "spec.memory.size_gb",
+							Default:  float64(4),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.region",
+								AllowedValues: map[string][]any{
+									"us-central1": {float64(4), float64(8)},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItem().Create(ctx, req)
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, service.ErrDependsOnPathNotFound)).To(BeTrue())
+			Expect(err.Error()).To(ContainSubstring("spec.region"))
+			Expect(err.Error()).To(ContainSubstring("not found"))
+			Expect(result).To(BeNil())
 		})
 	})
 

@@ -185,15 +185,24 @@ func mergeCatalogItem(existing *model.CatalogItem, req *UpdateCatalogItemRequest
 	return &merged, nil
 }
 
-// validateFieldDependsOnCycles checks for cyclic depends_on references among a catalog
-// item's field configurations. It builds a directed graph (field path → depends_on path)
-// and performs DFS-based cycle detection.
+// validateFieldDependsOnCycles checks that every depends_on path references an existing
+// field and that there are no cyclic depends_on references. It builds a directed graph
+// (field path → depends_on path) and performs DFS-based cycle detection.
 func validateFieldDependsOnCycles(fields []model.FieldConfiguration) error {
+	knownPaths := make(map[string]bool)
+	for _, f := range fields {
+		knownPaths[f.Path] = true
+	}
+
 	// Build adjacency: field path → source path it depends on
 	edges := make(map[string]string)
 	for _, f := range fields {
 		if f.DependsOn != nil {
-			edges[f.Path] = f.DependsOn.Path
+			depPath := f.DependsOn.Path
+			if !knownPaths[depPath] {
+				return fmt.Errorf("%w: field %s depends_on path %q not found in fields", ErrDependsOnPathNotFound, f.Path, depPath)
+			}
+			edges[f.Path] = depPath
 		}
 	}
 
