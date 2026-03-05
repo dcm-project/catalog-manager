@@ -188,8 +188,8 @@ var _ = Describe("SpecBuilder (via CatalogItemInstance Create)", func() {
 					DependsOn: &model.DependsOn{
 						Path: "spec.vcpu.count",
 						AllowedValues: map[string][]any{
-							"2": []any{float64(4), float64(8)},
-							"4": []any{float64(8), float64(16)},
+							"2": {float64(4), float64(8)},
+							"4": {float64(8), float64(16)},
 						},
 					},
 				},
@@ -221,8 +221,8 @@ var _ = Describe("SpecBuilder (via CatalogItemInstance Create)", func() {
 					DependsOn: &model.DependsOn{
 						Path: "spec.vcpu.count",
 						AllowedValues: map[string][]any{
-							"2": []any{float64(4), float64(8)},
-							"4": []any{float64(8), float64(16)},
+							"2": {float64(4), float64(8)},
+							"4": {float64(8), float64(16)},
 						},
 					},
 				},
@@ -254,8 +254,8 @@ var _ = Describe("SpecBuilder (via CatalogItemInstance Create)", func() {
 					DependsOn: &model.DependsOn{
 						Path: "spec.vcpu.count",
 						AllowedValues: map[string][]any{
-							"2": []any{float64(4), float64(8)},
-							"4": []any{float64(8), float64(16)},
+							"2": {float64(4), float64(8)},
+							"4": {float64(8), float64(16)},
 						},
 					},
 				},
@@ -288,7 +288,7 @@ var _ = Describe("SpecBuilder (via CatalogItemInstance Create)", func() {
 					DependsOn: &model.DependsOn{
 						Path: "spec.vcpu.count",
 						AllowedValues: map[string][]any{
-							"4": []any{float64(8), float64(16)},
+							"4": {float64(8), float64(16)},
 						},
 					},
 				},
@@ -322,7 +322,7 @@ var _ = Describe("SpecBuilder (via CatalogItemInstance Create)", func() {
 					DependsOn: &model.DependsOn{
 						Path: "spec.vcpu.count",
 						AllowedValues: map[string][]any{
-							"2": []any{float64(4), float64(8)},
+							"2": {float64(4), float64(8)},
 						},
 					},
 				},
