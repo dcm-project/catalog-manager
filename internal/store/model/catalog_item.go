@@ -30,8 +30,8 @@ type CatalogItemSpec struct {
 
 // DependsOn defines conditional default based on another field's value
 type DependsOn struct {
-	Path          string         `json:"path"`
-	AllowedValues map[string]any `json:"allowed_values"`
+	Path          string           `json:"path"`
+	AllowedValues map[string][]any `json:"allowed_values"`
 }
 
 // FieldConfiguration represents a field configuration within a catalog item

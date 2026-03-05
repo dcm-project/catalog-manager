@@ -157,13 +157,7 @@ func validateDependsOn(specMap map[string]any, dep *model.DependsOn, fieldPath s
 		return fmt.Errorf("%w: %s: no allowed values defined for %s=%s", ErrUserValueDependsOnViolation, fieldPath, dep.Path, sourceKey)
 	}
 
-	// For editable fields, allowed_values[K] is an array of valid options
-	allowedArr, ok := allowed.([]any)
-	if !ok {
-		return nil
-	}
-
-	if !containsValue(allowedArr, userValue) {
+	if !containsValue(allowed, userValue) {
 		return fmt.Errorf("%w: %s: value not in allowed options for %s=%s", ErrUserValueDependsOnViolation, fieldPath, dep.Path, sourceKey)
 	}
 
