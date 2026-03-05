@@ -193,48 +193,6 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 				Expect(badRequest.Type).To(Equal(v1alpha1API.INVALIDARGUMENT))
 				Expect(*badRequest.Detail).To(ContainSubstring("api_version"))
 			})
-
-			It("should return 400 when display_name is empty", func() {
-				request := server.CreateCatalogItemInstanceRequestObject{
-					Body: &v1alpha1API.CatalogItemInstance{
-						ApiVersion:  testApiVersion,
-						DisplayName: "",
-						Spec: v1alpha1API.CatalogItemInstanceSpec{
-							CatalogItemId: testCatalogItem,
-							UserValues:    []v1alpha1API.UserValue{},
-						},
-					},
-				}
-
-				response, err := handler.CreateCatalogItemInstance(ctx, request)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(BeAssignableToTypeOf(server.CreateCatalogItemInstance400JSONResponse{}))
-
-				badRequest := response.(server.CreateCatalogItemInstance400JSONResponse)
-				Expect(badRequest.Status).To(Equal(int32(400)))
-				Expect(*badRequest.Detail).To(ContainSubstring("display_name"))
-			})
-
-			It("should return 400 when spec.catalog_item_id is empty", func() {
-				request := server.CreateCatalogItemInstanceRequestObject{
-					Body: &v1alpha1API.CatalogItemInstance{
-						ApiVersion:  testApiVersion,
-						DisplayName: "My Instance",
-						Spec: v1alpha1API.CatalogItemInstanceSpec{
-							CatalogItemId: "",
-							UserValues:    []v1alpha1API.UserValue{},
-						},
-					},
-				}
-
-				response, err := handler.CreateCatalogItemInstance(ctx, request)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(BeAssignableToTypeOf(server.CreateCatalogItemInstance400JSONResponse{}))
-
-				badRequest := response.(server.CreateCatalogItemInstance400JSONResponse)
-				Expect(badRequest.Status).To(Equal(int32(400)))
-				Expect(*badRequest.Detail).To(ContainSubstring("catalog_item_id"))
-			})
 		})
 
 		Context("with duplicate ID", func() {

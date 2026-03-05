@@ -65,12 +65,6 @@ func validateAndBuildCreateCatalogItemInstanceRequest(request server.CreateCatal
 	if request.Body.ApiVersion != supportedAPIVersion {
 		return nil, ErrInvalidCatalogItemInstanceAPIVersion
 	}
-	if request.Body.DisplayName == "" {
-		return nil, ErrInvalidCatalogItemInstanceDisplayName
-	}
-	if request.Body.Spec.CatalogItemId == "" {
-		return nil, ErrInvalidCatalogItemId
-	}
 	return &service.CreateCatalogItemInstanceRequest{
 		ID:          request.Params.Id,
 		ApiVersion:  request.Body.ApiVersion,

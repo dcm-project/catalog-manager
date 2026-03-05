@@ -874,6 +874,7 @@ components:
 
         display_name:
           type: string
+          minLength: 1
           maxLength: 63
           description: |
             User-friendly display name for the catalog item instance.
@@ -916,6 +917,7 @@ components:
       properties:
         catalog_item_id:
           type: string
+          minLength: 1
           description: |
             The Catalog item ID this catalog item instance references.
             Immutable after creation.
