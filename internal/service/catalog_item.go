@@ -175,25 +175,7 @@ func mergeCatalogItem(existing *model.CatalogItem, req *UpdateCatalogItemRequest
 		var fields []model.FieldConfiguration
 		if req.Spec.Fields != nil {
 			// Convert API spec to model spec
-			fields = make([]model.FieldConfiguration, len(*req.Spec.Fields))
-			for i, f := range *req.Spec.Fields {
-				fields[i] = model.FieldConfiguration{
-					Path:    f.Path,
-					Default: f.Default,
-				}
-				if f.DisplayName != nil {
-					fields[i].DisplayName = *f.DisplayName
-				}
-				if f.Editable != nil && *f.Editable {
-					fields[i].Editable = true
-				}
-				if f.ValidationSchema != nil {
-					fields[i].ValidationSchema = *f.ValidationSchema
-				}
-				if f.DependsOn != nil {
-					fields[i].DependsOn = dependsOnAPIToModel(f.DependsOn)
-				}
-			}
+			fields = FieldConfigurationsToModel(*req.Spec.Fields)
 		}
 		merged.Spec = model.CatalogItemSpec{
 			ServiceType: existing.Spec.ServiceType,

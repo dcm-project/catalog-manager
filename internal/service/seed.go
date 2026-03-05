@@ -82,6 +82,6 @@ func fieldConfig(path, displayName string, editable bool, defaultVal any,
 	}
 }
 
-func dependsOn(path string, allowedValues map[string]any) *model.DependsOn {
+func dependsOn(path string, allowedValues map[string][]any) *model.DependsOn {
 	return &model.DependsOn{Path: path, AllowedValues: allowedValues}
 }

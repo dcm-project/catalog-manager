@@ -415,7 +415,7 @@ var _ = Describe("CatalogItem Service", func() {
 							Editable: &editable,
 							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
 								Path: "spec.memory.size_gb",
-								AllowedValues: map[string]any{
+								AllowedValues: map[string][]any{
 									"4": []any{float64(2), float64(4)},
 								},
 							},
@@ -426,7 +426,7 @@ var _ = Describe("CatalogItem Service", func() {
 							Editable: &editable,
 							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
 								Path: "spec.vcpu.count",
-								AllowedValues: map[string]any{
+								AllowedValues: map[string][]any{
 									"2": []any{float64(4), float64(8)},
 								},
 							},
@@ -460,7 +460,7 @@ var _ = Describe("CatalogItem Service", func() {
 							Editable: &editable,
 							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
 								Path: "spec.vcpu.count",
-								AllowedValues: map[string]any{
+								AllowedValues: map[string][]any{
 									"2": []any{float64(4), float64(8)},
 									"4": []any{float64(8), float64(16)},
 								},
@@ -503,7 +503,7 @@ var _ = Describe("CatalogItem Service", func() {
 						Editable: &editable,
 						DependsOn: &v1alpha1.FieldConfigurationDependsOn{
 							Path: "spec.memory.size_gb",
-							AllowedValues: map[string]any{
+							AllowedValues: map[string][]any{
 								"4": []any{float64(2), float64(4)},
 							},
 						},
@@ -514,7 +514,7 @@ var _ = Describe("CatalogItem Service", func() {
 						Editable: &editable,
 						DependsOn: &v1alpha1.FieldConfigurationDependsOn{
 							Path: "spec.vcpu.count",
-							AllowedValues: map[string]any{
+							AllowedValues: map[string][]any{
 								"2": []any{float64(4), float64(8)},
 							},
 						},
