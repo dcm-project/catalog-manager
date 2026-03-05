@@ -6,14 +6,13 @@ import (
 
 // CatalogItemInstance represents a catalog item instance in the database
 type CatalogItemInstance struct {
-	ID                     string                  `gorm:"column:id;primaryKey"`
-	ApiVersion             string                  `gorm:"column:api_version;not null"`
-	DisplayName            string                  `gorm:"column:display_name;not null"`
-	Spec                   CatalogItemInstanceSpec `gorm:"column:spec;type:jsonb;not null;serializer:json"`
-	ServiceTypeInstanceUid string                  `gorm:"column:service_type_instance_uid"`
-	Path                   string                  `gorm:"column:path;not null"`
-	CreateTime             time.Time               `gorm:"column:create_time;autoCreateTime"`
-	UpdateTime             time.Time               `gorm:"column:update_time;autoUpdateTime"`
+	ID          string                  `gorm:"column:id;primaryKey"`
+	ApiVersion  string                  `gorm:"column:api_version;not null"`
+	DisplayName string                  `gorm:"column:display_name;not null"`
+	Spec        CatalogItemInstanceSpec `gorm:"column:spec;type:jsonb;not null;serializer:json"`
+	Path        string                  `gorm:"column:path;not null"`
+	CreateTime  time.Time               `gorm:"column:create_time;autoCreateTime"`
+	UpdateTime  time.Time               `gorm:"column:update_time;autoUpdateTime"`
 
 	// Indexed field for filtering
 	SpecCatalogItemId string       `gorm:"column:spec_catalog_item_id;not null;index"`

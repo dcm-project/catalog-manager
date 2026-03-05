@@ -53,7 +53,7 @@ var _ = Describe("CatalogItem Service", func() {
 		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{})
 		Expect(err).ToNot(HaveOccurred())
 		str = store.NewStore(db)
-		svc = service.NewService(str)
+		svc = service.NewService(str, nil)
 		// Ensure service types exist for catalog item FK
 		ensureServiceType(ctx, str, "vm-st", "vm")
 		ensureServiceType(ctx, str, "container-st", "container")

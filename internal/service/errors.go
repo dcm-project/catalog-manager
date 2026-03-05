@@ -27,4 +27,28 @@ var (
 
 	// ErrImmutableFieldUpdate indicates an attempt to change api_version or spec.service_type
 	ErrImmutableFieldUpdate = errors.New("cannot update immutable fields: api_version and spec.service_type are immutable")
+
+	// ErrCatalogItemInstanceNotFound indicates the requested catalog item instance does not exist
+	ErrCatalogItemInstanceNotFound = errors.New("catalog item instance not found")
+
+	// ErrCatalogItemInstanceIDTaken indicates a catalog item instance with the given ID already exists
+	ErrCatalogItemInstanceIDTaken = errors.New("catalog item instance ID already exists")
+
+	// ErrCatalogItemNotFoundForInstance indicates the catalog item referenced by the instance does not exist
+	ErrCatalogItemNotFoundForInstance = errors.New("referenced catalog item does not exist")
+
+	// ErrUserValuePathNotFound indicates a user_value path does not match any CatalogItem field
+	ErrUserValuePathNotFound = errors.New("user value path not found in catalog item fields")
+
+	// ErrUserValueNotEditable indicates the field at the given path is not editable
+	ErrUserValueNotEditable = errors.New("field is not editable")
+
+	// ErrUserValueValidationFailed indicates the user value failed validation against the field's validation_schema
+	ErrUserValueValidationFailed = errors.New("user value validation failed")
+
+	// ErrPlacementManagerCreateFailed indicates the Placement Manager failed to create a resource
+	ErrPlacementManagerCreateFailed = errors.New("placement manager create resource failed")
+
+	// ErrPlacementManagerDeleteFailed indicates the Placement Manager failed to delete a resource
+	ErrPlacementManagerDeleteFailed = errors.New("placement manager delete resource failed")
 )

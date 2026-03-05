@@ -144,6 +144,30 @@ var _ = Describe("ServiceType Store", func() {
 		})
 	})
 
+	Describe("GetByServiceType", func() {
+		It("should retrieve a service type by its service_type value", func() {
+			st := model.ServiceType{
+				ID:          "get-by-st",
+				ApiVersion:  "v1alpha1",
+				ServiceType: "vm",
+				Spec:        map[string]any{"vcpu": map[string]any{"count": float64(2)}},
+				Path:        "service-types/get-by-st",
+			}
+			_, err := serviceTypeStore.Create(context.Background(), st)
+			Expect(err).ToNot(HaveOccurred())
+
+			retrieved, err := serviceTypeStore.GetByServiceType(context.Background(), "vm")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(retrieved.ID).To(Equal("get-by-st"))
+			Expect(retrieved.ServiceType).To(Equal("vm"))
+		})
+
+		It("should return error for non-existent service_type", func() {
+			_, err := serviceTypeStore.GetByServiceType(context.Background(), "nonexistent")
+			Expect(err).To(Equal(store.ErrServiceTypeNotFound))
+		})
+	})
+
 	Describe("List", func() {
 		It("should return empty list when no service types exist", func() {
 			results, err := serviceTypeStore.List(context.Background(), &store.ServiceTypeListOptions{

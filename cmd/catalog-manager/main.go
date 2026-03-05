@@ -10,6 +10,7 @@ import (
 	"github.com/dcm-project/catalog-manager/internal/apiserver"
 	"github.com/dcm-project/catalog-manager/internal/config"
 	"github.com/dcm-project/catalog-manager/internal/handlers/v1alpha1"
+	"github.com/dcm-project/catalog-manager/internal/placement"
 	"github.com/dcm-project/catalog-manager/internal/service"
 	"github.com/dcm-project/catalog-manager/internal/store"
 )
@@ -35,8 +36,14 @@ func main() {
 		}
 	}()
 
+	// Create Placement Manager client
+	pmClient, err := placement.NewClient(cfg.Placement.URL)
+	if err != nil {
+		log.Fatalf("Failed to create placement manager client: %v", err)
+	}
+
 	// Create service layer
-	svc := service.NewService(dataStore)
+	svc := service.NewService(dataStore, pmClient)
 
 	// Create TCP listener
 	listener, err := net.Listen("tcp", cfg.Service.BindAddress)

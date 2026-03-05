@@ -1,8 +1,9 @@
 module github.com/dcm-project/catalog-manager
 
-go 1.24.6
+go 1.25.5
 
 require (
+	github.com/dcm-project/placement-manager v0.0.0-20260302081919-5e490c0c92f0
 	github.com/getkin/kin-openapi v0.133.0
 	github.com/go-chi/chi/v5 v5.2.5
 	github.com/google/uuid v1.6.0
@@ -12,6 +13,7 @@ require (
 	github.com/oapi-codegen/runtime v1.2.0
 	github.com/onsi/ginkgo/v2 v2.28.1
 	github.com/onsi/gomega v1.39.1
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1

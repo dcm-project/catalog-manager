@@ -17,10 +17,16 @@ type DBConfig struct {
 	Password string `envconfig:"DB_PASSWORD" default:"adminpass"`
 }
 
+// PlacementConfig holds Placement Manager configuration
+type PlacementConfig struct {
+	URL string `envconfig:"PLACEMENT_MANAGER_URL" default:"http://localhost:8081"`
+}
+
 // Config holds all configuration for the application
 type Config struct {
-	Service  ServiceConfig
-	Database DBConfig
+	Service   ServiceConfig
+	Database  DBConfig
+	Placement PlacementConfig
 }
 
 func Load() (*Config, error) {
@@ -29,6 +35,9 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 	if err := envconfig.Process("", &cfg.Database); err != nil {
+		return nil, err
+	}
+	if err := envconfig.Process("", &cfg.Placement); err != nil {
 		return nil, err
 	}
 	return &cfg, nil

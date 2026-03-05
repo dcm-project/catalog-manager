@@ -1,0 +1,133 @@
+package service
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+
+	"errors"
+
+	"github.com/dcm-project/catalog-manager/api/v1alpha1"
+	"github.com/dcm-project/catalog-manager/internal/store"
+	"github.com/dcm-project/catalog-manager/internal/store/model"
+	"github.com/santhosh-tekuri/jsonschema/v6"
+)
+
+// specBuilder resolves the reference chain and constructs the final resource spec
+type specBuilder struct {
+	store store.Store
+}
+
+// newSpecBuilder creates a new specBuilder
+func newSpecBuilder(store store.Store) *specBuilder {
+	return &specBuilder{store: store}
+}
+
+// BuildResourceSpec resolves the reference chain (CatalogItemInstance → CatalogItem → ServiceType)
+// and constructs the final resource spec by:
+// 1. Deep-copying the ServiceType spec as the base template
+// 2. Applying CatalogItem field defaults
+// 3. Applying user_values on top (with validation)
+func (b *specBuilder) BuildResourceSpec(ctx context.Context, catalogItemId string, userValues []v1alpha1.UserValue) (map[string]any, error) {
+	// 1. Look up CatalogItem
+	catalogItem, err := b.store.CatalogItem().Get(ctx, catalogItemId)
+	if err != nil {
+		if errors.Is(err, store.ErrCatalogItemNotFound) {
+			return nil, ErrCatalogItemNotFoundForInstance
+		}
+		return nil, err
+	}
+
+	// 2. Look up ServiceType by CatalogItem's service_type
+	serviceType, err := b.store.ServiceType().GetByServiceType(ctx, catalogItem.Spec.ServiceType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve service type %q: %w", catalogItem.Spec.ServiceType, err)
+	}
+
+	// 3. Deep-copy ServiceType spec as base template
+	specMap, err := deepCopyMap(serviceType.Spec)
+	if err != nil {
+		return nil, fmt.Errorf("failed to copy service type spec: %w", err)
+	}
+
+	// 4. Build a lookup map of CatalogItem fields by path
+	fieldsByPath := make(map[string]model.FieldConfiguration)
+	for _, field := range catalogItem.Spec.Fields {
+		fieldsByPath[field.Path] = field
+	}
+
+	// 5. Apply CatalogItem field defaults
+	for _, field := range catalogItem.Spec.Fields {
+		if field.Default != nil {
+			if err := setNestedValue(specMap, field.Path, field.Default); err != nil {
+				return nil, fmt.Errorf("failed to set default for field %q: %w", field.Path, err)
+			}
+		}
+	}
+
+	// 6. Apply user_values on top (with validation)
+	for _, uv := range userValues {
+		// Validate: user_value path must match a CatalogItem field
+		field, ok := fieldsByPath[uv.Path]
+		if !ok {
+			return nil, fmt.Errorf("%w: %s", ErrUserValuePathNotFound, uv.Path)
+		}
+
+		// Validate: field must be editable
+		if !field.Editable {
+			return nil, fmt.Errorf("%w: %s", ErrUserValueNotEditable, uv.Path)
+		}
+
+		// Validate: if field has a validation_schema, validate the value against it
+		if field.ValidationSchema != nil {
+			if err := validateAgainstSchema(field.ValidationSchema, uv.Value); err != nil {
+				return nil, fmt.Errorf("%w: %s: %s", ErrUserValueValidationFailed, uv.Path, err.Error())
+			}
+		}
+
+		// Apply the user value
+		if err := setNestedValue(specMap, uv.Path, uv.Value); err != nil {
+			return nil, fmt.Errorf("failed to set user value for field %q: %w", uv.Path, err)
+		}
+	}
+
+	return specMap, nil
+}
+
+// deepCopyMap creates a deep copy of a map[string]any by marshaling/unmarshaling JSON
+func deepCopyMap(src map[string]any) (map[string]any, error) {
+	data, err := json.Marshal(src)
+	if err != nil {
+		return nil, err
+	}
+	var dst map[string]any
+	if err := json.Unmarshal(data, &dst); err != nil {
+		return nil, err
+	}
+	return dst, nil
+}
+
+// validateAgainstSchema validates a value against a JSON Schema
+func validateAgainstSchema(schema map[string]any, value any) error {
+	c := jsonschema.NewCompiler()
+	if err := c.AddResource("schema.json", schema); err != nil {
+		return fmt.Errorf("failed to add schema resource: %w", err)
+	}
+	sch, err := c.Compile("schema.json")
+	if err != nil {
+		return fmt.Errorf("failed to compile schema: %w", err)
+	}
+
+	// JSON Schema validation requires the value to go through JSON round-trip
+	// to ensure types match (e.g., int vs float64)
+	data, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Errorf("failed to marshal value: %w", err)
+	}
+	var jsonValue any
+	if err := json.Unmarshal(data, &jsonValue); err != nil {
+		return fmt.Errorf("failed to unmarshal value: %w", err)
+	}
+
+	return sch.Validate(jsonValue)
+}

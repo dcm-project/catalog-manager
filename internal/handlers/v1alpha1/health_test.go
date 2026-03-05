@@ -40,7 +40,7 @@ var _ = Describe("Health Handler", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		dataStore = store.NewStore(db)
-		svc := service.NewService(dataStore)
+		svc := service.NewService(dataStore, nil)
 		handler = v1alpha1.NewHandler(svc)
 	})
 
