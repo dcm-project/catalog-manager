@@ -46,6 +46,12 @@ var (
 	// ErrUserValueValidationFailed indicates the user value failed validation against the field's validation_schema
 	ErrUserValueValidationFailed = errors.New("user value validation failed")
 
+	// ErrDependsOnCycleDetected indicates the catalog item's field configurations contain a cyclic depends_on reference
+	ErrDependsOnCycleDetected = errors.New("depends_on cycle detected in field configurations")
+
+	// ErrUserValueDependsOnViolation indicates the user value is not allowed given the current value of the field it depends on
+	ErrUserValueDependsOnViolation = errors.New("user value violates depends_on constraint")
+
 	// ErrPlacementManagerCreateFailed indicates the Placement Manager failed to create a resource
 	ErrPlacementManagerCreateFailed = errors.New("placement manager create resource failed")
 

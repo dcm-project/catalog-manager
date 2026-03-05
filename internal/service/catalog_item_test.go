@@ -400,6 +400,137 @@ var _ = Describe("CatalogItem Service", func() {
 		})
 	})
 
+	Describe("Create with cyclic depends_on", func() {
+		It("should reject fields with cyclic depends_on references", func() {
+			editable := true
+			req := &service.CreateCatalogItemRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Cyclic DependsOn",
+				Spec: v1alpha1.CatalogItemSpec{
+					ServiceType: &serviceTypeVM,
+					Fields: &[]v1alpha1.FieldConfiguration{
+						{
+							Path:     "spec.vcpu.count",
+							Default:  float64(2),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.memory.size_gb",
+								AllowedValues: map[string]any{
+									"4": []any{float64(2), float64(4)},
+								},
+							},
+						},
+						{
+							Path:     "spec.memory.size_gb",
+							Default:  float64(4),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.vcpu.count",
+								AllowedValues: map[string]any{
+									"2": []any{float64(4), float64(8)},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItem().Create(ctx, req)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cycle"))
+			Expect(result).To(BeNil())
+		})
+
+		It("should accept fields without cyclic depends_on references", func() {
+			editable := true
+			req := &service.CreateCatalogItemRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Valid DependsOn",
+				Spec: v1alpha1.CatalogItemSpec{
+					ServiceType: &serviceTypeVM,
+					Fields: &[]v1alpha1.FieldConfiguration{
+						{
+							Path:     "spec.vcpu.count",
+							Default:  float64(2),
+							Editable: &editable,
+						},
+						{
+							Path:     "spec.memory.size_gb",
+							Default:  float64(4),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.vcpu.count",
+								AllowedValues: map[string]any{
+									"2": []any{float64(4), float64(8)},
+									"4": []any{float64(8), float64(16)},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItem().Create(ctx, req)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).ToNot(BeNil())
+		})
+	})
+
+	Describe("Update with cyclic depends_on", func() {
+		It("should reject update that introduces cyclic depends_on", func() {
+			id := "item-cycle-update"
+			editable := true
+			_, err := svc.CatalogItem().Create(ctx, &service.CreateCatalogItemRequest{
+				ID:          &id,
+				ApiVersion:  "v1alpha1",
+				DisplayName: "No Cycle",
+				Spec: v1alpha1.CatalogItemSpec{
+					ServiceType: &serviceTypeVM,
+					Fields: &[]v1alpha1.FieldConfiguration{
+						{Path: "spec.vcpu.count", Default: float64(2), Editable: &editable},
+						{Path: "spec.memory.size_gb", Default: float64(4), Editable: &editable},
+					},
+				},
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			updateSpec := &v1alpha1.CatalogItemSpec{
+				ServiceType: &serviceTypeVM,
+				Fields: &[]v1alpha1.FieldConfiguration{
+					{
+						Path:     "spec.vcpu.count",
+						Default:  float64(2),
+						Editable: &editable,
+						DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+							Path: "spec.memory.size_gb",
+							AllowedValues: map[string]any{
+								"4": []any{float64(2), float64(4)},
+							},
+						},
+					},
+					{
+						Path:     "spec.memory.size_gb",
+						Default:  float64(4),
+						Editable: &editable,
+						DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+							Path: "spec.vcpu.count",
+							AllowedValues: map[string]any{
+								"2": []any{float64(4), float64(8)},
+							},
+						},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItem().Update(ctx, id, &service.UpdateCatalogItemRequest{
+				Spec: updateSpec,
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cycle"))
+			Expect(result).To(BeNil())
+		})
+	})
+
 	Describe("Delete", func() {
 		Context("with existing item", func() {
 			It("should delete the catalog item", func() {

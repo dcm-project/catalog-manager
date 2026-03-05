@@ -177,5 +177,172 @@ var _ = Describe("SpecBuilder (via CatalogItemInstance Create)", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).ToNot(BeNil())
 		})
+
+		It("should reject user_value that violates depends_on constraint", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-depends-fail", "vm-sb", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(2), Editable: true},
+				{
+					Path:     "spec.memory.size_gb",
+					Default:  float64(4),
+					Editable: true,
+					DependsOn: &model.DependsOn{
+						Path: "spec.vcpu.count",
+						AllowedValues: map[string]any{
+							"2": []any{float64(4), float64(8)},
+							"4": []any{float64(8), float64(16)},
+						},
+					},
+				},
+			})
+
+			req := &service.CreateCatalogItemInstanceRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "DependsOn Fail",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "ci-depends-fail",
+					UserValues: []v1alpha1.UserValue{
+						{Path: "spec.memory.size_gb", Value: float64(32)},
+					},
+				},
+			}
+
+			_, err := svc.CatalogItemInstance().Create(ctx, req)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("depends_on"))
+		})
+
+		It("should accept user_value that satisfies depends_on constraint", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-depends-pass", "vm-sb", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(2), Editable: true},
+				{
+					Path:     "spec.memory.size_gb",
+					Default:  float64(4),
+					Editable: true,
+					DependsOn: &model.DependsOn{
+						Path: "spec.vcpu.count",
+						AllowedValues: map[string]any{
+							"2": []any{float64(4), float64(8)},
+							"4": []any{float64(8), float64(16)},
+						},
+					},
+				},
+			})
+
+			req := &service.CreateCatalogItemInstanceRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "DependsOn Pass",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "ci-depends-pass",
+					UserValues: []v1alpha1.UserValue{
+						{Path: "spec.memory.size_gb", Value: float64(8)},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItemInstance().Create(ctx, req)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).ToNot(BeNil())
+		})
+
+		It("should validate depends_on against updated source value from user_values", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-depends-updated", "vm-sb", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(2), Editable: true},
+				{
+					Path:     "spec.memory.size_gb",
+					Default:  float64(4),
+					Editable: true,
+					DependsOn: &model.DependsOn{
+						Path: "spec.vcpu.count",
+						AllowedValues: map[string]any{
+							"2": []any{float64(4), float64(8)},
+							"4": []any{float64(8), float64(16)},
+						},
+					},
+				},
+			})
+
+			req := &service.CreateCatalogItemInstanceRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "DependsOn Updated Source",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "ci-depends-updated",
+					UserValues: []v1alpha1.UserValue{
+						{Path: "spec.vcpu.count", Value: float64(4)},
+						{Path: "spec.memory.size_gb", Value: float64(16)},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItemInstance().Create(ctx, req)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).ToNot(BeNil())
+		})
+
+		It("should validate depends_on with source field listed after dependent in user_values", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-depends-order", "vm-sb", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(2), Editable: true},
+				{
+					Path:     "spec.memory.size_gb",
+					Default:  float64(4),
+					Editable: true,
+					DependsOn: &model.DependsOn{
+						Path: "spec.vcpu.count",
+						AllowedValues: map[string]any{
+							"4": []any{float64(8), float64(16)},
+						},
+					},
+				},
+			})
+
+			// memory depends on vcpu, but memory is listed first — must still validate against vcpu=4
+			req := &service.CreateCatalogItemInstanceRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "DependsOn Reverse Order",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "ci-depends-order",
+					UserValues: []v1alpha1.UserValue{
+						{Path: "spec.memory.size_gb", Value: float64(16)},
+						{Path: "spec.vcpu.count", Value: float64(4)},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItemInstance().Create(ctx, req)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).ToNot(BeNil())
+		})
+
+		It("should reject depends_on when source value has no allowed_values entry", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-depends-no-key", "vm-sb", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(2), Editable: true},
+				{
+					Path:     "spec.memory.size_gb",
+					Default:  float64(4),
+					Editable: true,
+					DependsOn: &model.DependsOn{
+						Path: "spec.vcpu.count",
+						AllowedValues: map[string]any{
+							"2": []any{float64(4), float64(8)},
+						},
+					},
+				},
+			})
+
+			req := &service.CreateCatalogItemInstanceRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "DependsOn No Key",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "ci-depends-no-key",
+					UserValues: []v1alpha1.UserValue{
+						{Path: "spec.vcpu.count", Value: float64(8)},
+						{Path: "spec.memory.size_gb", Value: float64(4)},
+					},
+				},
+			}
+
+			_, err := svc.CatalogItemInstance().Create(ctx, req)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("no allowed values defined"))
+		})
 	})
 })

@@ -93,6 +93,11 @@ func (s *catalogItemService) Create(ctx context.Context, req *CreateCatalogItemR
 	// Convert to store model
 	storeModel := catalogItemToStoreModel(id, path, req)
 
+	// Validate: no cyclic depends_on references among fields
+	if err := validateFieldDependsOnCycles(storeModel.Spec.Fields); err != nil {
+		return nil, err
+	}
+
 	// Call store layer
 	createdModel, err := s.store.CatalogItem().Create(ctx, storeModel)
 	if err != nil {
@@ -128,6 +133,11 @@ func (s *catalogItemService) Update(ctx context.Context, id string, req *UpdateC
 	// Build updated model starting from existing
 	updated, err := mergeCatalogItem(existing, req)
 	if err != nil {
+		return nil, err
+	}
+
+	// Validate: no cyclic depends_on references among fields
+	if err := validateFieldDependsOnCycles(updated.Spec.Fields); err != nil {
 		return nil, err
 	}
 
@@ -180,6 +190,9 @@ func mergeCatalogItem(existing *model.CatalogItem, req *UpdateCatalogItemRequest
 				if f.ValidationSchema != nil {
 					fields[i].ValidationSchema = *f.ValidationSchema
 				}
+				if f.DependsOn != nil {
+					fields[i].DependsOn = dependsOnAPIToModel(f.DependsOn)
+				}
 			}
 		}
 		merged.Spec = model.CatalogItemSpec{
@@ -188,6 +201,56 @@ func mergeCatalogItem(existing *model.CatalogItem, req *UpdateCatalogItemRequest
 		}
 	}
 	return &merged, nil
+}
+
+// validateFieldDependsOnCycles checks for cyclic depends_on references among a catalog
+// item's field configurations. It builds a directed graph (field path → depends_on path)
+// and performs DFS-based cycle detection.
+func validateFieldDependsOnCycles(fields []model.FieldConfiguration) error {
+	// Build adjacency: field path → source path it depends on
+	edges := make(map[string]string)
+	for _, f := range fields {
+		if f.DependsOn != nil {
+			edges[f.Path] = f.DependsOn.Path
+		}
+	}
+
+	if len(edges) == 0 {
+		return nil
+	}
+
+	// DFS cycle detection
+	const (
+		unvisited = 0
+		visiting  = 1
+		visited   = 2
+	)
+	state := make(map[string]int)
+
+	var visit func(path string) error
+	visit = func(path string) error {
+		if state[path] == visited {
+			return nil
+		}
+		if state[path] == visiting {
+			return fmt.Errorf("%w: cycle involving %s", ErrDependsOnCycleDetected, path)
+		}
+		state[path] = visiting
+		if dep, ok := edges[path]; ok {
+			if err := visit(dep); err != nil {
+				return err
+			}
+		}
+		state[path] = visited
+		return nil
+	}
+
+	for path := range edges {
+		if err := visit(path); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Delete deletes a catalog item by ID
