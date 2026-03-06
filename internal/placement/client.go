@@ -1,3 +1,4 @@
+// Package placement provides a client for the Placement Manager service.
 package placement
 
 import (

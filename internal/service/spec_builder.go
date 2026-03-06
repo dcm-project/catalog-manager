@@ -3,9 +3,8 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-
 	"errors"
+	"fmt"
 
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/store"

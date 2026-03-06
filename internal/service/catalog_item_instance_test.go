@@ -588,7 +588,7 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 		It("should call PM with correct spec and store returned resource ID", func() {
 			var capturedReq placement.CreateResourceRequest
 			var capturedID string
-			mockPM.createFunc = func(ctx context.Context, req placement.CreateResourceRequest, id string) (*placement.Resource, error) {
+			mockPM.createFunc = func(_ context.Context, req placement.CreateResourceRequest, id string) (*placement.Resource, error) {
 				capturedReq = req
 				capturedID = id
 				return &placement.Resource{ID: "pm-resource-123"}, nil
@@ -614,7 +614,7 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 		})
 
 		It("should delete DB record when PM create fails", func() {
-			mockPM.createFunc = func(ctx context.Context, req placement.CreateResourceRequest, id string) (*placement.Resource, error) {
+			mockPM.createFunc = func(_ context.Context, _ placement.CreateResourceRequest, _ string) (*placement.Resource, error) {
 				return nil, errors.New("PM unavailable")
 			}
 
@@ -643,10 +643,10 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 	Describe("Delete with PM", func() {
 		It("should delete PM resource then local record", func() {
 			var deletedResourceID string
-			mockPM.createFunc = func(ctx context.Context, req placement.CreateResourceRequest, id string) (*placement.Resource, error) {
+			mockPM.createFunc = func(_ context.Context, _ placement.CreateResourceRequest, _ string) (*placement.Resource, error) {
 				return &placement.Resource{ID: "pm-to-delete"}, nil
 			}
-			mockPM.deleteFunc = func(ctx context.Context, resourceID string) error {
+			mockPM.deleteFunc = func(_ context.Context, resourceID string) error {
 				deletedResourceID = resourceID
 				return nil
 			}
@@ -673,7 +673,7 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 		})
 
 		It("should not delete local record when PM delete fails", func() {
-			mockPM.createFunc = func(ctx context.Context, req placement.CreateResourceRequest, id string) (*placement.Resource, error) {
+			mockPM.createFunc = func(_ context.Context, _ placement.CreateResourceRequest, _ string) (*placement.Resource, error) {
 				return &placement.Resource{ID: "pm-fail-delete"}, nil
 			}
 
@@ -690,7 +690,7 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			// Make PM delete fail
-			mockPM.deleteFunc = func(ctx context.Context, resourceID string) error {
+			mockPM.deleteFunc = func(_ context.Context, _ string) error {
 				return errors.New("PM delete unavailable")
 			}
 

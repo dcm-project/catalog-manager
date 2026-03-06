@@ -45,7 +45,7 @@ var _ = Describe("Foreign Key Constraint Integration Tests", func() {
 	AfterEach(func() {
 		sqlDB, err := db.DB()
 		Expect(err).ToNot(HaveOccurred())
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	})
 
 	Describe("Full Hierarchy Creation", func() {
