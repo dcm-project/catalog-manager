@@ -23,7 +23,7 @@ func defaultServiceTypes() []model.ServiceType {
 			ApiVersion:  "v1alpha1",
 			ServiceType: "three_tier_app_demo",
 			Spec: map[string]any{
-				"database": three_tier_app_demo.DatabaseTier{Image: "", Network: emptyNetwork},
+				"database": three_tier_app_demo.DatabaseTier{Engine: three_tier_app_demo.DefaultDatabaseEngine, Version: three_tier_app_demo.DefaultDatabaseVersion, Network: emptyNetwork},
 				"app":      three_tier_app_demo.AppTier{Image: "", Network: emptyNetwork},
 				"web":      three_tier_app_demo.WebTier{Image: "", Network: emptyNetwork},
 			},
@@ -54,9 +54,15 @@ func petClinicCatalogItem() model.CatalogItem {
 
 func petClinicFields() []model.FieldConfiguration {
 	return []model.FieldConfiguration{
-		fieldConfig("database.image", "Database image", true,
-			"quay.io/myorg/postgres:15",
-			map[string]any{"type": "string"}, nil),
+		fieldConfig("database.engine", "Database engine", true,
+			three_tier_app_demo.DefaultDatabaseEngine,
+			map[string]any{"type": "string", "enum": []any{"postgres", "mysql"}}, nil),
+		fieldConfig("database.version", "Database version", true,
+			three_tier_app_demo.DefaultDatabaseVersion,
+			map[string]any{"type": "string"}, dependsOn("database.engine", map[string]any{
+				"postgres": []any{three_tier_app_demo.DefaultDatabaseVersion, "17"},
+				"mysql":    []any{"8.4", "8.3", "8"},
+			})),
 		fieldConfig("app.image", "App image", false,
 			"docker.io/springcommunity/spring-framework-petclinic:6.1.2", nil, nil),
 		fieldConfig("web.image", "Web image", false,
