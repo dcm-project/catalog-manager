@@ -30,14 +30,19 @@ type ContainerPort struct {
 }
 
 // DatabaseTier Database tier. Ports exposed internally via ClusterIP.
+// Uses abstract identifiers (engine, version). The SP maps engine+version
+// to the OCI image (e.g. postgres+16 -> docker.io/library/postgres:16).
 type DatabaseTier struct {
-	// Image OCI image reference for the database (e.g. postgres:15).
-	Image string `json:"image"`
+	// Engine Database engine (e.g. postgres, mysql).
+	Engine string `json:"engine"`
 
 	// Network Port configuration. Database and app tiers use internal exposure
 	// (ClusterIP service for container-to-container). Web tier uses external
 	// exposure (route or LoadBalancer for user access).
-	Network              *Network               `json:"network,omitempty"`
+	Network *Network `json:"network,omitempty"`
+
+	// Version Database engine version (e.g. 16, 8).
+	Version              string                 `json:"version"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
@@ -57,6 +62,8 @@ type ThreeTierAppDemoSpec struct {
 	App AppTier `json:"app"`
 
 	// Database Database tier. Ports exposed internally via ClusterIP.
+	// Uses abstract identifiers (engine, version). The SP maps engine+version
+	// to the OCI image (e.g. postgres+16 -> docker.io/library/postgres:16).
 	Database DatabaseTier `json:"database"`
 
 	// Metadata Resource metadata for identification and governance.
@@ -264,12 +271,12 @@ func (a *DatabaseTier) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	if raw, found := object["image"]; found {
-		err = json.Unmarshal(raw, &a.Image)
+	if raw, found := object["engine"]; found {
+		err = json.Unmarshal(raw, &a.Engine)
 		if err != nil {
-			return fmt.Errorf("error reading 'image': %w", err)
+			return fmt.Errorf("error reading 'engine': %w", err)
 		}
-		delete(object, "image")
+		delete(object, "engine")
 	}
 
 	if raw, found := object["network"]; found {
@@ -278,6 +285,14 @@ func (a *DatabaseTier) UnmarshalJSON(b []byte) error {
 			return fmt.Errorf("error reading 'network': %w", err)
 		}
 		delete(object, "network")
+	}
+
+	if raw, found := object["version"]; found {
+		err = json.Unmarshal(raw, &a.Version)
+		if err != nil {
+			return fmt.Errorf("error reading 'version': %w", err)
+		}
+		delete(object, "version")
 	}
 
 	if len(object) != 0 {
@@ -299,9 +314,9 @@ func (a DatabaseTier) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
-	object["image"], err = json.Marshal(a.Image)
+	object["engine"], err = json.Marshal(a.Engine)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'image': %w", err)
+		return nil, fmt.Errorf("error marshaling 'engine': %w", err)
 	}
 
 	if a.Network != nil {
@@ -309,6 +324,11 @@ func (a DatabaseTier) MarshalJSON() ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error marshaling 'network': %w", err)
 		}
+	}
+
+	object["version"], err = json.Marshal(a.Version)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'version': %w", err)
 	}
 
 	for fieldName, field := range a.AdditionalProperties {
