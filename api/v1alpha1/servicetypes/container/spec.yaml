@@ -185,6 +185,7 @@ components:
       description: Container port specification
       required:
         - container_port
+        - visibility
       properties:
         container_port:
           type: integer
@@ -192,4 +193,19 @@ components:
           minimum: 1
           maximum: 65535
           example: 8080
+        visibility:
+          type: string
+          description: |
+            How this port is exposed to consumers.
+
+            - none: Port is not exposed outside the container process
+            - internal: Exposed to the host or cluster network
+              (e.g., Docker -p, Kubernetes ClusterIP Service)
+            - external: Reachable from outside the host/cluster
+              (e.g., OpenShift Route, Kubernetes Ingress/LoadBalancer)
+          enum:
+            - none
+            - internal
+            - external
+          example: internal
       additionalProperties: true

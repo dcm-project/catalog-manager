@@ -10,12 +10,51 @@ import (
 	externalRef0 "github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes"
 )
 
+// Defines values for ContainerPortVisibility.
+const (
+	External ContainerPortVisibility = "external"
+	Internal ContainerPortVisibility = "internal"
+	None     ContainerPortVisibility = "none"
+)
+
+// Valid indicates whether the value is a known member of the ContainerPortVisibility enum.
+func (e ContainerPortVisibility) Valid() bool {
+	switch e {
+	case External:
+		return true
+	case Internal:
+		return true
+	case None:
+		return true
+	default:
+		return false
+	}
+}
+
 // ContainerPort Container port specification
 type ContainerPort struct {
 	// ContainerPort Port number inside container
-	ContainerPort        int                    `json:"container_port"`
-	AdditionalProperties map[string]interface{} `json:"-"`
+	ContainerPort int `json:"container_port"`
+
+	// Visibility How this port is exposed to consumers.
+	//
+	// - none: Port is not exposed outside the container process
+	// - internal: Exposed to the host or cluster network
+	//   (e.g., Docker -p, Kubernetes ClusterIP Service)
+	// - external: Reachable from outside the host/cluster
+	//   (e.g., OpenShift Route, Kubernetes Ingress/LoadBalancer)
+	Visibility           ContainerPortVisibility `json:"visibility"`
+	AdditionalProperties map[string]interface{}  `json:"-"`
 }
+
+// ContainerPortVisibility How this port is exposed to consumers.
+//
+//   - none: Port is not exposed outside the container process
+//   - internal: Exposed to the host or cluster network
+//     (e.g., Docker -p, Kubernetes ClusterIP Service)
+//   - external: Reachable from outside the host/cluster
+//     (e.g., OpenShift Route, Kubernetes Ingress/LoadBalancer)
+type ContainerPortVisibility string
 
 // ContainerResources Resource allocation (CPU and memory)
 type ContainerResources struct {
@@ -160,6 +199,14 @@ func (a *ContainerPort) UnmarshalJSON(b []byte) error {
 		delete(object, "container_port")
 	}
 
+	if raw, found := object["visibility"]; found {
+		err = json.Unmarshal(raw, &a.Visibility)
+		if err != nil {
+			return fmt.Errorf("error reading 'visibility': %w", err)
+		}
+		delete(object, "visibility")
+	}
+
 	if len(object) != 0 {
 		a.AdditionalProperties = make(map[string]interface{})
 		for fieldName, fieldBuf := range object {
@@ -182,6 +229,11 @@ func (a ContainerPort) MarshalJSON() ([]byte, error) {
 	object["container_port"], err = json.Marshal(a.ContainerPort)
 	if err != nil {
 		return nil, fmt.Errorf("error marshaling 'container_port': %w", err)
+	}
+
+	object["visibility"], err = json.Marshal(a.Visibility)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'visibility': %w", err)
 	}
 
 	for fieldName, field := range a.AdditionalProperties {
