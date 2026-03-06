@@ -26,6 +26,7 @@ func fieldConfigurationToModel(f v1alpha1.FieldConfiguration) model.FieldConfigu
 	}
 	var vs map[string]any
 	if f.ValidationSchema != nil {
+		vs = make(map[string]any)
 		maps.Copy(vs, *f.ValidationSchema)
 	}
 	var dep *model.DependsOn
