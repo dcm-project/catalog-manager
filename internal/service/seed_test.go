@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
+	"github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes/three_tier_app_demo"
 	"github.com/dcm-project/catalog-manager/internal/service"
 	"github.com/dcm-project/catalog-manager/internal/store"
 	"github.com/dcm-project/catalog-manager/internal/store/model"
@@ -74,22 +75,42 @@ var _ = Describe("Seed", func() {
 				Expect(ci.DisplayName).To(Equal("Pet Clinic"))
 				Expect(ci.Path).To(Equal("catalog-items/pet-clinic"))
 				Expect(ci.Spec.ServiceType).To(Equal("three_tier_app_demo"))
-				Expect(ci.Spec.Fields).To(HaveLen(3))
+				Expect(ci.Spec.Fields).To(HaveLen(4))
 
 				// Verify key field configs
 				fieldPaths := make([]string, len(ci.Spec.Fields))
 				for i, f := range ci.Spec.Fields {
 					fieldPaths[i] = f.Path
 				}
-				Expect(fieldPaths).To(ContainElement("database.image"))
+				Expect(fieldPaths).To(ContainElement("database.engine"))
+				Expect(fieldPaths).To(ContainElement("database.version"))
 				Expect(fieldPaths).To(ContainElement("app.image"))
 				Expect(fieldPaths).To(ContainElement("web.image"))
 
-				// Verify database.image is editable
-				dbImageField := findFieldByPath(ci.Spec.Fields, "database.image")
-				Expect(dbImageField).ToNot(BeNil())
-				Expect(dbImageField.Editable).To(BeTrue())
-				Expect(dbImageField.Default).To(Equal("quay.io/myorg/postgres:15"))
+				// Verify database.engine is editable and has validation schema enum
+				dbEngineField := findFieldByPath(ci.Spec.Fields, "database.engine")
+				Expect(dbEngineField).ToNot(BeNil())
+				Expect(dbEngineField.Editable).To(BeTrue())
+				Expect(dbEngineField.Default).To(Equal(three_tier_app_demo.DefaultDatabaseEngine))
+				Expect(dbEngineField.ValidationSchema).ToNot(BeNil())
+				Expect(dbEngineField.ValidationSchema["type"]).To(Equal("string"))
+				enumVals, ok := dbEngineField.ValidationSchema["enum"].([]any)
+				Expect(ok).To(BeTrue(), "expected ValidationSchema.enum for database.engine to be []any")
+				Expect(enumVals).To(ConsistOf("postgres", "mysql"))
+
+				// Verify database.version has dependsOn on database.engine and is properly constrained
+				dbVersionField := findFieldByPath(ci.Spec.Fields, "database.version")
+				Expect(dbVersionField).ToNot(BeNil())
+				Expect(dbVersionField.Editable).To(BeTrue())
+				Expect(dbVersionField.Default).To(Equal(three_tier_app_demo.DefaultDatabaseVersion))
+				Expect(dbVersionField.ValidationSchema).ToNot(BeNil())
+				Expect(dbVersionField.ValidationSchema["type"]).To(Equal("string"))
+				Expect(dbVersionField.DependsOn).ToNot(BeNil())
+				Expect(dbVersionField.DependsOn.Path).To(Equal("database.engine"))
+				Expect(dbVersionField.DependsOn.AllowedValues).To(HaveKey("postgres"))
+				Expect(dbVersionField.DependsOn.AllowedValues["postgres"]).To(ConsistOf("18", "17"))
+				Expect(dbVersionField.DependsOn.AllowedValues).To(HaveKey("mysql"))
+				Expect(dbVersionField.DependsOn.AllowedValues["mysql"]).To(ConsistOf("8.4", "8.3", "8"))
 
 				// Verify app.image and web.image fixed defaults
 				appImageField := findFieldByPath(ci.Spec.Fields, "app.image")
