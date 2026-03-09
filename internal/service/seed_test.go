@@ -66,71 +66,27 @@ var _ = Describe("Seed", func() {
 				Expect(ids).To(ConsistOf("three_tier_app_demo", "vm", "container", "database", "cluster"))
 			})
 
-			It("seeds vm service type with correct spec keys", func() {
-				ctx := context.Background()
+			DescribeTable("seeds service type with correct spec keys",
+				func(id string, expectedKeys []string) {
+					ctx := context.Background()
 
-				err := svc.Seed(ctx)
-				Expect(err).ToNot(HaveOccurred())
+					err := svc.Seed(ctx)
+					Expect(err).ToNot(HaveOccurred())
 
-				var st model.ServiceType
-				err = db.Where("id = ?", "vm").First(&st).Error
-				Expect(err).ToNot(HaveOccurred())
-				Expect(st.ServiceType).To(Equal("vm"))
-				Expect(st.Path).To(Equal("service-types/vm"))
-				Expect(st.Spec).To(HaveKey("vcpu"))
-				Expect(st.Spec).To(HaveKey("memory"))
-				Expect(st.Spec).To(HaveKey("storage"))
-				Expect(st.Spec).To(HaveKey("guest_os"))
-				Expect(st.Spec).To(HaveKey("access"))
-			})
-
-			It("seeds container service type with correct spec keys", func() {
-				ctx := context.Background()
-
-				err := svc.Seed(ctx)
-				Expect(err).ToNot(HaveOccurred())
-
-				var st model.ServiceType
-				err = db.Where("id = ?", "container").First(&st).Error
-				Expect(err).ToNot(HaveOccurred())
-				Expect(st.ServiceType).To(Equal("container"))
-				Expect(st.Path).To(Equal("service-types/container"))
-				Expect(st.Spec).To(HaveKey("image"))
-				Expect(st.Spec).To(HaveKey("resources"))
-				Expect(st.Spec).To(HaveKey("process"))
-				Expect(st.Spec).To(HaveKey("network"))
-			})
-
-			It("seeds database service type with correct spec keys", func() {
-				ctx := context.Background()
-
-				err := svc.Seed(ctx)
-				Expect(err).ToNot(HaveOccurred())
-
-				var st model.ServiceType
-				err = db.Where("id = ?", "database").First(&st).Error
-				Expect(err).ToNot(HaveOccurred())
-				Expect(st.ServiceType).To(Equal("database"))
-				Expect(st.Path).To(Equal("service-types/database"))
-				Expect(st.Spec).To(HaveKey("engine"))
-				Expect(st.Spec).To(HaveKey("version"))
-				Expect(st.Spec).To(HaveKey("resources"))
-			})
-
-			It("seeds cluster service type with correct spec keys", func() {
-				ctx := context.Background()
-
-				err := svc.Seed(ctx)
-				Expect(err).ToNot(HaveOccurred())
-
-				var st model.ServiceType
-				err = db.Where("id = ?", "cluster").First(&st).Error
-				Expect(err).ToNot(HaveOccurred())
-				Expect(st.ServiceType).To(Equal("cluster"))
-				Expect(st.Path).To(Equal("service-types/cluster"))
-				Expect(st.Spec).To(HaveKey("version"))
-				Expect(st.Spec).To(HaveKey("nodes"))
-			})
+					var st model.ServiceType
+					err = db.Where("id = ?", id).First(&st).Error
+					Expect(err).ToNot(HaveOccurred())
+					Expect(st.ServiceType).To(Equal(id))
+					Expect(st.Path).To(Equal("service-types/" + id))
+					for _, key := range expectedKeys {
+						Expect(st.Spec).To(HaveKey(key))
+					}
+				},
+				Entry("vm", "vm", []string{"vcpu", "memory", "storage", "guest_os", "access"}),
+				Entry("container", "container", []string{"image", "resources", "process", "network"}),
+				Entry("database", "database", []string{"engine", "version", "resources"}),
+				Entry("cluster", "cluster", []string{"version", "nodes"}),
+			)
 		})
 
 		Describe("Pet Clinic", func() {
