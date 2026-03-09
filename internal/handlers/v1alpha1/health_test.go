@@ -45,7 +45,7 @@ var _ = Describe("Health Handler", func() {
 	})
 
 	AfterEach(func() {
-		dataStore.Close()
+		_ = dataStore.Close()
 	})
 
 	Describe("GetHealth", func() {

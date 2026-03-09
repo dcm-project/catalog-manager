@@ -161,7 +161,6 @@ var _ = Describe("ServiceType Service", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(*retrieved.Uid).To(Equal(userID))
 			})
-
 		})
 
 		Context("with store errors", func() {

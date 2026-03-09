@@ -1,3 +1,4 @@
+// Package apiserver provides the HTTP server setup and lifecycle management.
 package apiserver
 
 import (

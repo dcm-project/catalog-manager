@@ -75,7 +75,7 @@ func (m *mockCatalogItemServiceWrapper) CatalogItemInstance() service.CatalogIte
 	return nil
 }
 
-func (m *mockCatalogItemServiceWrapper) Seed(ctx context.Context) error {
+func (m *mockCatalogItemServiceWrapper) Seed(_ context.Context) error {
 	return nil
 }
 
@@ -108,7 +108,7 @@ var _ = Describe("CatalogItem Handler", func() {
 		Context("with valid request", func() {
 			It("should create a catalog item and return 201", func() {
 				displayName := "Test Catalog Item"
-				mockCIService.createFunc = func(ctx context.Context, req *service.CreateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.createFunc = func(_ context.Context, req *service.CreateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
 					Expect(req.DisplayName).To(Equal(displayName))
 					Expect(req.ApiVersion).To(Equal("v1alpha1"))
 					Expect(*req.Spec.ServiceType).To(Equal(serviceTypeVM))
@@ -153,7 +153,7 @@ var _ = Describe("CatalogItem Handler", func() {
 			It("should handle optional ID query param", func() {
 				userID := "my-catalog-item"
 				displayName := "My Item"
-				mockCIService.createFunc = func(ctx context.Context, req *service.CreateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.createFunc = func(_ context.Context, req *service.CreateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
 					Expect(req.ID).ToNot(BeNil())
 					Expect(*req.ID).To(Equal(userID))
 					path := "catalog-items/" + userID
@@ -325,7 +325,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 		Context("with duplicate ID", func() {
 			It("should return 409 conflict", func() {
-				mockCIService.createFunc = func(ctx context.Context, req *service.CreateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.createFunc = func(_ context.Context, _ *service.CreateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
 					return nil, service.ErrCatalogItemIDTaken
 				}
 
@@ -352,7 +352,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 		Context("with service type not found", func() {
 			It("should return 400 bad request", func() {
-				mockCIService.createFunc = func(ctx context.Context, req *service.CreateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.createFunc = func(_ context.Context, _ *service.CreateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
 					return nil, service.ErrServiceTypeNotFound
 				}
 
@@ -381,7 +381,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 		Context("with service error", func() {
 			It("should return 500 internal server error", func() {
-				mockCIService.createFunc = func(ctx context.Context, req *service.CreateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.createFunc = func(_ context.Context, _ *service.CreateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
 					return nil, errors.New("database error")
 				}
 
@@ -410,7 +410,7 @@ var _ = Describe("CatalogItem Handler", func() {
 	Describe("ListCatalogItems", func() {
 		Context("with valid request", func() {
 			It("should list catalog items and return 200", func() {
-				mockCIService.listFunc = func(ctx context.Context, opts service.CatalogItemListOptions) (*service.CatalogItemListResult, error) {
+				mockCIService.listFunc = func(_ context.Context, _ service.CatalogItemListOptions) (*service.CatalogItemListResult, error) {
 					return &service.CatalogItemListResult{
 						CatalogItems: []v1alpha1API.CatalogItem{
 							{
@@ -438,7 +438,7 @@ var _ = Describe("CatalogItem Handler", func() {
 				pageToken := "token123"
 				pageSize := int32(10)
 				nextToken := "token123"
-				mockCIService.listFunc = func(ctx context.Context, opts service.CatalogItemListOptions) (*service.CatalogItemListResult, error) {
+				mockCIService.listFunc = func(_ context.Context, opts service.CatalogItemListOptions) (*service.CatalogItemListResult, error) {
 					Expect(opts.PageToken).To(Equal(&pageToken))
 					Expect(opts.MaxPageSize).To(Equal(&pageSize))
 					return &service.CatalogItemListResult{
@@ -461,7 +461,7 @@ var _ = Describe("CatalogItem Handler", func() {
 			})
 
 			It("should pass service type filter correctly", func() {
-				mockCIService.listFunc = func(ctx context.Context, opts service.CatalogItemListOptions) (*service.CatalogItemListResult, error) {
+				mockCIService.listFunc = func(_ context.Context, opts service.CatalogItemListOptions) (*service.CatalogItemListResult, error) {
 					Expect(opts.ServiceType).To(Equal(&serviceTypeVM))
 					return &service.CatalogItemListResult{
 						CatalogItems: []v1alpha1API.CatalogItem{},
@@ -482,7 +482,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 		Context("with service error", func() {
 			It("should return 500 internal server error", func() {
-				mockCIService.listFunc = func(ctx context.Context, opts service.CatalogItemListOptions) (*service.CatalogItemListResult, error) {
+				mockCIService.listFunc = func(_ context.Context, _ service.CatalogItemListOptions) (*service.CatalogItemListResult, error) {
 					return nil, errors.New("database error")
 				}
 
@@ -501,7 +501,7 @@ var _ = Describe("CatalogItem Handler", func() {
 	Describe("GetCatalogItem", func() {
 		Context("with valid request", func() {
 			It("should get a catalog item and return 200", func() {
-				mockCIService.getFunc = func(ctx context.Context, id string) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.getFunc = func(_ context.Context, id string) (*v1alpha1API.CatalogItem, error) {
 					Expect(id).To(Equal(testID))
 					return &v1alpha1API.CatalogItem{
 						Uid:         &testID,
@@ -529,7 +529,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 		Context("with not found error", func() {
 			It("should return 404 not found", func() {
-				mockCIService.getFunc = func(ctx context.Context, id string) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.getFunc = func(_ context.Context, _ string) (*v1alpha1API.CatalogItem, error) {
 					return nil, service.ErrCatalogItemNotFound
 				}
 
@@ -549,7 +549,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 		Context("with service error", func() {
 			It("should return 500 internal server error", func() {
-				mockCIService.getFunc = func(ctx context.Context, id string) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.getFunc = func(_ context.Context, _ string) (*v1alpha1API.CatalogItem, error) {
 					return nil, errors.New("database error")
 				}
 
@@ -572,7 +572,7 @@ var _ = Describe("CatalogItem Handler", func() {
 		Context("with valid update", func() {
 			It("should update catalog item and return 200", func() {
 				displayName := "Updated Name"
-				mockCIService.updateFunc = func(ctx context.Context, id string, req *service.UpdateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.updateFunc = func(_ context.Context, id string, req *service.UpdateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
 					Expect(id).To(Equal(testID))
 					Expect(req.DisplayName).ToNot(BeNil())
 					Expect(*req.DisplayName).To(Equal(displayName))
@@ -603,7 +603,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 			It("should update display_name only", func() {
 				displayName := "New Name"
-				mockCIService.updateFunc = func(ctx context.Context, id string, req *service.UpdateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.updateFunc = func(_ context.Context, _ string, req *service.UpdateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
 					Expect(req.DisplayName).ToNot(BeNil())
 					Expect(req.Spec).To(BeNil())
 					return &v1alpha1API.CatalogItem{
@@ -628,7 +628,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 		Context("with immutable field update attempt", func() {
 			It("should return 400 for immutable field", func() {
-				mockCIService.updateFunc = func(ctx context.Context, id string, req *service.UpdateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.updateFunc = func(_ context.Context, _ string, _ *service.UpdateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
 					return nil, service.ErrImmutableFieldUpdate
 				}
 
@@ -654,7 +654,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 		Context("with not found error", func() {
 			It("should return 404 not found", func() {
-				mockCIService.updateFunc = func(ctx context.Context, id string, req *service.UpdateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.updateFunc = func(_ context.Context, _ string, _ *service.UpdateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
 					return nil, service.ErrCatalogItemNotFound
 				}
 
@@ -677,7 +677,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 		Context("with service error", func() {
 			It("should return 500 internal server error", func() {
-				mockCIService.updateFunc = func(ctx context.Context, id string, req *service.UpdateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
+				mockCIService.updateFunc = func(_ context.Context, _ string, _ *service.UpdateCatalogItemRequest) (*v1alpha1API.CatalogItem, error) {
 					return nil, errors.New("database error")
 				}
 
@@ -702,7 +702,7 @@ var _ = Describe("CatalogItem Handler", func() {
 	Describe("DeleteCatalogItem", func() {
 		Context("with valid request", func() {
 			It("should delete catalog item and return 204", func() {
-				mockCIService.deleteFunc = func(ctx context.Context, id string) error {
+				mockCIService.deleteFunc = func(_ context.Context, id string) error {
 					Expect(id).To(Equal(testID))
 					return nil
 				}
@@ -719,7 +719,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 		Context("with not found error", func() {
 			It("should return 404 not found", func() {
-				mockCIService.deleteFunc = func(ctx context.Context, id string) error {
+				mockCIService.deleteFunc = func(_ context.Context, _ string) error {
 					return service.ErrCatalogItemNotFound
 				}
 
@@ -739,7 +739,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 		Context("with catalog item has instances", func() {
 			It("should return 409 conflict", func() {
-				mockCIService.deleteFunc = func(ctx context.Context, id string) error {
+				mockCIService.deleteFunc = func(_ context.Context, _ string) error {
 					return service.ErrCatalogItemHasInstances
 				}
 
@@ -760,7 +760,7 @@ var _ = Describe("CatalogItem Handler", func() {
 
 		Context("with service error", func() {
 			It("should return 500 internal server error", func() {
-				mockCIService.deleteFunc = func(ctx context.Context, id string) error {
+				mockCIService.deleteFunc = func(_ context.Context, _ string) error {
 					return errors.New("database error")
 				}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"os"
 	"os/signal"
 	"syscall"
 
@@ -16,16 +17,22 @@ import (
 )
 
 func main() {
+	os.Exit(run())
+}
+
+func run() int {
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
+		log.Printf("Failed to load configuration: %v", err)
+		return 1
 	}
 
 	// Initialize database
 	db, err := store.InitDB(cfg)
 	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+		log.Printf("Failed to initialize database: %v", err)
+		return 1
 	}
 
 	// Create store
@@ -39,7 +46,8 @@ func main() {
 	// Create Placement Manager client
 	pmClient, err := placement.NewClient(cfg.Placement.URL)
 	if err != nil {
-		log.Fatalf("Failed to create placement manager client: %v", err)
+		log.Printf("Failed to create placement manager client: %v", err)
+		return 1
 	}
 
 	// Create context with signal handling (used for seed and server)
@@ -51,20 +59,25 @@ func main() {
 
 	// Seed service types and default catalog items if empty
 	if err := svc.Seed(ctx); err != nil {
-		log.Fatalf("Failed to seed database: %v", err)
+		log.Printf("Failed to seed database: %v", err)
+		return 1
 	}
 
 	// Create TCP listener
 	listener, err := net.Listen("tcp", cfg.Service.BindAddress)
 	if err != nil {
-		log.Fatalf("Failed to create listener: %v", err)
+		log.Printf("Failed to create listener: %v", err)
+		return 1
 	}
-	defer listener.Close()
+	defer func() { _ = listener.Close() }()
 
 	srv := apiserver.New(cfg, listener, v1alpha1.NewHandler(svc))
 
 	// Run server
 	if err := srv.Run(ctx); err != nil {
-		log.Fatalf("Server failed: %v", err)
+		log.Printf("Server failed: %v", err)
+		return 1
 	}
+
+	return 0
 }

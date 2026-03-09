@@ -1,3 +1,4 @@
+// Package store provides database access for catalog resources.
 package store
 
 import (

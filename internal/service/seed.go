@@ -71,7 +71,8 @@ func petClinicFields() []model.FieldConfiguration {
 }
 
 func fieldConfig(path, displayName string, editable bool, defaultVal any,
-	validationSchema map[string]any, dependsOn *model.DependsOn) model.FieldConfiguration {
+	validationSchema map[string]any, dependsOn *model.DependsOn,
+) model.FieldConfiguration {
 	return model.FieldConfiguration{
 		Path:             path,
 		DisplayName:      displayName,

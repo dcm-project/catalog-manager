@@ -7,7 +7,7 @@ import (
 	"github.com/dcm-project/catalog-manager/internal/api/server"
 )
 
-func (h *Handler) GetHealth(ctx context.Context, request server.GetHealthRequestObject) (server.GetHealthResponseObject, error) {
+func (h *Handler) GetHealth(_ context.Context, _ server.GetHealthRequestObject) (server.GetHealthResponseObject, error) {
 	status := "healthy"
 	path := fmt.Sprintf("%shealth", apiPrefix)
 	return server.GetHealth200JSONResponse{

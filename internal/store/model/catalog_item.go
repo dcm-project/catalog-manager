@@ -1,3 +1,4 @@
+// Package model defines the database models for catalog resources.
 package model
 
 import (

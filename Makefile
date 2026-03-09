@@ -15,6 +15,9 @@ fmt:
 vet:
 	go vet ./...
 
+lint:
+	golangci-lint run ./...
+
 test:
 	go run github.com/onsi/ginkgo/v2/ginkgo -r --randomize-all --fail-on-pending
 
@@ -95,4 +98,4 @@ generate-service-types:
 		api/v1alpha1/servicetypes/three_tier_app_demo/spec.yaml
 	@echo "Service types generation complete!"
 
-.PHONY: build run clean fmt vet test tidy generate-types generate-spec generate-server generate-client generate-api check-generate-api check-aep generate-service-types
+.PHONY: build run clean fmt vet lint test tidy generate-types generate-spec generate-server generate-client generate-api check-generate-api check-aep generate-service-types

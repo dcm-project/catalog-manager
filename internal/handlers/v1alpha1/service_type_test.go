@@ -59,7 +59,7 @@ func (m *mockService) CatalogItemInstance() service.CatalogItemInstanceService {
 	return nil
 }
 
-func (m *mockService) Seed(ctx context.Context) error {
+func (m *mockService) Seed(_ context.Context) error {
 	return nil
 }
 
@@ -87,7 +87,7 @@ var _ = Describe("ServiceType Handler", func() {
 	Describe("CreateServiceType", func() {
 		Context("with valid request", func() {
 			It("should create a service type and return 201", func() {
-				mockSTService.createFunc = func(ctx context.Context, req *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
+				mockSTService.createFunc = func(_ context.Context, req *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
 					Expect(req.ServiceType).To(Equal("vm"))
 					Expect(req.ApiVersion).To(Equal("v1alpha1"))
 					return &v1alpha1API.ServiceType{
@@ -120,7 +120,7 @@ var _ = Describe("ServiceType Handler", func() {
 
 			It("should create a service type with user-provided ID", func() {
 				userID := "my-vm-type"
-				mockSTService.createFunc = func(ctx context.Context, req *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
+				mockSTService.createFunc = func(_ context.Context, req *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
 					Expect(req.ID).ToNot(BeNil())
 					Expect(*req.ID).To(Equal(userID))
 					path := "service-types/" + userID
@@ -153,7 +153,7 @@ var _ = Describe("ServiceType Handler", func() {
 
 		Context("with validation errors", func() {
 			It("should return 400 for invalid service type", func() {
-				mockSTService.createFunc = func(ctx context.Context, req *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
+				mockSTService.createFunc = func(_ context.Context, _ *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
 					return nil, service.ErrInvalidServiceType
 				}
 
@@ -173,12 +173,11 @@ var _ = Describe("ServiceType Handler", func() {
 				Expect(badRequest.Status).To(Equal(int32(400)))
 				Expect(badRequest.Type).To(Equal(v1alpha1API.INVALIDARGUMENT))
 			})
-
 		})
 
 		Context("with conflict errors", func() {
 			It("should return 409 for duplicate ID", func() {
-				mockSTService.createFunc = func(ctx context.Context, req *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
+				mockSTService.createFunc = func(_ context.Context, _ *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
 					return nil, service.ErrServiceTypeIDTaken
 				}
 
@@ -200,7 +199,7 @@ var _ = Describe("ServiceType Handler", func() {
 			})
 
 			It("should return 409 for duplicate service type name", func() {
-				mockSTService.createFunc = func(ctx context.Context, req *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
+				mockSTService.createFunc = func(_ context.Context, _ *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
 					return nil, service.ErrServiceTypeNameTaken
 				}
 
@@ -221,7 +220,7 @@ var _ = Describe("ServiceType Handler", func() {
 
 		Context("with unknown errors", func() {
 			It("should return 500 for unknown errors", func() {
-				mockSTService.createFunc = func(ctx context.Context, req *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
+				mockSTService.createFunc = func(_ context.Context, _ *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
 					return nil, errors.New("database connection failed")
 				}
 
@@ -247,7 +246,7 @@ var _ = Describe("ServiceType Handler", func() {
 	Describe("GetServiceType", func() {
 		Context("with valid request", func() {
 			It("should retrieve a service type and return 200", func() {
-				mockSTService.getFunc = func(ctx context.Context, id string) (*v1alpha1API.ServiceType, error) {
+				mockSTService.getFunc = func(_ context.Context, id string) (*v1alpha1API.ServiceType, error) {
 					Expect(id).To(Equal(testID))
 					return &v1alpha1API.ServiceType{
 						Uid:         &testID,
@@ -276,7 +275,7 @@ var _ = Describe("ServiceType Handler", func() {
 
 		Context("with not found error", func() {
 			It("should return 404 when service type does not exist", func() {
-				mockSTService.getFunc = func(ctx context.Context, id string) (*v1alpha1API.ServiceType, error) {
+				mockSTService.getFunc = func(_ context.Context, _ string) (*v1alpha1API.ServiceType, error) {
 					return nil, service.ErrServiceTypeNotFound
 				}
 
@@ -296,7 +295,7 @@ var _ = Describe("ServiceType Handler", func() {
 
 		Context("with unknown errors", func() {
 			It("should return 500 for unknown errors", func() {
-				mockSTService.getFunc = func(ctx context.Context, id string) (*v1alpha1API.ServiceType, error) {
+				mockSTService.getFunc = func(_ context.Context, _ string) (*v1alpha1API.ServiceType, error) {
 					return nil, errors.New("database connection failed")
 				}
 
@@ -317,7 +316,7 @@ var _ = Describe("ServiceType Handler", func() {
 	Describe("ListServiceTypes", func() {
 		Context("with valid request", func() {
 			It("should list service types and return 200", func() {
-				mockSTService.listFunc = func(ctx context.Context, opts *service.ServiceTypeListOptions) (*service.ServiceTypeListResult, error) {
+				mockSTService.listFunc = func(_ context.Context, _ *service.ServiceTypeListOptions) (*service.ServiceTypeListResult, error) {
 					id1 := "vm-type"
 					path1 := "service-types/vm-type"
 					id2 := "container-type"
@@ -364,7 +363,7 @@ var _ = Describe("ServiceType Handler", func() {
 
 			It("should handle empty list", func() {
 				nextPageToken := ""
-				mockSTService.listFunc = func(ctx context.Context, opts *service.ServiceTypeListOptions) (*service.ServiceTypeListResult, error) {
+				mockSTService.listFunc = func(_ context.Context, _ *service.ServiceTypeListOptions) (*service.ServiceTypeListResult, error) {
 					return &service.ServiceTypeListResult{
 						ServiceTypes:  []v1alpha1API.ServiceType{},
 						NextPageToken: &nextPageToken,
@@ -383,7 +382,7 @@ var _ = Describe("ServiceType Handler", func() {
 
 			It("should pass page token to service", func() {
 				token := "page-token-123"
-				mockSTService.listFunc = func(ctx context.Context, opts *service.ServiceTypeListOptions) (*service.ServiceTypeListResult, error) {
+				mockSTService.listFunc = func(_ context.Context, opts *service.ServiceTypeListOptions) (*service.ServiceTypeListResult, error) {
 					Expect(opts.PageToken).ToNot(BeNil())
 					Expect(*opts.PageToken).To(Equal(token))
 					nextPageToken := ""
@@ -405,7 +404,7 @@ var _ = Describe("ServiceType Handler", func() {
 
 		Context("with errors", func() {
 			It("should return 500 for unknown errors", func() {
-				mockSTService.listFunc = func(ctx context.Context, opts *service.ServiceTypeListOptions) (*service.ServiceTypeListResult, error) {
+				mockSTService.listFunc = func(_ context.Context, _ *service.ServiceTypeListOptions) (*service.ServiceTypeListResult, error) {
 					return nil, errors.New("database connection failed")
 				}
 

@@ -39,7 +39,7 @@ var _ = Describe("ServiceType Store", func() {
 	AfterEach(func() {
 		sqlDB, err := db.DB()
 		Expect(err).ToNot(HaveOccurred())
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	})
 
 	Describe("Create", func() {

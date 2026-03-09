@@ -51,7 +51,7 @@ var _ = Describe("Placement Client", func() {
 
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusCreated)
-					json.NewEncoder(w).Encode(map[string]any{
+					_ = json.NewEncoder(w).Encode(map[string]any{
 						"id":                       "pm-resource-id",
 						"path":                     "resources/pm-resource-id",
 						"catalog_item_instance_id": "instance-123",
@@ -80,7 +80,7 @@ var _ = Describe("Placement Client", func() {
 
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusCreated)
-					json.NewEncoder(w).Encode(map[string]any{
+					_ = json.NewEncoder(w).Encode(map[string]any{
 						"id":                       "auto-generated-id",
 						"path":                     "resources/auto-generated-id",
 						"catalog_item_instance_id": "instance-456",
@@ -103,10 +103,10 @@ var _ = Describe("Placement Client", func() {
 
 		Context("when the server returns an error", func() {
 			BeforeEach(func() {
-				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte(`{"title": "internal error", "type": "internal"}`))
+					_, _ = w.Write([]byte(`{"title": "internal error", "type": "internal"}`))
 				}))
 				client = newTestClient(server.URL)
 			})
@@ -141,10 +141,10 @@ var _ = Describe("Placement Client", func() {
 
 		Context("when the resource is not found", func() {
 			BeforeEach(func() {
-				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusNotFound)
-					w.Write([]byte(`{"title": "not found", "type": "not_found"}`))
+					_, _ = w.Write([]byte(`{"title": "not found", "type": "not_found"}`))
 				}))
 				client = newTestClient(server.URL)
 			})
@@ -157,10 +157,10 @@ var _ = Describe("Placement Client", func() {
 
 		Context("when the server returns an error", func() {
 			BeforeEach(func() {
-				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte(`{"title": "internal error", "type": "internal"}`))
+					_, _ = w.Write([]byte(`{"title": "internal error", "type": "internal"}`))
 				}))
 				client = newTestClient(server.URL)
 			})

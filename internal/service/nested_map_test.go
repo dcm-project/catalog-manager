@@ -64,7 +64,7 @@ var _ = Describe("Nested Map Utilities", func() {
 		It("gets a boolean value", func() {
 			val, err := getNestedValue(m, "enabled")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(val).To(Equal(true))
+			Expect(val).To(BeTrue())
 		})
 
 		It("gets a nested map value", func() {
@@ -164,14 +164,14 @@ var _ = Describe("Nested Map Utilities", func() {
 				err := setNestedValue(m, "spec.gpu.enabled", true)
 				Expect(err).ToNot(HaveOccurred())
 				gpu := m["gpu"].(map[string]any)
-				Expect(gpu["enabled"]).To(Equal(true))
+				Expect(gpu["enabled"]).To(BeTrue())
 			})
 
 			It("sets a false boolean value", func() {
 				err := setNestedValue(m, "spec.gpu.enabled", false)
 				Expect(err).ToNot(HaveOccurred())
 				gpu := m["gpu"].(map[string]any)
-				Expect(gpu["enabled"]).To(Equal(false))
+				Expect(gpu["enabled"]).To(BeFalse())
 			})
 
 			It("sets a float64 value", func() {
@@ -215,7 +215,7 @@ var _ = Describe("Nested Map Utilities", func() {
 				Expect(vcpu).To(HaveLen(3))
 				Expect(vcpu["count"]).To(Equal(4))
 				Expect(vcpu["frequency_ghz"]).To(Equal(3.2))
-				Expect(vcpu["hyperthreading"]).To(Equal(true))
+				Expect(vcpu["hyperthreading"]).To(BeTrue())
 			})
 
 			It("sets fields across different subtrees", func() {
@@ -225,7 +225,7 @@ var _ = Describe("Nested Map Utilities", func() {
 
 				Expect(m["vcpu"].(map[string]any)["count"]).To(Equal(8))
 				Expect(m["memory"].(map[string]any)["size_gb"]).To(Equal(32.0))
-				Expect(m["gpu"].(map[string]any)["enabled"]).To(Equal(false))
+				Expect(m["gpu"].(map[string]any)["enabled"]).To(BeFalse())
 			})
 		})
 
@@ -271,5 +271,4 @@ var _ = Describe("Nested Map Utilities", func() {
 			Expect(m["name"]).To(Equal("my-instance"))
 		})
 	})
-
 })
