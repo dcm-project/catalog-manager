@@ -832,10 +832,13 @@ components:
           description: JSON path of the field this one depends on (e.g., region).
         allowed_values:
           type: object
-          additionalProperties: true
+          additionalProperties:
+            type: array
+            items: {}
           description: |
+            Map from source field value (string key K) to options for this field.
             If the field at path equals key K, this field's options are at allowed_values[K].
-            Values may be strings (default) or arrays (selectable options).
+            Type is map[string][]any: keys are strings, values are arrays of any (e.g. strings or objects).
 
     CatalogItemInstance:
       type: object

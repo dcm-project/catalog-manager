@@ -93,6 +93,11 @@ func (s *catalogItemService) Create(ctx context.Context, req *CreateCatalogItemR
 	// Convert to store model
 	storeModel := catalogItemToStoreModel(id, path, req)
 
+	// Validate: no cyclic depends_on references among fields
+	if err := validateFieldDependsOnCycles(storeModel.Spec.Fields); err != nil {
+		return nil, err
+	}
+
 	// Call store layer
 	createdModel, err := s.store.CatalogItem().Create(ctx, storeModel)
 	if err != nil {
@@ -131,6 +136,11 @@ func (s *catalogItemService) Update(ctx context.Context, id string, req *UpdateC
 		return nil, err
 	}
 
+	// Validate: no cyclic depends_on references among fields
+	if err := validateFieldDependsOnCycles(updated.Spec.Fields); err != nil {
+		return nil, err
+	}
+
 	// Call store layer (it only updates display_name and spec)
 	err = s.store.CatalogItem().Update(ctx, updated)
 	if err != nil {
@@ -165,22 +175,7 @@ func mergeCatalogItem(existing *model.CatalogItem, req *UpdateCatalogItemRequest
 		var fields []model.FieldConfiguration
 		if req.Spec.Fields != nil {
 			// Convert API spec to model spec
-			fields = make([]model.FieldConfiguration, len(*req.Spec.Fields))
-			for i, f := range *req.Spec.Fields {
-				fields[i] = model.FieldConfiguration{
-					Path:    f.Path,
-					Default: f.Default,
-				}
-				if f.DisplayName != nil {
-					fields[i].DisplayName = *f.DisplayName
-				}
-				if f.Editable != nil && *f.Editable {
-					fields[i].Editable = true
-				}
-				if f.ValidationSchema != nil {
-					fields[i].ValidationSchema = *f.ValidationSchema
-				}
-			}
+			fields = FieldConfigurationsToModel(*req.Spec.Fields)
 		}
 		merged.Spec = model.CatalogItemSpec{
 			ServiceType: existing.Spec.ServiceType,
@@ -188,6 +183,65 @@ func mergeCatalogItem(existing *model.CatalogItem, req *UpdateCatalogItemRequest
 		}
 	}
 	return &merged, nil
+}
+
+// validateFieldDependsOnCycles checks that every depends_on path references an existing
+// field and that there are no cyclic depends_on references. It builds a directed graph
+// (field path → depends_on path) and performs DFS-based cycle detection.
+func validateFieldDependsOnCycles(fields []model.FieldConfiguration) error {
+	knownPaths := make(map[string]bool)
+	for _, f := range fields {
+		knownPaths[f.Path] = true
+	}
+
+	// Build adjacency: field path → source path it depends on
+	edges := make(map[string]string)
+	for _, f := range fields {
+		if f.DependsOn != nil {
+			depPath := f.DependsOn.Path
+			if !knownPaths[depPath] {
+				return fmt.Errorf("%w: field %s depends_on path %q not found in fields", ErrDependsOnPathNotFound, f.Path, depPath)
+			}
+			edges[f.Path] = depPath
+		}
+	}
+
+	if len(edges) == 0 {
+		return nil
+	}
+
+	// DFS cycle detection
+	const (
+		unvisited = 0
+		visiting  = 1
+		visited   = 2
+	)
+	state := make(map[string]int)
+
+	var visit func(path string) error
+	visit = func(path string) error {
+		if state[path] == visited {
+			return nil
+		}
+		if state[path] == visiting {
+			return fmt.Errorf("%w: cycle involving %s", ErrDependsOnCycleDetected, path)
+		}
+		state[path] = visiting
+		if dep, ok := edges[path]; ok {
+			if err := visit(dep); err != nil {
+				return err
+			}
+		}
+		state[path] = visited
+		return nil
+	}
+
+	for path := range edges {
+		if err := visit(path); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Delete deletes a catalog item by ID

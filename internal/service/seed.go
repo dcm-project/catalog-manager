@@ -59,9 +59,9 @@ func petClinicFields() []model.FieldConfiguration {
 			map[string]any{"type": "string", "enum": []any{"postgres", "mysql"}}, nil),
 		fieldConfig("database.version", "Database version", true,
 			three_tier_app_demo.DefaultDatabaseVersion,
-			map[string]any{"type": "string"}, dependsOn("database.engine", map[string]any{
-				"postgres": []any{three_tier_app_demo.DefaultDatabaseVersion, "17"},
-				"mysql":    []any{"8.4", "8.3", "8"},
+			map[string]any{"type": "string"}, dependsOn("database.engine", map[string][]any{
+				"postgres": {three_tier_app_demo.DefaultDatabaseVersion, "17"},
+				"mysql":    {"8.4", "8.3", "8"},
 			})),
 		fieldConfig("app.image", "App image", false,
 			"docker.io/springcommunity/spring-framework-petclinic:6.1.2", nil, nil),
@@ -82,6 +82,6 @@ func fieldConfig(path, displayName string, editable bool, defaultVal any,
 	}
 }
 
-func dependsOn(path string, allowedValues map[string]any) *model.DependsOn {
+func dependsOn(path string, allowedValues map[string][]any) *model.DependsOn {
 	return &model.DependsOn{Path: path, AllowedValues: allowedValues}
 }

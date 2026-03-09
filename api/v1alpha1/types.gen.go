@@ -229,9 +229,10 @@ type FieldConfiguration struct {
 // - For editable fields: allowedValues[K] is the array of options when source has K.
 // Resolved client-side based on user selections.
 type FieldConfigurationDependsOn struct {
-	// AllowedValues If the field at path equals key K, this field's options are at allowed_values[K].
-	// Values may be strings (default) or arrays (selectable options).
-	AllowedValues map[string]interface{} `json:"allowed_values"`
+	// AllowedValues Map from source field value (string key K) to options for this field.
+	// If the field at path equals key K, this field's options are at allowed_values[K].
+	// Type is map[string][]any: keys are strings, values are arrays of any (e.g. strings or objects).
+	AllowedValues map[string][]interface{} `json:"allowed_values"`
 
 	// Path JSON path of the field this one depends on (e.g., region).
 	Path string `json:"path"`

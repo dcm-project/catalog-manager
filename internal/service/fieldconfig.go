@@ -1,6 +1,8 @@
 package service
 
 import (
+	"maps"
+
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/store/model"
 )
@@ -25,17 +27,11 @@ func fieldConfigurationToModel(f v1alpha1.FieldConfiguration) model.FieldConfigu
 	var vs map[string]any
 	if f.ValidationSchema != nil {
 		vs = make(map[string]any)
-		for k, v := range *f.ValidationSchema {
-			vs[k] = v
-		}
+		maps.Copy(vs, *f.ValidationSchema)
 	}
 	var dep *model.DependsOn
 	if f.DependsOn != nil {
-		av := make(map[string]any)
-		for k, v := range f.DependsOn.AllowedValues {
-			av[k] = v
-		}
-		dep = &model.DependsOn{Path: f.DependsOn.Path, AllowedValues: av}
+		dep = dependsOnAPIToModel(f.DependsOn)
 	}
 	return model.FieldConfiguration{
 		Path:             f.Path,
@@ -45,6 +41,12 @@ func fieldConfigurationToModel(f v1alpha1.FieldConfiguration) model.FieldConfigu
 		ValidationSchema: vs,
 		DependsOn:        dep,
 	}
+}
+
+func dependsOnAPIToModel(d *v1alpha1.FieldConfigurationDependsOn) *model.DependsOn {
+	av := make(map[string][]any)
+	maps.Copy(av, d.AllowedValues)
+	return &model.DependsOn{Path: d.Path, AllowedValues: av}
 }
 
 // FieldConfigurationsFromModel converts store field configurations to API types.
@@ -74,17 +76,13 @@ func fieldConfigurationFromModel(f model.FieldConfiguration) v1alpha1.FieldConfi
 		out.Editable = &editable
 	}
 	if f.ValidationSchema != nil {
-		vs := make(map[string]interface{})
-		for k, v := range f.ValidationSchema {
-			vs[k] = v
-		}
+		vs := make(map[string]any)
+		maps.Copy(vs, f.ValidationSchema)
 		out.ValidationSchema = &vs
 	}
 	if f.DependsOn != nil {
-		av := make(map[string]interface{})
-		for k, v := range f.DependsOn.AllowedValues {
-			av[k] = v
-		}
+		av := make(map[string][]any)
+		maps.Copy(av, f.DependsOn.AllowedValues)
 		out.DependsOn = &v1alpha1.FieldConfigurationDependsOn{Path: f.DependsOn.Path, AllowedValues: av}
 	}
 	return out

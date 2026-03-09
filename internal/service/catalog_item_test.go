@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -397,6 +398,221 @@ var _ = Describe("CatalogItem Service", func() {
 				Expect(err).To(Equal(service.ErrCatalogItemNotFound))
 				Expect(result).To(BeNil())
 			})
+		})
+	})
+
+	Describe("Create with cyclic depends_on", func() {
+		It("should reject fields with cyclic depends_on references", func() {
+			editable := true
+			req := &service.CreateCatalogItemRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Cyclic DependsOn",
+				Spec: v1alpha1.CatalogItemSpec{
+					ServiceType: &serviceTypeVM,
+					Fields: &[]v1alpha1.FieldConfiguration{
+						{
+							Path:     "spec.vcpu.count",
+							Default:  float64(2),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.memory.size_gb",
+								AllowedValues: map[string][]any{
+									"4": {float64(2), float64(4)},
+								},
+							},
+						},
+						{
+							Path:     "spec.memory.size_gb",
+							Default:  float64(4),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.vcpu.count",
+								AllowedValues: map[string][]any{
+									"2": {float64(4), float64(8)},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItem().Create(ctx, req)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cycle"))
+			Expect(result).To(BeNil())
+		})
+
+		It("should reject a three-field cycle (A -> B -> C -> A)", func() {
+			editable := true
+			req := &service.CreateCatalogItemRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Three-Field Cycle",
+				Spec: v1alpha1.CatalogItemSpec{
+					ServiceType: &serviceTypeVM,
+					Fields: &[]v1alpha1.FieldConfiguration{
+						{
+							Path:     "spec.vcpu.count",
+							Default:  float64(2),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.memory.size_gb",
+								AllowedValues: map[string][]any{
+									"4": {float64(2), float64(4)},
+								},
+							},
+						},
+						{
+							Path:     "spec.memory.size_gb",
+							Default:  float64(4),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.disk.size_gb",
+								AllowedValues: map[string][]any{
+									"100": {float64(4), float64(8)},
+								},
+							},
+						},
+						{
+							Path:     "spec.disk.size_gb",
+							Default:  float64(100),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.vcpu.count",
+								AllowedValues: map[string][]any{
+									"2": {float64(100), float64(200)},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItem().Create(ctx, req)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cycle"))
+			Expect(result).To(BeNil())
+		})
+
+		It("should accept fields without cyclic depends_on references", func() {
+			editable := true
+			req := &service.CreateCatalogItemRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Valid DependsOn",
+				Spec: v1alpha1.CatalogItemSpec{
+					ServiceType: &serviceTypeVM,
+					Fields: &[]v1alpha1.FieldConfiguration{
+						{
+							Path:     "spec.vcpu.count",
+							Default:  float64(2),
+							Editable: &editable,
+						},
+						{
+							Path:     "spec.memory.size_gb",
+							Default:  float64(4),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.vcpu.count",
+								AllowedValues: map[string][]any{
+									"2": {float64(4), float64(8)},
+									"4": {float64(8), float64(16)},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItem().Create(ctx, req)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).ToNot(BeNil())
+		})
+	})
+
+	Describe("Create with invalid depends_on path", func() {
+		It("should reject when depends_on path does not reference an existing field", func() {
+			editable := true
+			req := &service.CreateCatalogItemRequest{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Invalid DependsOn Path",
+				Spec: v1alpha1.CatalogItemSpec{
+					ServiceType: &serviceTypeVM,
+					Fields: &[]v1alpha1.FieldConfiguration{
+						{
+							Path:     "spec.memory.size_gb",
+							Default:  float64(4),
+							Editable: &editable,
+							DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+								Path: "spec.region",
+								AllowedValues: map[string][]any{
+									"us-central1": {float64(4), float64(8)},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItem().Create(ctx, req)
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, service.ErrDependsOnPathNotFound)).To(BeTrue())
+			Expect(err.Error()).To(ContainSubstring("spec.region"))
+			Expect(err.Error()).To(ContainSubstring("not found"))
+			Expect(result).To(BeNil())
+		})
+	})
+
+	Describe("Update with cyclic depends_on", func() {
+		It("should reject update that introduces cyclic depends_on", func() {
+			id := "item-cycle-update"
+			editable := true
+			_, err := svc.CatalogItem().Create(ctx, &service.CreateCatalogItemRequest{
+				ID:          &id,
+				ApiVersion:  "v1alpha1",
+				DisplayName: "No Cycle",
+				Spec: v1alpha1.CatalogItemSpec{
+					ServiceType: &serviceTypeVM,
+					Fields: &[]v1alpha1.FieldConfiguration{
+						{Path: "spec.vcpu.count", Default: float64(2), Editable: &editable},
+						{Path: "spec.memory.size_gb", Default: float64(4), Editable: &editable},
+					},
+				},
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			updateSpec := &v1alpha1.CatalogItemSpec{
+				ServiceType: &serviceTypeVM,
+				Fields: &[]v1alpha1.FieldConfiguration{
+					{
+						Path:     "spec.vcpu.count",
+						Default:  float64(2),
+						Editable: &editable,
+						DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+							Path: "spec.memory.size_gb",
+							AllowedValues: map[string][]any{
+								"4": {float64(2), float64(4)},
+							},
+						},
+					},
+					{
+						Path:     "spec.memory.size_gb",
+						Default:  float64(4),
+						Editable: &editable,
+						DependsOn: &v1alpha1.FieldConfigurationDependsOn{
+							Path: "spec.vcpu.count",
+							AllowedValues: map[string][]any{
+								"2": {float64(4), float64(8)},
+							},
+						},
+					},
+				},
+			}
+
+			result, err := svc.CatalogItem().Update(ctx, id, &service.UpdateCatalogItemRequest{
+				Spec: updateSpec,
+			})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("cycle"))
+			Expect(result).To(BeNil())
 		})
 	})
 

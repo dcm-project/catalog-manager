@@ -22,6 +22,92 @@ var _ = Describe("Nested Map Utilities", func() {
 		})
 	})
 
+	Describe("getNestedValue", func() {
+		var m map[string]any
+
+		BeforeEach(func() {
+			m = map[string]any{
+				"vcpu":   map[string]any{"count": float64(4), "frequency_ghz": 3.2},
+				"memory": map[string]any{"size_gb": float64(16)},
+				"metadata": map[string]any{
+					"labels": map[string]any{"tier": "premium", "region": "us-east"},
+				},
+				"name":    "my-instance",
+				"enabled": true,
+			}
+		})
+
+		It("gets value at top level", func() {
+			val, err := getNestedValue(m, "name")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(val).To(Equal("my-instance"))
+		})
+
+		It("gets value at nested path", func() {
+			val, err := getNestedValue(m, "spec.vcpu.count")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(val).To(Equal(float64(4)))
+		})
+
+		It("gets deeply nested value", func() {
+			val, err := getNestedValue(m, "spec.metadata.labels.tier")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(val).To(Equal("premium"))
+		})
+
+		It("works without spec prefix", func() {
+			val, err := getNestedValue(m, "vcpu.frequency_ghz")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(val).To(Equal(3.2))
+		})
+
+		It("gets a boolean value", func() {
+			val, err := getNestedValue(m, "enabled")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(val).To(Equal(true))
+		})
+
+		It("gets a nested map value", func() {
+			val, err := getNestedValue(m, "spec.metadata.labels")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(val).To(Equal(map[string]any{"tier": "premium", "region": "us-east"}))
+		})
+
+		It("returns error for empty path", func() {
+			_, err := getNestedValue(m, "")
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("returns error for bare spec. prefix", func() {
+			_, err := getNestedValue(m, "spec.")
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("returns error when leaf key does not exist", func() {
+			_, err := getNestedValue(m, "spec.vcpu.threads")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not found"))
+		})
+
+		It("returns error when intermediate key does not exist", func() {
+			_, err := getNestedValue(m, "spec.network.bandwidth")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not found"))
+		})
+
+		It("returns error when intermediate is not a map", func() {
+			_, err := getNestedValue(m, "spec.vcpu.count.something")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not a map"))
+		})
+
+		It("returns error when deeply nested intermediate is not a map", func() {
+			_, err := getNestedValue(m, "spec.metadata.labels.tier.sub")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not a map"))
+		})
+	})
+
 	Describe("setNestedValue", func() {
 		var m map[string]any
 

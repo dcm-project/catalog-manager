@@ -39,8 +39,10 @@ func mapCreateCatalogItemErrorToHTTP(err error) server.CreateCatalogItemResponse
 				Detail: stringPtr(err.Error()),
 			},
 		}
-	case errors.Is(err, service.ErrServiceTypeNotFound):
-		// Service type not found -> 400 Bad Request
+	case errors.Is(err, service.ErrServiceTypeNotFound),
+		errors.Is(err, service.ErrDependsOnCycleDetected),
+		errors.Is(err, service.ErrDependsOnPathNotFound):
+		// Validation errors -> 400 Bad Request
 		return server.CreateCatalogItem400JSONResponse(v1alpha1.Error{
 			Type:   v1alpha1.INVALIDARGUMENT,
 			Status: 400,
@@ -89,7 +91,9 @@ func mapGetCatalogItemErrorToHTTP(err error) server.GetCatalogItemResponseObject
 // mapUpdateCatalogItemErrorToHTTP converts service domain errors to UpdateCatalogItem HTTP responses
 func mapUpdateCatalogItemErrorToHTTP(err error) server.UpdateCatalogItemResponseObject {
 	switch {
-	case errors.Is(err, service.ErrImmutableFieldUpdate):
+	case errors.Is(err, service.ErrImmutableFieldUpdate),
+		errors.Is(err, service.ErrDependsOnCycleDetected),
+		errors.Is(err, service.ErrDependsOnPathNotFound):
 		// Validation errors -> 400 Bad Request
 		return server.UpdateCatalogItem400JSONResponse(v1alpha1.Error{
 			Type:   v1alpha1.INVALIDARGUMENT,

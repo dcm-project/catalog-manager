@@ -35,7 +35,8 @@ func mapCreateCatalogItemInstanceErrorToHTTP(err error) server.CreateCatalogItem
 	case errors.Is(err, service.ErrCatalogItemNotFoundForInstance),
 		errors.Is(err, service.ErrUserValuePathNotFound),
 		errors.Is(err, service.ErrUserValueNotEditable),
-		errors.Is(err, service.ErrUserValueValidationFailed):
+		errors.Is(err, service.ErrUserValueValidationFailed),
+		errors.Is(err, service.ErrUserValueDependsOnViolation):
 		return server.CreateCatalogItemInstance400JSONResponse(v1alpha1.Error{
 			Type:   v1alpha1.INVALIDARGUMENT,
 			Status: 400,
