@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"log/slog"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -34,8 +35,8 @@ var _ = Describe("SpecBuilder (via CatalogItemInstance Create)", func() {
 		Expect(err).ToNot(HaveOccurred())
 		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{}, &model.CatalogItemInstance{})
 		Expect(err).ToNot(HaveOccurred())
-		str = store.NewStore(db)
-		svc = service.NewService(str, nil)
+		str = store.NewStore(db, slog.Default())
+		svc = service.NewService(str, nil, slog.Default())
 
 		// Seed ServiceType with a rich spec
 		ensureServiceTypeWithSpec(ctx, str, "vm-spec-builder", "vm-sb", map[string]any{

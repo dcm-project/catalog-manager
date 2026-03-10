@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -92,7 +93,7 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 		testPath = "catalog-item-instances/" + testID
 		mockCIIService = &mockCatalogItemInstanceService{}
 		mockSvc = &mockCatalogItemInstanceServiceWrapper{catalogItemInstanceService: mockCIIService}
-		handler = v1alpha1.NewHandler(mockSvc)
+		handler = v1alpha1.NewHandler(mockSvc, slog.Default())
 	})
 
 	Describe("CreateCatalogItemInstance", func() {

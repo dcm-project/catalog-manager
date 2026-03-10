@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/store"
@@ -46,12 +47,13 @@ type CatalogItemService interface {
 }
 
 type catalogItemService struct {
-	store store.Store
+	store  store.Store
+	logger *slog.Logger
 }
 
 // newCatalogItemService creates a new CatalogItemService instance
-func newCatalogItemService(store store.Store) CatalogItemService {
-	return &catalogItemService{store: store}
+func newCatalogItemService(store store.Store, logger *slog.Logger) CatalogItemService {
+	return &catalogItemService{store: store, logger: logger}
 }
 
 // List returns a paginated list of catalog items
@@ -95,15 +97,18 @@ func (s *catalogItemService) Create(ctx context.Context, req *CreateCatalogItemR
 
 	// Validate: no cyclic depends_on references among fields
 	if err := validateFieldDependsOnCycles(storeModel.Spec.Fields); err != nil {
+		s.logger.WarnContext(ctx, "Catalog item field depends_on validation failed", "id", id, "error", err)
 		return nil, err
 	}
 
 	// Call store layer
 	createdModel, err := s.store.CatalogItem().Create(ctx, storeModel)
 	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to create catalog item in store", "id", id, "error", err)
 		return nil, mapCatalogItemStoreError(err)
 	}
 
+	s.logger.InfoContext(ctx, "Catalog item created", "id", id)
 	// Convert result back to API type
 	apiType := catalogItemToAPIType(createdModel)
 	return &apiType, nil
@@ -133,17 +138,20 @@ func (s *catalogItemService) Update(ctx context.Context, id string, req *UpdateC
 	// Build updated model starting from existing
 	updated, err := mergeCatalogItem(existing, req)
 	if err != nil {
+		s.logger.WarnContext(ctx, "Catalog item merge validation failed", "id", id, "error", err)
 		return nil, err
 	}
 
 	// Validate: no cyclic depends_on references among fields
 	if err := validateFieldDependsOnCycles(updated.Spec.Fields); err != nil {
+		s.logger.WarnContext(ctx, "Catalog item field depends_on validation failed on update", "id", id, "error", err)
 		return nil, err
 	}
 
 	// Call store layer (it only updates display_name and spec)
 	err = s.store.CatalogItem().Update(ctx, updated)
 	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to update catalog item in store", "id", id, "error", err)
 		return nil, mapCatalogItemStoreError(err)
 	}
 
@@ -153,6 +161,7 @@ func (s *catalogItemService) Update(ctx context.Context, id string, req *UpdateC
 		return nil, mapCatalogItemStoreError(err)
 	}
 
+	s.logger.InfoContext(ctx, "Catalog item updated", "id", id)
 	// Convert result back to API type
 	apiType := catalogItemToAPIType(updatedModel)
 	return &apiType, nil
@@ -248,7 +257,9 @@ func validateFieldDependsOnCycles(fields []model.FieldConfiguration) error {
 func (s *catalogItemService) Delete(ctx context.Context, id string) error {
 	err := s.store.CatalogItem().Delete(ctx, id)
 	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to delete catalog item", "id", id, "error", err)
 		return mapCatalogItemStoreError(err)
 	}
+	s.logger.InfoContext(ctx, "Catalog item deleted", "id", id)
 	return nil
 }

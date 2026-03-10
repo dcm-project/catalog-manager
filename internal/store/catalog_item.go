@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"strconv"
 	"strings"
 
@@ -47,12 +47,13 @@ type CatalogItemStore interface {
 }
 
 type catalogItemStore struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *slog.Logger
 }
 
 // NewCatalogItemStore creates a new CatalogItem store
-func NewCatalogItemStore(db *gorm.DB) CatalogItemStore {
-	return &catalogItemStore{db: db}
+func NewCatalogItemStore(db *gorm.DB, logger *slog.Logger) CatalogItemStore {
+	return &catalogItemStore{db: db, logger: logger}
 }
 
 // List returns a paginated list of catalog items
@@ -212,7 +213,7 @@ func (s *catalogItemStore) SeedIfEmpty(ctx context.Context, items []model.Catalo
 			inserted += result.RowsAffected
 		}
 		if inserted > 0 {
-			log.Printf("Seeded %d default catalog item(s)", inserted)
+			s.logger.InfoContext(ctx, "Seeded default catalog items", "count", inserted)
 		}
 		return nil
 	})

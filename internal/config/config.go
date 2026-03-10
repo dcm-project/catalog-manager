@@ -6,6 +6,7 @@ import "github.com/kelseyhightower/envconfig"
 // ServiceConfig holds HTTP server configuration
 type ServiceConfig struct {
 	BindAddress string `envconfig:"BIND_ADDRESS" default:"0.0.0.0:8080"`
+	LogLevel    string `envconfig:"LOG_LEVEL" default:"info"`
 }
 
 // DBConfig holds database configuration

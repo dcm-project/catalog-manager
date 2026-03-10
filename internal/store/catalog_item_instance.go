@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 
@@ -43,13 +44,15 @@ type CatalogItemInstanceStore interface {
 	Update(ctx context.Context, catalogItemInstance *model.CatalogItemInstance) (*model.CatalogItemInstance, error)
 	Delete(ctx context.Context, id string) error
 }
+
 type catalogItemInstanceStore struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *slog.Logger
 }
 
 // NewCatalogItemInstanceStore creates a new CatalogItemInstance store
-func NewCatalogItemInstanceStore(db *gorm.DB) CatalogItemInstanceStore {
-	return &catalogItemInstanceStore{db: db}
+func NewCatalogItemInstanceStore(db *gorm.DB, logger *slog.Logger) CatalogItemInstanceStore {
+	return &catalogItemInstanceStore{db: db, logger: logger}
 }
 
 // List returns a paginated list of catalog item instances

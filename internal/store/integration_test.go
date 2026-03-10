@@ -2,6 +2,7 @@ package store_test
 
 import (
 	"context"
+	"log/slog"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -37,9 +38,9 @@ var _ = Describe("Foreign Key Constraint Integration Tests", func() {
 		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{}, &model.CatalogItemInstance{})
 		Expect(err).ToNot(HaveOccurred())
 
-		serviceTypeStore = store.NewServiceTypeStore(db)
-		catalogItemStore = store.NewCatalogItemStore(db)
-		catalogItemInstanceStore = store.NewCatalogItemInstanceStore(db)
+		serviceTypeStore = store.NewServiceTypeStore(db, slog.Default())
+		catalogItemStore = store.NewCatalogItemStore(db, slog.Default())
+		catalogItemInstanceStore = store.NewCatalogItemInstanceStore(db, slog.Default())
 	})
 
 	AfterEach(func() {

@@ -3,6 +3,7 @@ package service_test
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -36,8 +37,8 @@ var _ = Describe("Seed", func() {
 		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{})
 		Expect(err).ToNot(HaveOccurred())
 
-		dataStore = store.NewStore(db)
-		svc = service.NewService(dataStore, nil)
+		dataStore = store.NewStore(db, slog.Default())
+		svc = service.NewService(dataStore, nil, slog.Default())
 	})
 
 	AfterEach(func() {

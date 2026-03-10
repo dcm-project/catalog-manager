@@ -3,6 +3,7 @@ package store_test
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -33,7 +34,7 @@ var _ = Describe("ServiceType Store", func() {
 		err = db.AutoMigrate(&model.ServiceType{})
 		Expect(err).ToNot(HaveOccurred())
 
-		serviceTypeStore = store.NewServiceTypeStore(db)
+		serviceTypeStore = store.NewServiceTypeStore(db, slog.Default())
 	})
 
 	AfterEach(func() {

@@ -3,6 +3,7 @@ package service
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/dcm-project/catalog-manager/internal/placement"
 	"github.com/dcm-project/catalog-manager/internal/store"
@@ -20,18 +21,21 @@ type Service interface {
 // service is the implementation of the Service interface
 type service struct {
 	store                      store.Store
+	logger                     *slog.Logger
 	serviceTypeService         ServiceTypeService
 	catalogItemService         CatalogItemService
 	catalogItemInstanceService CatalogItemInstanceService
 }
 
 // NewService creates a new Service instance
-func NewService(store store.Store, pmClient placement.Client) Service {
+func NewService(store store.Store, pmClient placement.Client, logger *slog.Logger) Service {
+	svcLogger := logger.With("component", "service")
 	return &service{
 		store:                      store,
-		serviceTypeService:         newServiceTypeService(store),
-		catalogItemService:         newCatalogItemService(store),
-		catalogItemInstanceService: newCatalogItemInstanceService(store, pmClient),
+		logger:                     svcLogger,
+		serviceTypeService:         newServiceTypeService(store, svcLogger),
+		catalogItemService:         newCatalogItemService(store, svcLogger),
+		catalogItemInstanceService: newCatalogItemInstanceService(store, pmClient, svcLogger),
 	}
 }
 

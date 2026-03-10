@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
-	"log"
+	"log/slog"
 	"strconv"
 	"strings"
 
@@ -44,12 +44,13 @@ type ServiceTypeStore interface {
 }
 
 type serviceTypeStore struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *slog.Logger
 }
 
 // NewServiceTypeStore creates a new ServiceType store
-func NewServiceTypeStore(db *gorm.DB) ServiceTypeStore {
-	return &serviceTypeStore{db: db}
+func NewServiceTypeStore(db *gorm.DB, logger *slog.Logger) ServiceTypeStore {
+	return &serviceTypeStore{db: db, logger: logger}
 }
 
 // List returns a paginated list of service types
@@ -184,7 +185,7 @@ func (s *serviceTypeStore) SeedIfEmpty(ctx context.Context, items []model.Servic
 			inserted += result.RowsAffected
 		}
 		if inserted > 0 {
-			log.Printf("Seeded %d default service type(s)", inserted)
+			s.logger.InfoContext(ctx, "Seeded default service types", "count", inserted)
 		}
 		return nil
 	})
