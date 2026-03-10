@@ -47,6 +47,48 @@ var _ = Describe("Seed", func() {
 	})
 
 	Describe("Seed", func() {
+		Describe("Service Types", func() {
+			It("seeds all service types", func() {
+				ctx := context.Background()
+
+				err := svc.Seed(ctx)
+				Expect(err).ToNot(HaveOccurred())
+
+				var serviceTypes []model.ServiceType
+				err = db.Find(&serviceTypes).Error
+				Expect(err).ToNot(HaveOccurred())
+				Expect(serviceTypes).To(HaveLen(5))
+
+				ids := make([]string, len(serviceTypes))
+				for i, st := range serviceTypes {
+					ids[i] = st.ID
+				}
+				Expect(ids).To(ConsistOf("three_tier_app_demo", "vm", "container", "database", "cluster"))
+			})
+
+			DescribeTable("seeds service type with correct spec keys",
+				func(id string, expectedKeys []string) {
+					ctx := context.Background()
+
+					err := svc.Seed(ctx)
+					Expect(err).ToNot(HaveOccurred())
+
+					var st model.ServiceType
+					err = db.Where("id = ?", id).First(&st).Error
+					Expect(err).ToNot(HaveOccurred())
+					Expect(st.ServiceType).To(Equal(id))
+					Expect(st.Path).To(Equal("service-types/" + id))
+					for _, key := range expectedKeys {
+						Expect(st.Spec).To(HaveKey(key))
+					}
+				},
+				Entry("vm", "vm", []string{"vcpu", "memory", "storage", "guest_os", "access"}),
+				Entry("container", "container", []string{"image", "resources", "process", "network"}),
+				Entry("database", "database", []string{"engine", "version", "resources"}),
+				Entry("cluster", "cluster", []string{"version", "nodes"}),
+			)
+		})
+
 		Describe("Pet Clinic", func() {
 			It("is idempotent when called multiple times", func() {
 				ctx := context.Background()

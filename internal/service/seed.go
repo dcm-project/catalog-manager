@@ -3,7 +3,11 @@ package service
 import (
 	"context"
 
+	"github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes/cluster"
+	"github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes/container"
+	"github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes/database"
 	"github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes/three_tier_app_demo"
+	"github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes/vm"
 	"github.com/dcm-project/catalog-manager/internal/store/model"
 )
 
@@ -28,6 +32,52 @@ func defaultServiceTypes() []model.ServiceType {
 				"web":      three_tier_app_demo.WebTier{Image: "", Network: emptyNetwork},
 			},
 			Path: "service-types/three_tier_app_demo",
+		},
+		{
+			ID:          "vm",
+			ApiVersion:  "v1alpha1",
+			ServiceType: "vm",
+			Spec: map[string]any{
+				"vcpu":     vm.Vcpu{},
+				"memory":   vm.Memory{},
+				"storage":  vm.Storage{},
+				"guest_os": vm.GuestOS{},
+				"access":   vm.Access{},
+			},
+			Path: "service-types/vm",
+		},
+		{
+			ID:          "container",
+			ApiVersion:  "v1alpha1",
+			ServiceType: "container",
+			Spec: map[string]any{
+				"image":     container.Image{},
+				"resources": container.ContainerResources{},
+				"process":   container.Process{},
+				"network":   container.Network{},
+			},
+			Path: "service-types/container",
+		},
+		{
+			ID:          "database",
+			ApiVersion:  "v1alpha1",
+			ServiceType: "database",
+			Spec: map[string]any{
+				"engine":    "",
+				"version":   "",
+				"resources": database.DatabaseResources{},
+			},
+			Path: "service-types/database",
+		},
+		{
+			ID:          "cluster",
+			ApiVersion:  "v1alpha1",
+			ServiceType: "cluster",
+			Spec: map[string]any{
+				"version": "",
+				"nodes":   cluster.Nodes{},
+			},
+			Path: "service-types/cluster",
 		},
 	}
 }
