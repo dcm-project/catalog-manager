@@ -114,9 +114,13 @@ omitted, a UUID is generated automatically.
   CatalogItem creation.
 - **Foreign Key Constraints** — Database-level referential integrity
   (ServiceType → CatalogItem → CatalogItemInstance) with `RESTRICT` on delete.
-- **Spec Construction** — On instance creation, the service resolves ServiceType
-  → CatalogItem → applies defaults → applies user values → validates against
-  JSON Schema.
+- **Spec Construction** — On instance creation, the spec builder resolves the
+  full reference chain: looks up the CatalogItem, resolves its ServiceType, then
+  deep-copies the ServiceType spec as a base template. It applies CatalogItem
+  field defaults, then overlays user-provided values — validating that each
+  targets a known, editable field and passes its JSON Schema constraint.
+  Finally, it validates `depends_on` constraints against the fully assembled
+  spec.
 
 ## Getting Started
 
