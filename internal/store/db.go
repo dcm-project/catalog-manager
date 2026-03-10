@@ -34,15 +34,16 @@ func InitDB(cfg *config.Config, slogger *slog.Logger) (*gorm.DB, error) {
 
 	// Configure GORM logger to respect the application's configured log level.
 	// Map slog levels to GORM log levels so DB logging follows LOG_LEVEL.
-	gormLogLevel := logger.Warn
-	slogBridgeLevel := slog.LevelWarn
-	if slogger.Handler().Enabled(context.Background(), slog.LevelDebug) {
+	var gormLogLevel logger.LogLevel
+	var slogBridgeLevel slog.Level
+	switch {
+	case slogger.Handler().Enabled(context.Background(), slog.LevelDebug):
 		gormLogLevel = logger.Info // GORM Info = log all queries
 		slogBridgeLevel = slog.LevelDebug
-	} else if slogger.Handler().Enabled(context.Background(), slog.LevelInfo) {
+	case slogger.Handler().Enabled(context.Background(), slog.LevelInfo):
 		gormLogLevel = logger.Warn // slow queries + errors
 		slogBridgeLevel = slog.LevelWarn
-	} else {
+	default:
 		gormLogLevel = logger.Error // errors only
 		slogBridgeLevel = slog.LevelError
 	}
