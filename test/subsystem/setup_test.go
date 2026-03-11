@@ -106,24 +106,7 @@ func verifyPMCreateResourceCalled(expectedCount int) {
 }
 
 func verifyPMDeleteResourceCalled(expectedCount int) {
-	body := map[string]any{
-		"method":       "DELETE",
-		"urlPathPattern": "/api/v1alpha1/resources/.*",
-	}
-	data, err := json.Marshal(body)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-
-	req, err := http.NewRequest(http.MethodPost, wireMockURL+"/__admin/requests/count", bytes.NewReader(data))
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := httpClient.Do(req)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	defer resp.Body.Close()
-
-	var result map[string]any
-	ExpectWithOffset(1, json.NewDecoder(resp.Body).Decode(&result)).To(Succeed())
-	ExpectWithOffset(1, int(result["count"].(float64))).To(Equal(expectedCount))
+	verifyWireMockRequestCount("DELETE", "/api/v1alpha1/resources/.*", expectedCount)
 }
 
 func verifyWireMockRequestCount(method, urlPattern string, expectedCount int) {
