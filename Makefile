@@ -1,4 +1,9 @@
 BINARY_NAME := catalog-manager
+# COMPOSE: compose command. Set to override; otherwise auto-detect podman-compose or docker-compose.
+COMPOSE ?= $(shell command -v podman-compose >/dev/null 2>&1 && echo podman-compose || \
+	(command -v docker-compose >/dev/null 2>&1 && echo docker-compose || \
+	(echo "docker compose")))
+
 
 build:
 	go build -o bin/$(BINARY_NAME) ./cmd/$(BINARY_NAME)
@@ -19,7 +24,7 @@ lint:
 	golangci-lint run ./...
 
 test:
-	go run github.com/onsi/ginkgo/v2/ginkgo -r --randomize-all --fail-on-pending
+	go run github.com/onsi/ginkgo/v2/ginkgo -r --randomize-all --fail-on-pending --skip-package=test/subsystem
 
 tidy:
 	go mod tidy
@@ -98,4 +103,15 @@ generate-service-types:
 		api/v1alpha1/servicetypes/three_tier_app_demo/spec.yaml
 	@echo "Service types generation complete!"
 
-.PHONY: build run clean fmt vet lint test tidy generate-types generate-spec generate-server generate-client generate-api check-generate-api check-aep generate-service-types
+subsystem-test-up:
+	$(COMPOSE) -f test/subsystem/docker-compose.yaml up -d --build
+
+subsystem-test-down:
+	$(COMPOSE) -f test/subsystem/docker-compose.yaml down -v
+
+subsystem-test:
+	go run github.com/onsi/ginkgo/v2/ginkgo -r --randomize-all --fail-on-pending -tags=subsystem ./test/subsystem
+
+subsystem-test-full: subsystem-test-up subsystem-test subsystem-test-down
+
+.PHONY: build run clean fmt vet lint test tidy generate-types generate-spec generate-server generate-client generate-api check-generate-api check-aep generate-service-types subsystem-test-up subsystem-test-down subsystem-test subsystem-test-full
