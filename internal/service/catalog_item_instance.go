@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/placement"
@@ -42,14 +43,16 @@ type catalogItemInstanceService struct {
 	store       store.Store
 	specBuilder *specBuilder
 	pmClient    placement.Client
+	logger      *slog.Logger
 }
 
 // newCatalogItemInstanceService creates a new CatalogItemInstanceService instance
-func newCatalogItemInstanceService(store store.Store, pmClient placement.Client) CatalogItemInstanceService {
+func newCatalogItemInstanceService(store store.Store, pmClient placement.Client, logger *slog.Logger) CatalogItemInstanceService {
 	return &catalogItemInstanceService{
 		store:       store,
 		specBuilder: newSpecBuilder(store),
 		pmClient:    pmClient,
+		logger:      logger,
 	}
 }
 
@@ -92,6 +95,11 @@ func (s *catalogItemInstanceService) Create(ctx context.Context, req *CreateCata
 	// Build resource spec (resolves reference chain and validates user_values)
 	resourceSpec, err := s.specBuilder.BuildResourceSpec(ctx, req.Spec.CatalogItemId, req.Spec.UserValues)
 	if err != nil {
+		s.logger.WarnContext(ctx, "Failed to build resource spec",
+			"id", id,
+			"catalog_item_id", req.Spec.CatalogItemId,
+			"error", err,
+		)
 		return nil, err
 	}
 
@@ -99,22 +107,29 @@ func (s *catalogItemInstanceService) Create(ctx context.Context, req *CreateCata
 	storeModel := catalogItemInstanceToStoreModel(id, path, req)
 	createdModel, err := s.store.CatalogItemInstance().Create(ctx, storeModel)
 	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to create catalog item instance in store", "id", id, "error", err)
 		return nil, mapCatalogItemInstanceStoreError(err)
 	}
 
 	// Call Placement Manager — only after DB validation passes
 	if s.pmClient != nil {
+		s.logger.DebugContext(ctx, "Calling placement manager to create resource", "id", id)
 		_, err := s.pmClient.CreateResource(ctx, placement.CreateResourceRequest{
 			CatalogItemInstanceID: id,
 			Spec:                  resourceSpec,
 		}, id)
 		if err != nil {
+			s.logger.ErrorContext(ctx, "Placement manager create failed, rolling back",
+				"id", id,
+				"error", err,
+			)
 			// Rollback: delete DB record
 			_ = s.store.CatalogItemInstance().Delete(ctx, id)
 			return nil, fmt.Errorf("%w: %s", ErrPlacementManagerCreateFailed, err.Error())
 		}
 	}
 
+	s.logger.InfoContext(ctx, "Catalog item instance created", "id", id, "catalog_item_id", req.Spec.CatalogItemId)
 	// Convert result back to API type
 	apiType := catalogItemInstanceToAPIType(createdModel)
 	return &apiType, nil
@@ -143,7 +158,9 @@ func (s *catalogItemInstanceService) Delete(ctx context.Context, id string) erro
 
 	// Delete PM resource (PM resource ID is the catalog item instance id)
 	if s.pmClient != nil {
+		s.logger.DebugContext(ctx, "Calling placement manager to delete resource", "id", id)
 		if err := s.pmClient.DeleteResource(ctx, id); err != nil {
+			s.logger.ErrorContext(ctx, "Placement manager delete failed", "id", id, "error", err)
 			return fmt.Errorf("%w: %s", ErrPlacementManagerDeleteFailed, err.Error())
 		}
 	}
@@ -151,7 +168,10 @@ func (s *catalogItemInstanceService) Delete(ctx context.Context, id string) erro
 	// Delete local record
 	err = s.store.CatalogItemInstance().Delete(ctx, id)
 	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to delete catalog item instance from store", "id", id, "error", err)
 		return mapCatalogItemInstanceStoreError(err)
 	}
+
+	s.logger.InfoContext(ctx, "Catalog item instance deleted", "id", id)
 	return nil
 }

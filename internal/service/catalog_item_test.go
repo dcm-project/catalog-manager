@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -53,8 +54,8 @@ var _ = Describe("CatalogItem Service", func() {
 		Expect(err).ToNot(HaveOccurred())
 		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{})
 		Expect(err).ToNot(HaveOccurred())
-		str = store.NewStore(db)
-		svc = service.NewService(str, nil)
+		str = store.NewStore(db, slog.Default())
+		svc = service.NewService(str, nil, slog.Default())
 		// Ensure service types exist for catalog item FK
 		ensureServiceType(ctx, str, "vm-st", "vm")
 		ensureServiceType(ctx, str, "container-st", "container")

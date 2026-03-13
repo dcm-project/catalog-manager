@@ -2,6 +2,7 @@ package v1alpha1_test
 
 import (
 	"context"
+	"log/slog"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -39,9 +40,9 @@ var _ = Describe("Health Handler", func() {
 		)
 		Expect(err).ToNot(HaveOccurred())
 
-		dataStore = store.NewStore(db)
-		svc := service.NewService(dataStore, nil)
-		handler = v1alpha1.NewHandler(svc)
+		dataStore = store.NewStore(db, slog.Default())
+		svc := service.NewService(dataStore, nil, slog.Default())
+		handler = v1alpha1.NewHandler(svc, slog.Default())
 	})
 
 	AfterEach(func() {

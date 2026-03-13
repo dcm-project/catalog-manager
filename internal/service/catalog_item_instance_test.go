@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -112,9 +113,9 @@ var _ = Describe("CatalogItemInstance Service", func() {
 		Expect(err).ToNot(HaveOccurred())
 		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{}, &model.CatalogItemInstance{})
 		Expect(err).ToNot(HaveOccurred())
-		str = store.NewStore(db)
+		str = store.NewStore(db, slog.Default())
 		mockPM = &mockPMClient{}
-		svc = service.NewService(str, mockPM)
+		svc = service.NewService(str, mockPM, slog.Default())
 		// Ensure prerequisites with specs
 		ensureServiceTypeWithSpec(ctx, str, "vm-st", "vm", map[string]any{
 			"vcpu":   map[string]any{"count": float64(2)},
@@ -567,9 +568,9 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 		Expect(err).ToNot(HaveOccurred())
 		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{}, &model.CatalogItemInstance{})
 		Expect(err).ToNot(HaveOccurred())
-		str = store.NewStore(db)
+		str = store.NewStore(db, slog.Default())
 		mockPM = &mockPMClient{}
-		svc = service.NewService(str, mockPM)
+		svc = service.NewService(str, mockPM, slog.Default())
 		// Ensure prerequisites
 		ensureServiceTypeWithSpec(ctx, str, "vm-st", "vm", map[string]any{
 			"vcpu":   map[string]any{"count": float64(2)},

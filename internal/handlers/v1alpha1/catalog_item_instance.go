@@ -9,6 +9,8 @@ import (
 )
 
 func (h *Handler) ListCatalogItemInstances(ctx context.Context, request server.ListCatalogItemInstancesRequestObject) (server.ListCatalogItemInstancesResponseObject, error) {
+	h.logger.DebugContext(ctx, "Listing catalog item instances")
+
 	// Build service request from HTTP params
 	opts := service.CatalogItemInstanceListOptions{
 		PageToken:     request.Params.PageToken,
@@ -19,6 +21,7 @@ func (h *Handler) ListCatalogItemInstances(ctx context.Context, request server.L
 	// Call service layer
 	result, err := h.service.CatalogItemInstance().List(ctx, opts)
 	if err != nil {
+		h.logger.ErrorContext(ctx, "Failed to list catalog item instances", "error", err)
 		return server.ListCatalogItemInstances500JSONResponse{
 			InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
 				Type:   v1alpha1.INTERNAL,
@@ -28,6 +31,8 @@ func (h *Handler) ListCatalogItemInstances(ctx context.Context, request server.L
 			},
 		}, nil
 	}
+
+	h.logger.DebugContext(ctx, "Listed catalog item instances", "count", len(result.CatalogItemInstances))
 
 	// Return HTTP response
 	response := server.ListCatalogItemInstances200JSONResponse(v1alpha1.CatalogItemInstanceList{
@@ -40,9 +45,15 @@ func (h *Handler) ListCatalogItemInstances(ctx context.Context, request server.L
 }
 
 func (h *Handler) CreateCatalogItemInstance(ctx context.Context, request server.CreateCatalogItemInstanceRequestObject) (server.CreateCatalogItemInstanceResponseObject, error) {
+	h.logger.InfoContext(ctx, "Creating catalog item instance",
+		"id", request.Params.Id,
+		"catalog_item_id", request.Body.Spec.CatalogItemId,
+	)
+
 	// Validate and build service request
 	req, err := validateAndBuildCreateCatalogItemInstanceRequest(request)
 	if err != nil {
+		h.logger.WarnContext(ctx, "Invalid create catalog item instance request", "error", err)
 		return server.CreateCatalogItemInstance400JSONResponse(v1alpha1.Error{
 			Type:   v1alpha1.INVALIDARGUMENT,
 			Status: 400,
@@ -54,8 +65,11 @@ func (h *Handler) CreateCatalogItemInstance(ctx context.Context, request server.
 	// Call service layer
 	result, err := h.service.CatalogItemInstance().Create(ctx, req)
 	if err != nil {
+		h.logServiceError(ctx, "Failed to create catalog item instance", err)
 		return mapCreateCatalogItemInstanceErrorToHTTP(err), nil
 	}
+
+	h.logger.InfoContext(ctx, "Created catalog item instance", "id", request.Params.Id)
 
 	// Return HTTP response
 	return server.CreateCatalogItemInstance201JSONResponse(*result), nil
@@ -74,9 +88,12 @@ func validateAndBuildCreateCatalogItemInstanceRequest(request server.CreateCatal
 }
 
 func (h *Handler) GetCatalogItemInstance(ctx context.Context, request server.GetCatalogItemInstanceRequestObject) (server.GetCatalogItemInstanceResponseObject, error) {
+	h.logger.DebugContext(ctx, "Getting catalog item instance", "id", request.CatalogItemInstanceId)
+
 	// Call service layer
 	result, err := h.service.CatalogItemInstance().Get(ctx, request.CatalogItemInstanceId)
 	if err != nil {
+		h.logServiceError(ctx, "Failed to get catalog item instance", err, "id", request.CatalogItemInstanceId)
 		return mapGetCatalogItemInstanceErrorToHTTP(err), nil
 	}
 
@@ -85,11 +102,16 @@ func (h *Handler) GetCatalogItemInstance(ctx context.Context, request server.Get
 }
 
 func (h *Handler) DeleteCatalogItemInstance(ctx context.Context, request server.DeleteCatalogItemInstanceRequestObject) (server.DeleteCatalogItemInstanceResponseObject, error) {
+	h.logger.InfoContext(ctx, "Deleting catalog item instance", "id", request.CatalogItemInstanceId)
+
 	// Call service layer
 	err := h.service.CatalogItemInstance().Delete(ctx, request.CatalogItemInstanceId)
 	if err != nil {
+		h.logServiceError(ctx, "Failed to delete catalog item instance", err, "id", request.CatalogItemInstanceId)
 		return mapDeleteCatalogItemInstanceErrorToHTTP(err), nil
 	}
+
+	h.logger.InfoContext(ctx, "Deleted catalog item instance", "id", request.CatalogItemInstanceId)
 
 	// Return HTTP 204 No Content response
 	return server.DeleteCatalogItemInstance204Response{}, nil

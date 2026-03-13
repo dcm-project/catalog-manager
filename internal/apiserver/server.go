@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"time"
@@ -13,6 +13,7 @@ import (
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/api/server"
 	"github.com/dcm-project/catalog-manager/internal/config"
+	"github.com/dcm-project/catalog-manager/internal/logging"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -25,19 +26,21 @@ type Server struct {
 	config   *config.Config
 	listener net.Listener
 	handler  server.StrictServerInterface
+	logger   *slog.Logger
 }
 
-func New(cfg *config.Config, listener net.Listener, handler server.StrictServerInterface) *Server {
+func New(cfg *config.Config, listener net.Listener, handler server.StrictServerInterface, logger *slog.Logger) *Server {
 	return &Server{
 		config:   cfg,
 		listener: listener,
 		handler:  handler,
+		logger:   logger.With("component", "apiserver"),
 	}
 }
 
 func (s *Server) Run(ctx context.Context) error {
 	router := chi.NewRouter()
-	router.Use(middleware.Logger)
+	router.Use(logging.Middleware(s.logger))
 	router.Use(middleware.Recoverer)
 
 	swagger, err := v1alpha1.GetSwagger()
@@ -73,15 +76,15 @@ func (s *Server) Run(ctx context.Context) error {
 		ctxTimeout, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
 		defer cancel()
 		srv.SetKeepAlivesEnabled(false)
-		log.Println("Shutting down server...")
+		s.logger.Info("Shutting down server")
 		_ = srv.Shutdown(ctxTimeout)
 	}()
 
-	log.Printf("Starting server on %s", s.listener.Addr())
+	s.logger.Info("Starting server", "address", s.listener.Addr().String())
 	if err := srv.Serve(s.listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
 
-	log.Println("Server stopped")
+	s.logger.Info("Server stopped")
 	return nil
 }

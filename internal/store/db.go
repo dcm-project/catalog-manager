@@ -1,8 +1,9 @@
 package store
 
 import (
+	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/dcm-project/catalog-manager/internal/config"
@@ -14,7 +15,7 @@ import (
 )
 
 // InitDB initializes the database connection and performs auto-migration
-func InitDB(cfg *config.Config) (*gorm.DB, error) {
+func InitDB(cfg *config.Config, slogger *slog.Logger) (*gorm.DB, error) {
 	var dialector gorm.Dialector
 
 	// Select database dialect based on configuration
@@ -31,12 +32,27 @@ func InitDB(cfg *config.Config) (*gorm.DB, error) {
 		dialector = sqlite.Open(cfg.Database.Name)
 	}
 
-	// Configure GORM logger
+	// Configure GORM logger to respect the application's configured log level.
+	// Map slog levels to GORM log levels so DB logging follows LOG_LEVEL.
+	var gormLogLevel logger.LogLevel
+	var slogBridgeLevel slog.Level
+	switch {
+	case slogger.Handler().Enabled(context.Background(), slog.LevelDebug):
+		gormLogLevel = logger.Info // GORM Info = log all queries
+		slogBridgeLevel = slog.LevelDebug
+	case slogger.Handler().Enabled(context.Background(), slog.LevelInfo):
+		gormLogLevel = logger.Warn // slow queries + errors
+		slogBridgeLevel = slog.LevelWarn
+	default:
+		gormLogLevel = logger.Error // errors only
+		slogBridgeLevel = slog.LevelError
+	}
+
 	gormLogger := logger.New(
-		log.Default(),
+		slog.NewLogLogger(slogger.Handler(), slogBridgeLevel),
 		logger.Config{
 			SlowThreshold:             time.Second,
-			LogLevel:                  logger.Warn,
+			LogLevel:                  gormLogLevel,
 			IgnoreRecordNotFoundError: true,
 			Colorful:                  false,
 		},
@@ -65,6 +81,8 @@ func InitDB(cfg *config.Config) (*gorm.DB, error) {
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
 
+	slogger.Info("Database connection established", "type", cfg.Database.Type)
+
 	// Auto-migrate all models
 	if err := db.AutoMigrate(
 		&model.ServiceType{},
@@ -73,6 +91,8 @@ func InitDB(cfg *config.Config) (*gorm.DB, error) {
 	); err != nil {
 		return nil, fmt.Errorf("failed to auto-migrate database schema: %w", err)
 	}
+
+	slogger.Info("Database schema migrated")
 
 	return db, nil
 }

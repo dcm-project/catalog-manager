@@ -3,6 +3,7 @@ package placement_test
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 
@@ -15,7 +16,7 @@ import (
 )
 
 func newTestClient(serverURL string) placement.Client {
-	client, err := placement.NewClient(serverURL, pmclient.WithHTTPClient(http.DefaultClient))
+	client, err := placement.NewClient(serverURL, slog.Default(), pmclient.WithHTTPClient(http.DefaultClient))
 	Expect(err).ToNot(HaveOccurred())
 	return client
 }

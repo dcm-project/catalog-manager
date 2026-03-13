@@ -3,6 +3,7 @@ package v1alpha1_test
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -81,7 +82,7 @@ var _ = Describe("ServiceType Handler", func() {
 		testPath = "service-types/" + testID
 		mockSTService = &mockServiceTypeService{}
 		mockSvc = &mockService{serviceTypeService: mockSTService}
-		handler = v1alpha1.NewHandler(mockSvc)
+		handler = v1alpha1.NewHandler(mockSvc, slog.Default())
 	})
 
 	Describe("CreateServiceType", func() {

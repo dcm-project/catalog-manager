@@ -2,6 +2,8 @@
 package store
 
 import (
+	"log/slog"
+
 	"gorm.io/gorm"
 )
 
@@ -22,12 +24,13 @@ type DataStore struct {
 }
 
 // NewStore creates a new DataStore
-func NewStore(db *gorm.DB) Store {
+func NewStore(db *gorm.DB, logger *slog.Logger) Store {
+	storeLogger := logger.With("component", "store")
 	return &DataStore{
 		db:                  db,
-		serviceType:         NewServiceTypeStore(db),
-		catalogItem:         NewCatalogItemStore(db),
-		catalogItemInstance: NewCatalogItemInstanceStore(db),
+		serviceType:         NewServiceTypeStore(db, storeLogger),
+		catalogItem:         NewCatalogItemStore(db, storeLogger),
+		catalogItemInstance: NewCatalogItemInstanceStore(db, storeLogger),
 	}
 }
 

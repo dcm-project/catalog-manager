@@ -3,6 +3,7 @@ package store_test
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -41,9 +42,9 @@ var _ = Describe("CatalogItemInstance Store", func() {
 		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{}, &model.CatalogItemInstance{})
 		Expect(err).ToNot(HaveOccurred())
 
-		catalogItemInstanceStore = store.NewCatalogItemInstanceStore(db)
-		catalogItemStore = store.NewCatalogItemStore(db)
-		serviceTypeStore = store.NewServiceTypeStore(db)
+		catalogItemInstanceStore = store.NewCatalogItemInstanceStore(db, slog.Default())
+		catalogItemStore = store.NewCatalogItemStore(db, slog.Default())
+		serviceTypeStore = store.NewServiceTypeStore(db, slog.Default())
 
 		// Helper function to create prerequisite ServiceTypes
 		createTestServiceType = func(id, serviceType string) {

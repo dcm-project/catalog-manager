@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/store"
@@ -47,12 +48,13 @@ type ServiceTypeService interface {
 }
 
 type serviceTypeService struct {
-	store store.Store
+	store  store.Store
+	logger *slog.Logger
 }
 
 // newServiceTypeService creates a new ServiceTypeService instance
-func newServiceTypeService(store store.Store) ServiceTypeService {
-	return &serviceTypeService{store: store}
+func newServiceTypeService(store store.Store, logger *slog.Logger) ServiceTypeService {
+	return &serviceTypeService{store: store, logger: logger}
 }
 
 // List returns a paginated list of service types
@@ -94,6 +96,7 @@ func (s *serviceTypeService) List(ctx context.Context, opts *ServiceTypeListOpti
 func (s *serviceTypeService) Create(ctx context.Context, req *CreateServiceTypeRequest) (*v1alpha1.ServiceType, error) {
 	// Validate service type (must be one of the allowed values)
 	if !allowedServiceTypes[req.ServiceType] {
+		s.logger.WarnContext(ctx, "Invalid service type value", "service_type", req.ServiceType)
 		return nil, ErrInvalidServiceType
 	}
 
@@ -109,9 +112,11 @@ func (s *serviceTypeService) Create(ctx context.Context, req *CreateServiceTypeR
 	// Call store layer
 	createdModel, err := s.store.ServiceType().Create(ctx, storeModel)
 	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to create service type in store", "id", id, "error", err)
 		return nil, mapStoreError(err)
 	}
 
+	s.logger.InfoContext(ctx, "Service type created", "id", id, "service_type", req.ServiceType)
 	// Convert result back to API type
 	apiType := toAPIType(createdModel)
 	return &apiType, nil
