@@ -49,6 +49,9 @@ func (b *specBuilder) BuildResourceSpec(ctx context.Context, catalogItemId strin
 		return nil, fmt.Errorf("failed to copy service type spec: %w", err)
 	}
 
+	// 3.1. Set service_type from the ServiceType instance
+	specMap["service_type"] = serviceType.ServiceType
+
 	// 4. Build a lookup map of CatalogItem fields by path
 	fieldsByPath := make(map[string]model.FieldConfiguration)
 	for _, field := range catalogItem.Spec.Fields {

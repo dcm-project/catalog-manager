@@ -347,3 +347,317 @@ var _ = Describe("SpecBuilder (via CatalogItemInstance Create)", func() {
 		})
 	})
 })
+
+var _ = Describe("BuildResourceSpec (direct)", func() {
+	var (
+		ctx     context.Context
+		db      *gorm.DB
+		str     store.Store
+		builder *service.SpecBuilder
+	)
+
+	BeforeEach(func() {
+		ctx = context.Background()
+		var err error
+		db, err = gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
+			Logger: logger.Discard,
+		})
+		Expect(err).ToNot(HaveOccurred())
+		err = db.Exec("PRAGMA foreign_keys = ON").Error
+		Expect(err).ToNot(HaveOccurred())
+		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{}, &model.CatalogItemInstance{})
+		Expect(err).ToNot(HaveOccurred())
+		str = store.NewStore(db, slog.Default())
+		builder = service.NewSpecBuilderForTest(str)
+
+		ensureServiceTypeWithSpec(ctx, str, "vm-direct", "vm-d", map[string]any{
+			"vcpu":   map[string]any{"count": float64(1)},
+			"memory": map[string]any{"size_gb": float64(2)},
+			"disk":   map[string]any{"size_gb": float64(50)},
+		})
+	})
+
+	AfterEach(func() {
+		if str != nil {
+			Expect(str.Close()).To(Succeed())
+		}
+	})
+
+	Describe("spec construction", func() {
+		It("should return error when catalog item does not exist", func() {
+			_, err := builder.BuildResourceSpec(ctx, "nonexistent", nil)
+			Expect(err).To(MatchError(service.ErrCatalogItemNotFoundForInstance))
+		})
+
+		It("should return the ServiceType spec with defaults applied when no user values given", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-defaults", "vm-d", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(4), Editable: true},
+				{Path: "spec.memory.size_gb", Default: float64(8), Editable: false},
+			})
+
+			result, err := builder.BuildResourceSpec(ctx, "ci-direct-defaults", nil)
+			Expect(err).ToNot(HaveOccurred())
+
+			vcpu := result["vcpu"].(map[string]any)
+			memory := result["memory"].(map[string]any)
+			disk := result["disk"].(map[string]any)
+
+			Expect(vcpu["count"]).To(BeNumerically("==", 4))
+			Expect(memory["size_gb"]).To(BeNumerically("==", 8))
+			// disk should remain at ServiceType base value (no CatalogItem field for it)
+			Expect(disk["size_gb"]).To(BeNumerically("==", 50))
+		})
+
+		It("should set service_type in the returned spec", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-st", "vm-d", []model.FieldConfiguration{})
+
+			result, err := builder.BuildResourceSpec(ctx, "ci-direct-st", nil)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result["service_type"]).To(Equal("vm-d"))
+		})
+
+		It("should override defaults with user values", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-override", "vm-d", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(4), Editable: true},
+				{Path: "spec.memory.size_gb", Default: float64(8), Editable: true},
+			})
+
+			userValues := []v1alpha1.UserValue{
+				{Path: "spec.vcpu.count", Value: float64(16)},
+			}
+
+			result, err := builder.BuildResourceSpec(ctx, "ci-direct-override", userValues)
+			Expect(err).ToNot(HaveOccurred())
+
+			vcpu := result["vcpu"].(map[string]any)
+			memory := result["memory"].(map[string]any)
+
+			// user value overrides default
+			Expect(vcpu["count"]).To(BeNumerically("==", 16))
+			// default still applied
+			Expect(memory["size_gb"]).To(BeNumerically("==", 8))
+		})
+
+		It("should preserve ServiceType spec values not covered by CatalogItem fields", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-preserve", "vm-d", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(4), Editable: true},
+			})
+
+			result, err := builder.BuildResourceSpec(ctx, "ci-direct-preserve", nil)
+			Expect(err).ToNot(HaveOccurred())
+
+			// disk and memory should remain at ServiceType base values
+			disk := result["disk"].(map[string]any)
+			Expect(disk["size_gb"]).To(BeNumerically("==", 50))
+			memory := result["memory"].(map[string]any)
+			Expect(memory["size_gb"]).To(BeNumerically("==", 2))
+		})
+	})
+
+	Describe("validation", func() {
+		It("should reject user_value path not in CatalogItem fields", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-badpath", "vm-d", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(2), Editable: true},
+			})
+
+			userValues := []v1alpha1.UserValue{
+				{Path: "spec.network.bandwidth", Value: float64(100)},
+			}
+
+			_, err := builder.BuildResourceSpec(ctx, "ci-direct-badpath", userValues)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("user value path not found"))
+		})
+
+		It("should reject user_value for non-editable field", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-noedit", "vm-d", []model.FieldConfiguration{
+				{Path: "spec.disk.size_gb", Default: float64(50), Editable: false},
+			})
+
+			userValues := []v1alpha1.UserValue{
+				{Path: "spec.disk.size_gb", Value: float64(100)},
+			}
+
+			_, err := builder.BuildResourceSpec(ctx, "ci-direct-noedit", userValues)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not editable"))
+		})
+
+		It("should reject user_value failing validation_schema", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-schemafail", "vm-d", []model.FieldConfiguration{
+				{
+					Path:     "spec.vcpu.count",
+					Default:  float64(2),
+					Editable: true,
+					ValidationSchema: map[string]any{
+						"type":    "integer",
+						"minimum": float64(1),
+						"maximum": float64(16),
+					},
+				},
+			})
+
+			userValues := []v1alpha1.UserValue{
+				{Path: "spec.vcpu.count", Value: float64(32)},
+			}
+
+			_, err := builder.BuildResourceSpec(ctx, "ci-direct-schemafail", userValues)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("validation failed"))
+		})
+
+		It("should accept user_value passing validation_schema", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-schemapass", "vm-d", []model.FieldConfiguration{
+				{
+					Path:     "spec.vcpu.count",
+					Default:  float64(2),
+					Editable: true,
+					ValidationSchema: map[string]any{
+						"type":    "integer",
+						"minimum": float64(1),
+						"maximum": float64(16),
+					},
+				},
+			})
+
+			userValues := []v1alpha1.UserValue{
+				{Path: "spec.vcpu.count", Value: float64(8)},
+			}
+
+			result, err := builder.BuildResourceSpec(ctx, "ci-direct-schemapass", userValues)
+			Expect(err).ToNot(HaveOccurred())
+
+			vcpu := result["vcpu"].(map[string]any)
+			Expect(vcpu["count"]).To(BeNumerically("==", 8))
+		})
+
+		It("should reject depends_on violation", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-depfail", "vm-d", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(2), Editable: true},
+				{
+					Path:     "spec.memory.size_gb",
+					Default:  float64(4),
+					Editable: true,
+					DependsOn: &model.DependsOn{
+						Path: "spec.vcpu.count",
+						AllowedValues: map[string][]any{
+							"2": {float64(4), float64(8)},
+						},
+					},
+				},
+			})
+
+			userValues := []v1alpha1.UserValue{
+				{Path: "spec.memory.size_gb", Value: float64(32)},
+			}
+
+			_, err := builder.BuildResourceSpec(ctx, "ci-direct-depfail", userValues)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("depends_on"))
+		})
+
+		It("should accept depends_on when value is allowed", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-deppass", "vm-d", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(2), Editable: true},
+				{
+					Path:     "spec.memory.size_gb",
+					Default:  float64(4),
+					Editable: true,
+					DependsOn: &model.DependsOn{
+						Path: "spec.vcpu.count",
+						AllowedValues: map[string][]any{
+							"2": {float64(4), float64(8)},
+						},
+					},
+				},
+			})
+
+			userValues := []v1alpha1.UserValue{
+				{Path: "spec.memory.size_gb", Value: float64(8)},
+			}
+
+			result, err := builder.BuildResourceSpec(ctx, "ci-direct-deppass", userValues)
+			Expect(err).ToNot(HaveOccurred())
+
+			memory := result["memory"].(map[string]any)
+			Expect(memory["size_gb"]).To(BeNumerically("==", 8))
+		})
+
+		It("should validate depends_on against user-provided source value", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-depsrc", "vm-d", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(2), Editable: true},
+				{
+					Path:     "spec.memory.size_gb",
+					Default:  float64(4),
+					Editable: true,
+					DependsOn: &model.DependsOn{
+						Path: "spec.vcpu.count",
+						AllowedValues: map[string][]any{
+							"4": {float64(8), float64(16)},
+						},
+					},
+				},
+			})
+
+			userValues := []v1alpha1.UserValue{
+				{Path: "spec.vcpu.count", Value: float64(4)},
+				{Path: "spec.memory.size_gb", Value: float64(16)},
+			}
+
+			result, err := builder.BuildResourceSpec(ctx, "ci-direct-depsrc", userValues)
+			Expect(err).ToNot(HaveOccurred())
+
+			vcpu := result["vcpu"].(map[string]any)
+			memory := result["memory"].(map[string]any)
+			Expect(vcpu["count"]).To(BeNumerically("==", 4))
+			Expect(memory["size_gb"]).To(BeNumerically("==", 16))
+		})
+
+		It("should reject depends_on when source value has no allowed_values entry", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-depnokey", "vm-d", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(2), Editable: true},
+				{
+					Path:     "spec.memory.size_gb",
+					Default:  float64(4),
+					Editable: true,
+					DependsOn: &model.DependsOn{
+						Path: "spec.vcpu.count",
+						AllowedValues: map[string][]any{
+							"2": {float64(4), float64(8)},
+						},
+					},
+				},
+			})
+
+			userValues := []v1alpha1.UserValue{
+				{Path: "spec.vcpu.count", Value: float64(8)},
+				{Path: "spec.memory.size_gb", Value: float64(4)},
+			}
+
+			_, err := builder.BuildResourceSpec(ctx, "ci-direct-depnokey", userValues)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("no allowed values defined"))
+		})
+
+		It("should apply multiple user values correctly", func() {
+			ensureCatalogItemWithFields(ctx, str, "ci-direct-multi", "vm-d", []model.FieldConfiguration{
+				{Path: "spec.vcpu.count", Default: float64(2), Editable: true},
+				{Path: "spec.memory.size_gb", Default: float64(4), Editable: true},
+				{Path: "spec.disk.size_gb", Default: float64(100), Editable: true},
+			})
+
+			userValues := []v1alpha1.UserValue{
+				{Path: "spec.vcpu.count", Value: float64(8)},
+				{Path: "spec.memory.size_gb", Value: float64(16)},
+				{Path: "spec.disk.size_gb", Value: float64(200)},
+			}
+
+			result, err := builder.BuildResourceSpec(ctx, "ci-direct-multi", userValues)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(result["vcpu"].(map[string]any)["count"]).To(BeNumerically("==", 8))
+			Expect(result["memory"].(map[string]any)["size_gb"]).To(BeNumerically("==", 16))
+			Expect(result["disk"].(map[string]any)["size_gb"]).To(BeNumerically("==", 200))
+		})
+	})
+})
