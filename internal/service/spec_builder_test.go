@@ -655,6 +655,7 @@ var _ = Describe("BuildResourceSpec (direct)", func() {
 			result, err := builder.BuildResourceSpec(ctx, "ci-direct-multi", userValues)
 			Expect(err).ToNot(HaveOccurred())
 
+			Expect(result["service_type"]).To(Equal("vm-d"))
 			Expect(result["vcpu"].(map[string]any)["count"]).To(BeNumerically("==", 8))
 			Expect(result["memory"].(map[string]any)["size_gb"]).To(BeNumerically("==", 16))
 			Expect(result["disk"].(map[string]any)["size_gb"]).To(BeNumerically("==", 200))
