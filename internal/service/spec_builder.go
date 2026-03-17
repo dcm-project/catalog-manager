@@ -12,6 +12,9 @@ import (
 	"github.com/santhosh-tekuri/jsonschema/v6"
 )
 
+// ServiceTypeKey is the key for the service_type field in the spec map
+const ServiceTypeKey = "service_type"
+
 // specBuilder resolves the reference chain and constructs the final resource spec
 type specBuilder struct {
 	store store.Store
@@ -48,6 +51,9 @@ func (b *specBuilder) BuildResourceSpec(ctx context.Context, catalogItemId strin
 	if err != nil {
 		return nil, fmt.Errorf("failed to copy service type spec: %w", err)
 	}
+
+	// 3.1. Set service_type from the ServiceType instance
+	specMap[ServiceTypeKey] = serviceType.ServiceType
 
 	// 4. Build a lookup map of CatalogItem fields by path
 	fieldsByPath := make(map[string]model.FieldConfiguration)
