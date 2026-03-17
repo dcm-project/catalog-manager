@@ -1,6 +1,8 @@
 name: Auto-approve Dependabot PRs
 
-on: pull_request_target
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
 
 permissions:
   pull-requests: write
