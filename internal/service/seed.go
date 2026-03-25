@@ -24,15 +24,15 @@ func defaultServiceTypes() []model.ServiceType {
 	emptyNetwork := &three_tier_app_demo.Network{}
 	return []model.ServiceType{
 		{
-			ID:          "three_tier_app_demo",
+			ID:          "three-tier-app-demo",
 			ApiVersion:  "v1alpha1",
-			ServiceType: "three_tier_app_demo",
+			ServiceType: "three-tier-app-demo",
 			Spec: map[string]any{
 				"database": three_tier_app_demo.DatabaseTier{Engine: three_tier_app_demo.DefaultDatabaseEngine, Version: three_tier_app_demo.DefaultDatabaseVersion, Network: emptyNetwork},
 				"app":      three_tier_app_demo.AppTier{Image: "", Network: emptyNetwork},
 				"web":      three_tier_app_demo.WebTier{Image: "", Network: emptyNetwork},
 			},
-			Path: "service-types/three_tier_app_demo",
+			Path: "service-types/three-tier-app-demo",
 		},
 		{
 			ID:          "vm",
@@ -96,10 +96,10 @@ func petClinicCatalogItem() model.CatalogItem {
 		DisplayName: "Pet Clinic",
 		Path:        "catalog-items/pet-clinic",
 		Spec: model.CatalogItemSpec{
-			ServiceType: "three_tier_app_demo",
+			ServiceType: "three-tier-app-demo",
 			Fields:      petClinicFields(),
 		},
-		SpecServiceType: "three_tier_app_demo",
+		SpecServiceType: "three-tier-app-demo",
 	}
 }
 

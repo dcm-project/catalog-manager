@@ -12,7 +12,7 @@ const (
 	Cluster          ServiceType = "cluster"
 	Container        ServiceType = "container"
 	Database         ServiceType = "database"
-	ThreeTierAppDemo ServiceType = "three_tier_app_demo"
+	ThreeTierAppDemo ServiceType = "three-tier-app-demo"
 	Vm               ServiceType = "vm"
 )
 
