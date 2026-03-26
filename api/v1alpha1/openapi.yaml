@@ -887,6 +887,14 @@ components:
         spec:
           $ref: '#/components/schemas/CatalogItemInstanceSpec'
 
+        resource_id:
+          type: string
+          readOnly: true
+          description: |
+            Unique identifier for the resource in the Placement Manager.
+            This field is output-only and set by the server during creation.
+          example: 650e8400-e29b-41d4-a716-446655440002
+
         path:
           type: string
           readOnly: true

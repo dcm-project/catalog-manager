@@ -10,6 +10,7 @@ type CatalogItemInstance struct {
 	ApiVersion  string                  `gorm:"column:api_version;not null"`
 	DisplayName string                  `gorm:"column:display_name;not null"`
 	Spec        CatalogItemInstanceSpec `gorm:"column:spec;type:jsonb;not null;serializer:json"`
+	ResourceID  string                  `gorm:"column:resource_id"`
 	Path        string                  `gorm:"column:path;not null"`
 	CreateTime  time.Time               `gorm:"column:create_time;autoCreateTime"`
 	UpdateTime  time.Time               `gorm:"column:update_time;autoUpdateTime"`

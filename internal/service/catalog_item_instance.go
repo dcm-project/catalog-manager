@@ -8,6 +8,7 @@ import (
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/placement"
 	"github.com/dcm-project/catalog-manager/internal/store"
+	"github.com/google/uuid"
 )
 
 // CreateCatalogItemInstanceRequest contains the parameters for creating a catalog item instance
@@ -87,8 +88,9 @@ func (s *catalogItemInstanceService) List(ctx context.Context, opts CatalogItemI
 
 // Create creates a new catalog item instance
 func (s *catalogItemInstanceService) Create(ctx context.Context, req *CreateCatalogItemInstanceRequest) (*v1alpha1.CatalogItemInstance, error) {
-	// Generate ID
+	// Generate IDs
 	id := getOrGenerateID(req.ID)
+	resourceID := uuid.New().String()
 	// Generate path
 	path := fmt.Sprintf("catalog-item-instances/%s", id)
 
@@ -104,7 +106,7 @@ func (s *catalogItemInstanceService) Create(ctx context.Context, req *CreateCata
 	}
 
 	// DB first — fail fast on constraint violations (ID conflict, FK violation)
-	storeModel := catalogItemInstanceToStoreModel(id, path, req)
+	storeModel := catalogItemInstanceToStoreModel(id, resourceID, path, req)
 	createdModel, err := s.store.CatalogItemInstance().Create(ctx, storeModel)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "Failed to create catalog item instance in store", "id", id, "error", err)
@@ -117,7 +119,7 @@ func (s *catalogItemInstanceService) Create(ctx context.Context, req *CreateCata
 		_, err := s.pmClient.CreateResource(ctx, placement.CreateResourceRequest{
 			CatalogItemInstanceID: id,
 			Spec:                  resourceSpec,
-		}, id)
+		}, resourceID)
 		if err != nil {
 			s.logger.ErrorContext(ctx, "Placement manager create failed, rolling back",
 				"id", id,
@@ -150,16 +152,16 @@ func (s *catalogItemInstanceService) Get(ctx context.Context, id string) (*v1alp
 
 // Delete deletes a catalog item instance by ID
 func (s *catalogItemInstanceService) Delete(ctx context.Context, id string) error {
-	// Fetch instance for 404 handling
-	_, err := s.store.CatalogItemInstance().Get(ctx, id)
+	// Fetch instance for 404 handling and to get the resource ID
+	instance, err := s.store.CatalogItemInstance().Get(ctx, id)
 	if err != nil {
 		return mapCatalogItemInstanceStoreError(err)
 	}
 
-	// Delete PM resource (PM resource ID is the catalog item instance id)
-	if s.pmClient != nil {
-		s.logger.DebugContext(ctx, "Calling placement manager to delete resource", "id", id)
-		if err := s.pmClient.DeleteResource(ctx, id); err != nil {
+	// Delete PM resource using the stored resource ID
+	if s.pmClient != nil && instance.ResourceID != "" {
+		s.logger.DebugContext(ctx, "Calling placement manager to delete resource", "id", id, "resource_id", instance.ResourceID)
+		if err := s.pmClient.DeleteResource(ctx, instance.ResourceID); err != nil {
 			s.logger.ErrorContext(ctx, "Placement manager delete failed", "id", id, "error", err)
 			return fmt.Errorf("%w: %s", ErrPlacementManagerDeleteFailed, err.Error())
 		}

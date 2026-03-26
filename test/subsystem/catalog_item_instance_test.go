@@ -65,6 +65,9 @@ var _ = Describe("CatalogItemInstance API", func() {
 			Expect(resp.JSON201).NotTo(BeNil())
 			Expect(*resp.JSON201.Uid).To(Equal(instID))
 			Expect(*resp.JSON201.Path).To(Equal("catalog-item-instances/" + instID))
+			Expect(resp.JSON201.ResourceId).NotTo(BeNil())
+			Expect(*resp.JSON201.ResourceId).To(MatchRegexp(`^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$`))
+			Expect(*resp.JSON201.ResourceId).NotTo(Equal(instID))
 
 			verifyPMCreateResourceCalled(1)
 		})
@@ -85,6 +88,8 @@ var _ = Describe("CatalogItemInstance API", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode()).To(Equal(http.StatusCreated))
 			Expect(*resp.JSON201.Uid).To(Equal(instID))
+			Expect(resp.JSON201.ResourceId).NotTo(BeNil())
+			Expect(*resp.JSON201.ResourceId).NotTo(Equal(instID))
 		})
 
 		It("returns 400 for non-existent catalog_item_id", func() {
@@ -209,6 +214,8 @@ var _ = Describe("CatalogItemInstance API", func() {
 			Expect(resp.JSON200).NotTo(BeNil())
 			Expect(*resp.JSON200.Uid).To(Equal(instID))
 			Expect(resp.JSON200.DisplayName).To(Equal("Get Instance"))
+			Expect(resp.JSON200.ResourceId).NotTo(BeNil())
+			Expect(*resp.JSON200.ResourceId).To(Equal(*createResp.JSON201.ResourceId))
 		})
 
 		It("returns 404 for non-existent instance", func() {
