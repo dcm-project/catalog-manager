@@ -64,7 +64,7 @@ var _ = Describe("Seed", func() {
 				for i, st := range serviceTypes {
 					ids[i] = st.ID
 				}
-				Expect(ids).To(ConsistOf("three_tier_app_demo", "vm", "container", "database", "cluster"))
+				Expect(ids).To(ConsistOf("three-tier-app-demo", "vm", "container", "database", "cluster"))
 			})
 
 			DescribeTable("seeds service type with correct spec keys",
@@ -117,7 +117,7 @@ var _ = Describe("Seed", func() {
 				Expect(ci.ID).To(Equal("pet-clinic"))
 				Expect(ci.DisplayName).To(Equal("Pet Clinic"))
 				Expect(ci.Path).To(Equal("catalog-items/pet-clinic"))
-				Expect(ci.Spec.ServiceType).To(Equal("three_tier_app_demo"))
+				Expect(ci.Spec.ServiceType).To(Equal("three-tier-app-demo"))
 				Expect(ci.Spec.Fields).To(HaveLen(4))
 
 				// Verify key field configs
@@ -183,7 +183,7 @@ var _ = Describe("Seed", func() {
 					_, err := dataStore.ServiceType().Create(ctx, st)
 					Expect(err).ToNot(HaveOccurred())
 				}
-				createTestServiceType("three_tier_app_demo", "three_tier_app_demo")
+				createTestServiceType("three-tier-app-demo", "three-tier-app-demo")
 				createTestServiceType("vm-st", "vm")
 
 				// Create an existing catalog item
