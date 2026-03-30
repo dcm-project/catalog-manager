@@ -46,6 +46,48 @@ func stubPMCreateResource() {
 	postWireMockMapping(stub)
 }
 
+func stubPMRehydrateResource() {
+	stub := map[string]any{
+		"request": map[string]any{
+			"method":         "POST",
+			"urlPathPattern": "/api/v1alpha1/resources/.*:rehydrate",
+		},
+		"response": map[string]any{
+			"status": 200,
+			"headers": map[string]string{
+				"Content-Type": "application/json",
+			},
+			"jsonBody": map[string]any{
+				"id":   "pm-rehydrated-resource",
+				"path": "resources/pm-rehydrated-resource",
+				"spec": map[string]any{},
+			},
+		},
+	}
+	postWireMockMapping(stub)
+}
+
+func stubPMRehydrateResourceFailure() {
+	stub := map[string]any{
+		"request": map[string]any{
+			"method":         "POST",
+			"urlPathPattern": "/api/v1alpha1/resources/.*:rehydrate",
+		},
+		"response": map[string]any{
+			"status": 500,
+			"headers": map[string]string{
+				"Content-Type": "application/json",
+			},
+			"jsonBody": map[string]any{
+				"type":   "INTERNAL",
+				"title":  "Internal Server Error",
+				"status": 500,
+			},
+		},
+	}
+	postWireMockMapping(stub)
+}
+
 func stubPMDeleteResource() {
 	stub := map[string]any{
 		"request": map[string]any{
@@ -107,6 +149,10 @@ func verifyPMCreateResourceCalled(expectedCount int) {
 
 func verifyPMDeleteResourceCalled(expectedCount int) {
 	verifyWireMockRequestCount("DELETE", "/api/v1alpha1/resources/.*", expectedCount)
+}
+
+func verifyPMRehydrateResourceCalled(expectedCount int) {
+	verifyWireMockRequestCount("POST", "/api/v1alpha1/resources/.*:rehydrate", expectedCount)
 }
 
 func verifyWireMockRequestCount(method, urlPattern string, expectedCount int) {

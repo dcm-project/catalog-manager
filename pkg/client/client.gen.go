@@ -104,6 +104,9 @@ type ClientInterface interface {
 	// GetCatalogItemInstance request
 	GetCatalogItemInstance(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RehydrateCatalogItemInstance request
+	RehydrateCatalogItemInstance(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListCatalogItems request
 	ListCatalogItems(ctx context.Context, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -188,6 +191,18 @@ func (c *Client) DeleteCatalogItemInstance(ctx context.Context, catalogItemInsta
 
 func (c *Client) GetCatalogItemInstance(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCatalogItemInstanceRequest(c.Server, catalogItemInstanceId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RehydrateCatalogItemInstance(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRehydrateCatalogItemInstanceRequest(c.Server, catalogItemInstanceId)
 	if err != nil {
 		return nil, err
 	}
@@ -546,6 +561,40 @@ func NewGetCatalogItemInstanceRequest(server string, catalogItemInstanceId Catal
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRehydrateCatalogItemInstanceRequest generates requests for RehydrateCatalogItemInstance
+func NewRehydrateCatalogItemInstanceRequest(server string, catalogItemInstanceId CatalogItemInstanceIdPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "catalogItemInstanceId", catalogItemInstanceId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/catalog-item-instances/%s:rehydrate", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1056,6 +1105,9 @@ type ClientWithResponsesInterface interface {
 	// GetCatalogItemInstanceWithResponse request
 	GetCatalogItemInstanceWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*GetCatalogItemInstanceResponse, error)
 
+	// RehydrateCatalogItemInstanceWithResponse request
+	RehydrateCatalogItemInstanceWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*RehydrateCatalogItemInstanceResponse, error)
+
 	// ListCatalogItemsWithResponse request
 	ListCatalogItemsWithResponse(ctx context.Context, params *ListCatalogItemsParams, reqEditors ...RequestEditorFn) (*ListCatalogItemsResponse, error)
 
@@ -1187,6 +1239,30 @@ func (r GetCatalogItemInstanceResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetCatalogItemInstanceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RehydrateCatalogItemInstanceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CatalogItemInstance
+	JSON404      *NotFound
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r RehydrateCatalogItemInstanceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RehydrateCatalogItemInstanceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1467,6 +1543,15 @@ func (c *ClientWithResponses) GetCatalogItemInstanceWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseGetCatalogItemInstanceResponse(rsp)
+}
+
+// RehydrateCatalogItemInstanceWithResponse request returning *RehydrateCatalogItemInstanceResponse
+func (c *ClientWithResponses) RehydrateCatalogItemInstanceWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*RehydrateCatalogItemInstanceResponse, error) {
+	rsp, err := c.RehydrateCatalogItemInstance(ctx, catalogItemInstanceId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRehydrateCatalogItemInstanceResponse(rsp)
 }
 
 // ListCatalogItemsWithResponse request returning *ListCatalogItemsResponse
@@ -1763,6 +1848,46 @@ func ParseGetCatalogItemInstanceResponse(rsp *http.Response) (*GetCatalogItemIns
 			return nil, err
 		}
 		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRehydrateCatalogItemInstanceResponse parses an HTTP response from a RehydrateCatalogItemInstanceWithResponse call
+func ParseRehydrateCatalogItemInstanceResponse(rsp *http.Response) (*RehydrateCatalogItemInstanceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RehydrateCatalogItemInstanceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CatalogItemInstance
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest NotFound

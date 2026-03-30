@@ -21,10 +21,12 @@ import (
 
 // mockPMClient is a mock Placement Manager client for testing
 type mockPMClient struct {
-	createFunc  func(ctx context.Context, req placement.CreateResourceRequest, id string) (*placement.Resource, error)
-	deleteFunc  func(ctx context.Context, resourceID string) error
-	createCalls int
-	deleteCalls int
+	createFunc     func(ctx context.Context, req placement.CreateResourceRequest, id string) (*placement.Resource, error)
+	deleteFunc     func(ctx context.Context, resourceID string) error
+	rehydrateFunc  func(ctx context.Context, resourceID string, newResourceID string) (*placement.Resource, error)
+	createCalls    int
+	deleteCalls    int
+	rehydrateCalls int
 }
 
 func (m *mockPMClient) CreateResource(ctx context.Context, req placement.CreateResourceRequest, id string) (*placement.Resource, error) {
@@ -41,6 +43,14 @@ func (m *mockPMClient) DeleteResource(ctx context.Context, resourceID string) er
 		return m.deleteFunc(ctx, resourceID)
 	}
 	return nil
+}
+
+func (m *mockPMClient) RehydrateResource(ctx context.Context, resourceID string, newResourceID string) (*placement.Resource, error) {
+	m.rehydrateCalls++
+	if m.rehydrateFunc != nil {
+		return m.rehydrateFunc(ctx, resourceID, newResourceID)
+	}
+	return &placement.Resource{ID: newResourceID}, nil
 }
 
 func ensureCatalogItem(ctx context.Context, str store.Store, id, serviceType string) {
@@ -656,6 +666,88 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			// Verify DB record was cleaned up (rollback)
 			_, getErr := svc.CatalogItemInstance().Get(ctx, instanceID)
 			Expect(getErr).To(Equal(service.ErrCatalogItemInstanceNotFound))
+		})
+	})
+
+	Describe("Rehydrate with PM", func() {
+		It("should call PM rehydrate with old resource ID and update to new resource ID", func() {
+			var capturedOldResourceID string
+			var capturedNewResourceID string
+			mockPM.rehydrateFunc = func(_ context.Context, resourceID string, newResourceID string) (*placement.Resource, error) {
+				capturedOldResourceID = resourceID
+				capturedNewResourceID = newResourceID
+				return &placement.Resource{ID: newResourceID}, nil
+			}
+
+			instanceID := "rehydrate-instance"
+			created, err := svc.CatalogItemInstance().Create(ctx, &service.CreateCatalogItemInstanceRequest{
+				ID:          &instanceID,
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Rehydrate Test",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			})
+			Expect(err).ToNot(HaveOccurred())
+			oldResourceID := *created.ResourceId
+
+			result, err := svc.CatalogItemInstance().Rehydrate(ctx, instanceID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).ToNot(BeNil())
+
+			// PM was called with the old resource ID
+			Expect(capturedOldResourceID).To(Equal(oldResourceID))
+			// New resource ID is a UUID, different from old
+			Expect(capturedNewResourceID).ToNot(Equal(oldResourceID))
+			Expect(capturedNewResourceID).To(MatchRegexp(`^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$`))
+			// Result has the new resource ID
+			Expect(*result.ResourceId).To(Equal(capturedNewResourceID))
+			// Instance ID unchanged
+			Expect(*result.Uid).To(Equal(instanceID))
+
+			Expect(mockPM.rehydrateCalls).To(Equal(1))
+
+			// Verify persisted
+			got, err := svc.CatalogItemInstance().Get(ctx, instanceID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(*got.ResourceId).To(Equal(capturedNewResourceID))
+		})
+
+		It("should return ErrCatalogItemInstanceNotFound for non-existent instance", func() {
+			result, err := svc.CatalogItemInstance().Rehydrate(ctx, "nonexistent")
+			Expect(err).To(Equal(service.ErrCatalogItemInstanceNotFound))
+			Expect(result).To(BeNil())
+			Expect(mockPM.rehydrateCalls).To(Equal(0))
+		})
+
+		It("should return error and not update DB when PM rehydrate fails", func() {
+			instanceID := "rehydrate-pm-fail"
+			created, err := svc.CatalogItemInstance().Create(ctx, &service.CreateCatalogItemInstanceRequest{
+				ID:          &instanceID,
+				ApiVersion:  "v1alpha1",
+				DisplayName: "PM Rehydrate Fail",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			})
+			Expect(err).ToNot(HaveOccurred())
+			oldResourceID := *created.ResourceId
+
+			mockPM.rehydrateFunc = func(_ context.Context, _ string, _ string) (*placement.Resource, error) {
+				return nil, errors.New("PM rehydrate unavailable")
+			}
+
+			result, err := svc.CatalogItemInstance().Rehydrate(ctx, instanceID)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("placement manager rehydrate resource failed"))
+			Expect(result).To(BeNil())
+
+			// Verify resource_id unchanged
+			got, err := svc.CatalogItemInstance().Get(ctx, instanceID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(*got.ResourceId).To(Equal(oldResourceID))
 		})
 	})
 

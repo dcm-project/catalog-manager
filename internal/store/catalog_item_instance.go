@@ -42,6 +42,7 @@ type CatalogItemInstanceStore interface {
 	Create(ctx context.Context, catalogItemInstance model.CatalogItemInstance) (*model.CatalogItemInstance, error)
 	Get(ctx context.Context, id string) (*model.CatalogItemInstance, error)
 	Update(ctx context.Context, catalogItemInstance *model.CatalogItemInstance) (*model.CatalogItemInstance, error)
+	UpdateResourceID(ctx context.Context, id string, resourceID string) (*model.CatalogItemInstance, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -173,6 +174,22 @@ func (s *catalogItemInstanceStore) Update(ctx context.Context, catalogItemInstan
 		return nil, ErrCatalogItemInstanceNotFound
 	}
 	return catalogItemInstance, nil
+}
+
+// UpdateResourceID updates only the resource_id field of a catalog item instance
+func (s *catalogItemInstanceStore) UpdateResourceID(ctx context.Context, id string, resourceID string) (*model.CatalogItemInstance, error) {
+	result := s.db.WithContext(ctx).Model(&model.CatalogItemInstance{}).
+		Where("id = ?", id).
+		Update("resource_id", resourceID)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to update resource ID: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return nil, ErrCatalogItemInstanceNotFound
+	}
+
+	return s.Get(ctx, id)
 }
 
 // Delete deletes a catalog item by ID

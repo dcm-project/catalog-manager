@@ -384,6 +384,85 @@ var _ = Describe("CatalogItemInstance API", func() {
 		})
 	})
 
+	Describe("Rehydrate", func() {
+		BeforeEach(func() {
+			stubPMRehydrateResource()
+		})
+
+		It("returns 200 with updated resource_id", func() {
+			instID := "inst-rehy-" + uuid.NewString()[:8]
+			params := &v1alpha1.CreateCatalogItemInstanceParams{Id: &instID}
+			body := v1alpha1.CatalogItemInstance{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Rehydrate Instance",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: catalogItemID,
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			}
+			createResp, err := apiClient.CreateCatalogItemInstanceWithResponse(context.Background(), params, body)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(createResp.StatusCode()).To(Equal(http.StatusCreated))
+			oldResourceID := *createResp.JSON201.ResourceId
+
+			resp, err := apiClient.RehydrateCatalogItemInstanceWithResponse(context.Background(), instID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode()).To(Equal(http.StatusOK))
+			Expect(resp.JSON200).NotTo(BeNil())
+			Expect(*resp.JSON200.Uid).To(Equal(instID))
+			Expect(resp.JSON200.ResourceId).NotTo(BeNil())
+			Expect(*resp.JSON200.ResourceId).NotTo(Equal(oldResourceID))
+			Expect(*resp.JSON200.ResourceId).To(MatchRegexp(`^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$`))
+
+			verifyPMRehydrateResourceCalled(1)
+
+			// Verify resource_id is persisted
+			getResp, err := apiClient.GetCatalogItemInstanceWithResponse(context.Background(), instID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getResp.StatusCode()).To(Equal(http.StatusOK))
+			Expect(*getResp.JSON200.ResourceId).To(Equal(*resp.JSON200.ResourceId))
+		})
+
+		It("returns 404 for non-existent instance", func() {
+			resp, err := apiClient.RehydrateCatalogItemInstanceWithResponse(context.Background(), "does-not-exist")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode()).To(Equal(http.StatusNotFound))
+		})
+
+		It("returns 500 when PM rehydrate fails, resource_id unchanged", func() {
+			instID := "inst-rehy-fail-" + uuid.NewString()[:8]
+			params := &v1alpha1.CreateCatalogItemInstanceParams{Id: &instID}
+			body := v1alpha1.CatalogItemInstance{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Rehydrate Failure",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: catalogItemID,
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			}
+			createResp, err := apiClient.CreateCatalogItemInstanceWithResponse(context.Background(), params, body)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(createResp.StatusCode()).To(Equal(http.StatusCreated))
+			oldResourceID := *createResp.JSON201.ResourceId
+
+			// Reset WireMock and stub rehydrate as failure
+			resetWireMock()
+			stubPMCreateResource()
+			stubPMDeleteResource()
+			stubPMRehydrateResourceFailure()
+
+			resp, err := apiClient.RehydrateCatalogItemInstanceWithResponse(context.Background(), instID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode()).To(Equal(http.StatusInternalServerError))
+
+			// Verify resource_id is unchanged
+			getResp, err := apiClient.GetCatalogItemInstanceWithResponse(context.Background(), instID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getResp.StatusCode()).To(Equal(http.StatusOK))
+			Expect(*getResp.JSON200.ResourceId).To(Equal(oldResourceID))
+		})
+	})
+
 	Describe("PlacementManager failures", func() {
 		It("returns 500 when PM create fails, instance not persisted", func() {
 			resetWireMock()

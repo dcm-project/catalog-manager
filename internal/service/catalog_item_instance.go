@@ -38,6 +38,7 @@ type CatalogItemInstanceService interface {
 	Create(ctx context.Context, req *CreateCatalogItemInstanceRequest) (*v1alpha1.CatalogItemInstance, error)
 	Get(ctx context.Context, id string) (*v1alpha1.CatalogItemInstance, error)
 	Delete(ctx context.Context, id string) error
+	Rehydrate(ctx context.Context, id string) (*v1alpha1.CatalogItemInstance, error)
 }
 
 type catalogItemInstanceService struct {
@@ -147,6 +148,54 @@ func (s *catalogItemInstanceService) Get(ctx context.Context, id string) (*v1alp
 
 	// Convert to API type
 	apiType := catalogItemInstanceToAPIType(storeModel)
+	return &apiType, nil
+}
+
+// Rehydrate rehydrates a catalog item instance by generating a new resource ID
+// and delegating to the Placement Manager
+func (s *catalogItemInstanceService) Rehydrate(ctx context.Context, id string) (*v1alpha1.CatalogItemInstance, error) {
+	// Look up existing instance
+	instance, err := s.store.CatalogItemInstance().Get(ctx, id)
+	if err != nil {
+		return nil, mapCatalogItemInstanceStoreError(err)
+	}
+
+	// Generate new resource ID
+	newResourceID := uuid.New().String()
+
+	// Call Placement Manager rehydrate
+	if s.pmClient != nil {
+		s.logger.DebugContext(ctx, "Calling placement manager to rehydrate resource",
+			"id", id,
+			"old_resource_id", instance.ResourceID,
+			"new_resource_id", newResourceID,
+		)
+		_, err := s.pmClient.RehydrateResource(ctx, instance.ResourceID, newResourceID)
+		if err != nil {
+			s.logger.ErrorContext(ctx, "Placement manager rehydrate failed",
+				"id", id,
+				"error", err,
+			)
+			return nil, fmt.Errorf("%w: %s", ErrPlacementManagerRehydrateFailed, err.Error())
+		}
+	}
+
+	// Update resource_id in DB
+	updatedModel, err := s.store.CatalogItemInstance().UpdateResourceID(ctx, id, newResourceID)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to update resource ID in store",
+			"id", id,
+			"error", err,
+		)
+		return nil, err
+	}
+
+	s.logger.InfoContext(ctx, "Catalog item instance rehydrated",
+		"id", id,
+		"new_resource_id", newResourceID,
+	)
+
+	apiType := catalogItemInstanceToAPIType(updatedModel)
 	return &apiType, nil
 }
 
