@@ -156,6 +156,8 @@ var _ = Describe("CatalogItemInstance Service", func() {
 				Expect(result.DisplayName).To(Equal("My VM Instance"))
 				Expect(result.Spec.CatalogItemId).To(Equal("small-vm"))
 				Expect(*result.Path).To(Equal("catalog-item-instances/my-instance"))
+				Expect(result.ResourceId).ToNot(BeNil())
+				Expect(*result.ResourceId).To(MatchRegexp(`^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$`))
 			})
 		})
 
@@ -174,6 +176,9 @@ var _ = Describe("CatalogItemInstance Service", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(result.Uid).ToNot(BeNil())
 				Expect(*result.Uid).To(MatchRegexp(`^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$`))
+				Expect(result.ResourceId).ToNot(BeNil())
+				Expect(*result.ResourceId).To(MatchRegexp(`^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$`))
+				Expect(*result.ResourceId).ToNot(Equal(*result.Uid))
 			})
 		})
 
@@ -504,6 +509,8 @@ var _ = Describe("CatalogItemInstance Service", func() {
 				Expect(result).ToNot(BeNil())
 				Expect(*result.Uid).To(Equal(*created.Uid))
 				Expect(result.DisplayName).To(Equal("Test Instance"))
+				Expect(result.ResourceId).ToNot(BeNil())
+				Expect(*result.ResourceId).To(Equal(*created.ResourceId))
 			})
 		})
 
@@ -586,13 +593,13 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 	})
 
 	Describe("Create with PM", func() {
-		It("should call PM with correct spec and store returned resource ID", func() {
+		It("should call PM with separate resource ID and store it", func() {
 			var capturedReq placement.CreateResourceRequest
 			var capturedID string
 			mockPM.createFunc = func(_ context.Context, req placement.CreateResourceRequest, id string) (*placement.Resource, error) {
 				capturedReq = req
 				capturedID = id
-				return &placement.Resource{ID: "pm-resource-123"}, nil
+				return &placement.Resource{ID: id}, nil
 			}
 
 			instanceID := "my-pm-instance"
@@ -610,8 +617,19 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).ToNot(BeNil())
 			Expect(capturedReq.CatalogItemInstanceID).To(Equal(instanceID))
-			Expect(capturedID).To(Equal(instanceID))
+			// Resource ID passed to PM should be a UUID, different from instance ID
+			Expect(capturedID).ToNot(Equal(instanceID))
+			Expect(capturedID).To(MatchRegexp(`^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$`))
 			Expect(capturedReq.Spec).ToNot(BeNil())
+			// Resource ID should be stored and returned in the API response
+			Expect(result.ResourceId).ToNot(BeNil())
+			Expect(*result.ResourceId).To(Equal(capturedID))
+
+			// Verify the resource ID is stored and returned in the API response
+			got, err := svc.CatalogItemInstance().Get(ctx, instanceID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(got).ToNot(BeNil())
+			Expect(*got.ResourceId).To(Equal(capturedID))
 		})
 
 		It("should delete DB record when PM create fails", func() {
@@ -642,10 +660,12 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 	})
 
 	Describe("Delete with PM", func() {
-		It("should delete PM resource then local record", func() {
+		It("should delete PM resource using stored resource ID then local record", func() {
+			var createdResourceID string
 			var deletedResourceID string
-			mockPM.createFunc = func(_ context.Context, _ placement.CreateResourceRequest, _ string) (*placement.Resource, error) {
-				return &placement.Resource{ID: "pm-to-delete"}, nil
+			mockPM.createFunc = func(_ context.Context, _ placement.CreateResourceRequest, id string) (*placement.Resource, error) {
+				createdResourceID = id
+				return &placement.Resource{ID: id}, nil
 			}
 			mockPM.deleteFunc = func(_ context.Context, resourceID string) error {
 				deletedResourceID = resourceID
@@ -666,7 +686,9 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 
 			err = svc.CatalogItemInstance().Delete(ctx, instanceID)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(deletedResourceID).To(Equal("delete-pm-instance"))
+			// Delete should use the stored resource ID, not the instance ID
+			Expect(deletedResourceID).ToNot(Equal(instanceID))
+			Expect(deletedResourceID).To(Equal(createdResourceID))
 
 			// Verify local record deleted
 			_, getErr := svc.CatalogItemInstance().Get(ctx, instanceID)

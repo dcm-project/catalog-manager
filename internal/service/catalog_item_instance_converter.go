@@ -9,7 +9,7 @@ import (
 )
 
 // catalogItemInstanceToStoreModel converts a CreateCatalogItemInstanceRequest to a store model
-func catalogItemInstanceToStoreModel(id, path string, req *CreateCatalogItemInstanceRequest) model.CatalogItemInstance {
+func catalogItemInstanceToStoreModel(id, resourceID, path string, req *CreateCatalogItemInstanceRequest) model.CatalogItemInstance {
 	userValues := make([]model.UserValue, len(req.Spec.UserValues))
 	for i, uv := range req.Spec.UserValues {
 		userValues[i] = model.UserValue{
@@ -26,6 +26,7 @@ func catalogItemInstanceToStoreModel(id, path string, req *CreateCatalogItemInst
 			CatalogItemId: req.Spec.CatalogItemId,
 			UserValues:    userValues,
 		},
+		ResourceID:        resourceID,
 		Path:              path,
 		SpecCatalogItemId: req.Spec.CatalogItemId,
 	}
@@ -48,6 +49,7 @@ func catalogItemInstanceToAPIType(m *model.CatalogItemInstance) v1alpha1.Catalog
 			CatalogItemId: m.Spec.CatalogItemId,
 			UserValues:    userValues,
 		},
+		ResourceId: &m.ResourceID,
 		Path:       &m.Path,
 		Uid:        &m.ID,
 		CreateTime: &m.CreateTime,

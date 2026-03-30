@@ -81,6 +81,7 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 		mockSvc         service.Service
 		testTime        time.Time
 		testID          string
+		testResourceID  string
 		testPath        string
 		testApiVersion  = "v1alpha1"
 		testCatalogItem = "small-vm"
@@ -90,6 +91,7 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 		ctx = context.Background()
 		testTime = time.Now()
 		testID = "test-instance-id"
+		testResourceID = "test-resource-id"
 		testPath = "catalog-item-instances/" + testID
 		mockCIIService = &mockCatalogItemInstanceService{}
 		mockSvc = &mockCatalogItemInstanceServiceWrapper{catalogItemInstanceService: mockCIIService}
@@ -105,6 +107,7 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 					Expect(req.Spec.CatalogItemId).To(Equal(testCatalogItem))
 					return &v1alpha1API.CatalogItemInstance{
 						Uid:         &testID,
+						ResourceId:  &testResourceID,
 						Path:        &testPath,
 						ApiVersion:  testApiVersion,
 						DisplayName: "My Instance",
@@ -145,6 +148,7 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 					path := "catalog-item-instances/" + userID
 					return &v1alpha1API.CatalogItemInstance{
 						Uid:         &userID,
+						ResourceId:  &testResourceID,
 						Path:        &path,
 						ApiVersion:  testApiVersion,
 						DisplayName: "Custom ID",
@@ -281,6 +285,7 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 						CatalogItemInstances: []v1alpha1API.CatalogItemInstance{
 							{
 								Uid:         &testID,
+								ResourceId:  &testResourceID,
 								Path:        &testPath,
 								ApiVersion:  testApiVersion,
 								DisplayName: "Instance 1",
@@ -358,6 +363,7 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 					Expect(id).To(Equal(testID))
 					return &v1alpha1API.CatalogItemInstance{
 						Uid:         &testID,
+						ResourceId:  &testResourceID,
 						Path:        &testPath,
 						ApiVersion:  testApiVersion,
 						DisplayName: "Test Instance",

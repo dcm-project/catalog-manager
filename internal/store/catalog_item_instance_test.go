@@ -115,6 +115,7 @@ var _ = Describe("CatalogItemInstance Store", func() {
 			Expect(retrieved.DisplayName).To(Equal(created.DisplayName))
 			Expect(retrieved.Spec.CatalogItemId).To(Equal(created.Spec.CatalogItemId))
 			Expect(retrieved.SpecCatalogItemId).To(Equal(created.SpecCatalogItemId))
+			Expect(retrieved.ResourceID).To(Equal(created.ResourceID))
 		})
 
 		It("should return error when creating duplicate ID", func() {
@@ -216,6 +217,7 @@ var _ = Describe("CatalogItemInstance Store", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(retrieved.ID).To(Equal(created.ID))
 			Expect(retrieved.Spec.CatalogItemId).To(Equal("small-vm-get"))
+			Expect(retrieved.ResourceID).To(Equal(created.ResourceID))
 		})
 
 		It("should return error for non-existent catalog item instance", func() {
