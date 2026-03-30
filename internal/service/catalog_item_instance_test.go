@@ -624,6 +624,12 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			// Resource ID should be stored and returned in the API response
 			Expect(result.ResourceId).ToNot(BeNil())
 			Expect(*result.ResourceId).To(Equal(capturedID))
+
+			// Verify the resource ID is stored and returned in the API response
+			got, err := svc.CatalogItemInstance().Get(ctx, instanceID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(got).ToNot(BeNil())
+			Expect(*got.ResourceId).To(Equal(capturedID))
 		})
 
 		It("should delete DB record when PM create fails", func() {
