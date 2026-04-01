@@ -59,12 +59,19 @@ type ClusterSpec struct {
 	// Values are provider-specific configuration objects.
 	ProviderHints *externalRef0.ProviderHints `json:"provider_hints,omitempty"`
 
-	// PullSecret Pull secret for authenticating to container image registries
-	// (dockerconfigjson format).
+	// PullSecret Base64-encoded pull secret for authenticating to container
+	// image registries (dockerconfigjson format).
+	//
+	// The value is the base64 encoding of a Docker/OCI registry
+	// authentication configuration JSON, matching the
+	// `.data[".dockerconfigjson"]` field of a Kubernetes Secret
+	// of type `kubernetes.io/dockerconfigjson`.
 	//
 	// Providers use this to configure image pull authentication on
 	// cluster nodes for registries such as registry.redhat.io,
 	// quay.io, or registry.connect.redhat.com.
+	//
+	// See: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 	PullSecret string `json:"pull_secret"`
 
 	// ServiceType Service type identifier.
