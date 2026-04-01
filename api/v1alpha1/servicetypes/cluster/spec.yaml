@@ -34,6 +34,7 @@ components:
           required:
             - version
             - nodes
+            - pull_secret
           properties:
             version:
               type: string
@@ -47,6 +48,18 @@ components:
 
             nodes:
               $ref: '#/components/schemas/Nodes'
+
+            pull_secret:
+              type: string
+              description: |
+                Pull secret for authenticating to container image registries
+                (dockerconfigjson format).
+
+                Providers use this to configure image pull authentication on
+                cluster nodes for registries such as registry.redhat.io,
+                quay.io, or registry.connect.redhat.com.
+              minLength: 1
+              example: '{"auths":{"registry.redhat.io":{"auth":"dXNlcjpwYXNz"}}}'
 
           additionalProperties: true
 

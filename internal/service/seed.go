@@ -75,8 +75,9 @@ func defaultServiceTypes() []model.ServiceType {
 			ApiVersion:  "v1alpha1",
 			ServiceType: "cluster",
 			Spec: map[string]any{
-				"version": "",
-				"nodes":   cluster.Nodes{},
+				"version":     "",
+				"nodes":       cluster.Nodes{},
+				"pull_secret": "",
 			},
 			Path: "service-types/cluster",
 		},

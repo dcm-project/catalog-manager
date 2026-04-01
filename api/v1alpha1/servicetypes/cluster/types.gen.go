@@ -59,6 +59,14 @@ type ClusterSpec struct {
 	// Values are provider-specific configuration objects.
 	ProviderHints *externalRef0.ProviderHints `json:"provider_hints,omitempty"`
 
+	// PullSecret Pull secret for authenticating to container image registries
+	// (dockerconfigjson format).
+	//
+	// Providers use this to configure image pull authentication on
+	// cluster nodes for registries such as registry.redhat.io,
+	// quay.io, or registry.connect.redhat.com.
+	PullSecret string `json:"pull_secret"`
+
 	// ServiceType Service type identifier.
 	// Makes the payload self-describing and enables routing/validation.
 	ServiceType externalRef0.ServiceType `json:"service_type"`
@@ -201,6 +209,14 @@ func (a *ClusterSpec) UnmarshalJSON(b []byte) error {
 		delete(object, "provider_hints")
 	}
 
+	if raw, found := object["pull_secret"]; found {
+		err = json.Unmarshal(raw, &a.PullSecret)
+		if err != nil {
+			return fmt.Errorf("error reading 'pull_secret': %w", err)
+		}
+		delete(object, "pull_secret")
+	}
+
 	if raw, found := object["service_type"]; found {
 		err = json.Unmarshal(raw, &a.ServiceType)
 		if err != nil {
@@ -296,6 +312,11 @@ func (a ClusterSpec) MarshalJSON() ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error marshaling 'provider_hints': %w", err)
 		}
+	}
+
+	object["pull_secret"], err = json.Marshal(a.PullSecret)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'pull_secret': %w", err)
 	}
 
 	object["service_type"], err = json.Marshal(a.ServiceType)
