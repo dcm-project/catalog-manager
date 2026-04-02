@@ -86,7 +86,7 @@ var _ = Describe("Seed", func() {
 				Entry("vm", "vm", []string{"vcpu", "memory", "storage", "guest_os", "access"}),
 				Entry("container", "container", []string{"image", "resources", "process", "network"}),
 				Entry("database", "database", []string{"engine", "version", "resources"}),
-				Entry("cluster", "cluster", []string{"version", "nodes"}),
+				Entry("cluster", "cluster", []string{"version"}),
 			)
 		})
 
