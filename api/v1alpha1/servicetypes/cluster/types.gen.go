@@ -45,7 +45,7 @@ type ClusterSpec struct {
 	Metadata externalRef0.ServiceMetadata `json:"metadata"`
 
 	// Nodes Node configuration
-	Nodes Nodes `json:"nodes"`
+	Nodes *Nodes `json:"nodes,omitempty"`
 
 	// Path Resource path or location within the system hierarchy.
 	Path *string `json:"path,omitempty"`
@@ -85,16 +85,16 @@ type ClusterSpec struct {
 // Managed services (ACM (with Hypershift),EKS, GKE, AKS) may ignore these fields.
 type ControlPlaneNodes struct {
 	// Count Number of control plane nodes (1, 3, or 5)
-	Count ControlPlaneNodesCount `json:"count"`
+	Count *ControlPlaneNodesCount `json:"count,omitempty"`
 
 	// Cpu CPU cores per control plane node
-	Cpu int `json:"cpu"`
+	Cpu *int `json:"cpu,omitempty"`
 
 	// Memory Memory per control plane node with unit suffix
-	Memory string `json:"memory"`
+	Memory *string `json:"memory,omitempty"`
 
 	// Storage Storage per control plane node with unit suffix
-	Storage              string                 `json:"storage"`
+	Storage              *string                `json:"storage,omitempty"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
@@ -105,26 +105,26 @@ type ControlPlaneNodesCount int
 type Nodes struct {
 	// ControlPlane Control plane nodes configuration.
 	// Managed services (ACM (with Hypershift),EKS, GKE, AKS) may ignore these fields.
-	ControlPlane ControlPlaneNodes `json:"control_plane"`
+	ControlPlane *ControlPlaneNodes `json:"control_plane,omitempty"`
 
 	// Workers Worker nodes configuration
-	Workers              WorkerNodes            `json:"workers"`
+	Workers              *WorkerNodes           `json:"workers,omitempty"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
 // WorkerNodes Worker nodes configuration
 type WorkerNodes struct {
 	// Count Number of worker nodes
-	Count int `json:"count"`
+	Count *int `json:"count,omitempty"`
 
 	// Cpu CPU cores per worker node
-	Cpu int `json:"cpu"`
+	Cpu *int `json:"cpu,omitempty"`
 
 	// Memory Memory per worker node with unit suffix
-	Memory string `json:"memory"`
+	Memory *string `json:"memory,omitempty"`
 
 	// Storage Storage per worker node with unit suffix
-	Storage              string                 `json:"storage"`
+	Storage              *string                `json:"storage,omitempty"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
@@ -279,9 +279,11 @@ func (a ClusterSpec) MarshalJSON() ([]byte, error) {
 		return nil, fmt.Errorf("error marshaling 'metadata': %w", err)
 	}
 
-	object["nodes"], err = json.Marshal(a.Nodes)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'nodes': %w", err)
+	if a.Nodes != nil {
+		object["nodes"], err = json.Marshal(a.Nodes)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'nodes': %w", err)
+		}
 	}
 
 	if a.Path != nil {
@@ -414,24 +416,32 @@ func (a ControlPlaneNodes) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
-	object["count"], err = json.Marshal(a.Count)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'count': %w", err)
+	if a.Count != nil {
+		object["count"], err = json.Marshal(a.Count)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'count': %w", err)
+		}
 	}
 
-	object["cpu"], err = json.Marshal(a.Cpu)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'cpu': %w", err)
+	if a.Cpu != nil {
+		object["cpu"], err = json.Marshal(a.Cpu)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'cpu': %w", err)
+		}
 	}
 
-	object["memory"], err = json.Marshal(a.Memory)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'memory': %w", err)
+	if a.Memory != nil {
+		object["memory"], err = json.Marshal(a.Memory)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'memory': %w", err)
+		}
 	}
 
-	object["storage"], err = json.Marshal(a.Storage)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'storage': %w", err)
+	if a.Storage != nil {
+		object["storage"], err = json.Marshal(a.Storage)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'storage': %w", err)
+		}
 	}
 
 	for fieldName, field := range a.AdditionalProperties {
@@ -503,14 +513,18 @@ func (a Nodes) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
-	object["control_plane"], err = json.Marshal(a.ControlPlane)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'control_plane': %w", err)
+	if a.ControlPlane != nil {
+		object["control_plane"], err = json.Marshal(a.ControlPlane)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'control_plane': %w", err)
+		}
 	}
 
-	object["workers"], err = json.Marshal(a.Workers)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'workers': %w", err)
+	if a.Workers != nil {
+		object["workers"], err = json.Marshal(a.Workers)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'workers': %w", err)
+		}
 	}
 
 	for fieldName, field := range a.AdditionalProperties {
@@ -598,24 +612,32 @@ func (a WorkerNodes) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
-	object["count"], err = json.Marshal(a.Count)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'count': %w", err)
+	if a.Count != nil {
+		object["count"], err = json.Marshal(a.Count)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'count': %w", err)
+		}
 	}
 
-	object["cpu"], err = json.Marshal(a.Cpu)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'cpu': %w", err)
+	if a.Cpu != nil {
+		object["cpu"], err = json.Marshal(a.Cpu)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'cpu': %w", err)
+		}
 	}
 
-	object["memory"], err = json.Marshal(a.Memory)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'memory': %w", err)
+	if a.Memory != nil {
+		object["memory"], err = json.Marshal(a.Memory)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'memory': %w", err)
+		}
 	}
 
-	object["storage"], err = json.Marshal(a.Storage)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling 'storage': %w", err)
+	if a.Storage != nil {
+		object["storage"], err = json.Marshal(a.Storage)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'storage': %w", err)
+		}
 	}
 
 	for fieldName, field := range a.AdditionalProperties {
