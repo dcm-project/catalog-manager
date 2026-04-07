@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes/cluster"
 	"github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes/container"
 	"github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes/database"
 	"github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes/three_tier_app_demo"
@@ -76,7 +75,6 @@ func defaultServiceTypes() []model.ServiceType {
 			ServiceType: "cluster",
 			Spec: map[string]any{
 				"version": "",
-				"nodes":   cluster.Nodes{},
 			},
 			Path: "service-types/cluster",
 		},
