@@ -18,10 +18,11 @@ import (
 
 // Mock CatalogItemInstanceService for testing
 type mockCatalogItemInstanceService struct {
-	listFunc   func(ctx context.Context, opts service.CatalogItemInstanceListOptions) (*service.CatalogItemInstanceListResult, error)
-	createFunc func(ctx context.Context, req *service.CreateCatalogItemInstanceRequest) (*v1alpha1API.CatalogItemInstance, error)
-	getFunc    func(ctx context.Context, id string) (*v1alpha1API.CatalogItemInstance, error)
-	deleteFunc func(ctx context.Context, id string) error
+	listFunc      func(ctx context.Context, opts service.CatalogItemInstanceListOptions) (*service.CatalogItemInstanceListResult, error)
+	createFunc    func(ctx context.Context, req *service.CreateCatalogItemInstanceRequest) (*v1alpha1API.CatalogItemInstance, error)
+	getFunc       func(ctx context.Context, id string) (*v1alpha1API.CatalogItemInstance, error)
+	deleteFunc    func(ctx context.Context, id string) error
+	rehydrateFunc func(ctx context.Context, id string) (*v1alpha1API.CatalogItemInstance, error)
 }
 
 func (m *mockCatalogItemInstanceService) List(ctx context.Context, opts service.CatalogItemInstanceListOptions) (*service.CatalogItemInstanceListResult, error) {
@@ -50,6 +51,13 @@ func (m *mockCatalogItemInstanceService) Delete(ctx context.Context, id string) 
 		return m.deleteFunc(ctx, id)
 	}
 	return nil
+}
+
+func (m *mockCatalogItemInstanceService) Rehydrate(ctx context.Context, id string) (*v1alpha1API.CatalogItemInstance, error) {
+	if m.rehydrateFunc != nil {
+		return m.rehydrateFunc(ctx, id)
+	}
+	return &v1alpha1API.CatalogItemInstance{}, nil
 }
 
 // Mock Service with CatalogItemInstance
@@ -428,6 +436,77 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 				Expect(serverError.Type).To(Equal(v1alpha1API.INTERNAL))
 			})
 		})
+	})
+
+	Describe("RehydrateCatalogItemInstance", func() {
+		Context("with valid request", func() {
+			It("should rehydrate instance and return 200", func() {
+				newResourceID := "new-resource-id"
+				mockCIIService.rehydrateFunc = func(_ context.Context, id string) (*v1alpha1API.CatalogItemInstance, error) {
+					Expect(id).To(Equal(testID))
+					return &v1alpha1API.CatalogItemInstance{
+						Uid:         &testID,
+						ResourceId:  &newResourceID,
+						Path:        &testPath,
+						ApiVersion:  testApiVersion,
+						DisplayName: "Rehydrated Instance",
+						Spec: v1alpha1API.CatalogItemInstanceSpec{
+							CatalogItemId: testCatalogItem,
+							UserValues:    []v1alpha1API.UserValue{},
+						},
+						CreateTime: &testTime,
+						UpdateTime: &testTime,
+					}, nil
+				}
+
+				request := server.RehydrateCatalogItemInstanceRequestObject{
+					CatalogItemInstanceId: testID,
+				}
+
+				response, err := handler.RehydrateCatalogItemInstance(ctx, request)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(response).To(BeAssignableToTypeOf(server.RehydrateCatalogItemInstance200JSONResponse{}))
+
+				rehydrated := response.(server.RehydrateCatalogItemInstance200JSONResponse)
+				Expect(*rehydrated.Uid).To(Equal(testID))
+				Expect(*rehydrated.ResourceId).To(Equal(newResourceID))
+			})
+		})
+
+		DescribeTable("maps service errors to HTTP responses",
+			func(serviceErr error, expectedStatus int32, expectedType v1alpha1API.ErrorType, expectedTitle string) {
+				mockCIIService.rehydrateFunc = func(_ context.Context, _ string) (*v1alpha1API.CatalogItemInstance, error) {
+					return nil, serviceErr
+				}
+
+				request := server.RehydrateCatalogItemInstanceRequestObject{
+					CatalogItemInstanceId: testID,
+				}
+
+				response, err := handler.RehydrateCatalogItemInstance(ctx, request)
+				Expect(err).ToNot(HaveOccurred())
+
+				switch expectedStatus {
+				case 404:
+					Expect(response).To(BeAssignableToTypeOf(server.RehydrateCatalogItemInstance404JSONResponse{}))
+					resp := response.(server.RehydrateCatalogItemInstance404JSONResponse)
+					Expect(resp.Status).To(Equal(expectedStatus))
+					Expect(resp.Type).To(Equal(expectedType))
+					Expect(resp.Title).To(Equal(expectedTitle))
+				case 500:
+					Expect(response).To(BeAssignableToTypeOf(server.RehydrateCatalogItemInstance500JSONResponse{}))
+					resp := response.(server.RehydrateCatalogItemInstance500JSONResponse)
+					Expect(resp.Status).To(Equal(expectedStatus))
+					Expect(resp.Type).To(Equal(expectedType))
+					Expect(resp.Title).To(Equal(expectedTitle))
+				default:
+					Fail(fmt.Sprintf("unexpected status in test case: %d", expectedStatus))
+				}
+			},
+			Entry("not found", service.ErrCatalogItemInstanceNotFound, int32(404), v1alpha1API.NOTFOUND, "Not Found"),
+			Entry("placement manager rehydrate failed", service.ErrPlacementManagerRehydrateFailed, int32(500), v1alpha1API.INTERNAL, "Placement Manager Error"),
+			Entry("generic service error", errors.New("database error"), int32(500), v1alpha1API.INTERNAL, "Internal Server Error"),
+		)
 	})
 
 	Describe("DeleteCatalogItemInstance", func() {

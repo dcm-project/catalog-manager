@@ -533,6 +533,30 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /catalog-item-instances/{catalogItemInstanceId}:rehydrate:
+    post:
+      operationId: :RehydrateCatalogItemInstance
+      summary: Rehydrate a catalog item instance
+      description: |
+        Triggers rehydration of an existing CatalogItemInstance.
+        Generates a new resource ID and delegates to the Placement Manager.
+      parameters:
+        - $ref: '#/components/parameters/CatalogItemInstanceIdPath'
+
+      responses:
+        '200':
+          description: Catalog item instance rehydrated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItemInstance'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   parameters:
     ServiceTypeIdPath:

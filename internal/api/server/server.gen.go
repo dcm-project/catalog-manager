@@ -30,6 +30,9 @@ type ServerInterface interface {
 	// Get a catalog item instance
 	// (GET /catalog-item-instances/{catalogItemInstanceId})
 	GetCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath)
+	// Rehydrate a catalog item instance
+	// (POST /catalog-item-instances/{catalogItemInstanceId}:rehydrate)
+	RehydrateCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath)
 	// List catalog items
 	// (GET /catalog-items)
 	ListCatalogItems(w http.ResponseWriter, r *http.Request, params ListCatalogItemsParams)
@@ -84,6 +87,12 @@ func (_ Unimplemented) DeleteCatalogItemInstance(w http.ResponseWriter, r *http.
 // Get a catalog item instance
 // (GET /catalog-item-instances/{catalogItemInstanceId})
 func (_ Unimplemented) GetCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Rehydrate a catalog item instance
+// (POST /catalog-item-instances/{catalogItemInstanceId}:rehydrate)
+func (_ Unimplemented) RehydrateCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -261,6 +270,31 @@ func (siw *ServerInterfaceWrapper) GetCatalogItemInstance(w http.ResponseWriter,
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetCatalogItemInstance(w, r, catalogItemInstanceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RehydrateCatalogItemInstance operation middleware
+func (siw *ServerInterfaceWrapper) RehydrateCatalogItemInstance(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "catalogItemInstanceId" -------------
+	var catalogItemInstanceId CatalogItemInstanceIdPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "catalogItemInstanceId", chi.URLParam(r, "catalogItemInstanceId"), &catalogItemInstanceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalogItemInstanceId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RehydrateCatalogItemInstance(w, r, catalogItemInstanceId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -642,6 +676,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/catalog-item-instances/{catalogItemInstanceId}", wrapper.GetCatalogItemInstance)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/catalog-item-instances/{catalogItemInstanceId}:rehydrate", wrapper.RehydrateCatalogItemInstance)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/catalog-items", wrapper.ListCatalogItems)
 	})
 	r.Group(func(r chi.Router) {
@@ -990,6 +1027,58 @@ type GetCatalogItemInstance500JSONResponse struct {
 }
 
 func (response GetCatalogItemInstance500JSONResponse) VisitGetCatalogItemInstanceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RehydrateCatalogItemInstanceRequestObject struct {
+	CatalogItemInstanceId CatalogItemInstanceIdPath `json:"catalogItemInstanceId"`
+}
+
+type RehydrateCatalogItemInstanceResponseObject interface {
+	VisitRehydrateCatalogItemInstanceResponse(w http.ResponseWriter) error
+}
+
+type RehydrateCatalogItemInstance200JSONResponse CatalogItemInstance
+
+func (response RehydrateCatalogItemInstance200JSONResponse) VisitRehydrateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RehydrateCatalogItemInstance404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response RehydrateCatalogItemInstance404JSONResponse) VisitRehydrateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RehydrateCatalogItemInstance500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response RehydrateCatalogItemInstance500JSONResponse) VisitRehydrateCatalogItemInstanceResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response); err != nil {
@@ -1715,6 +1804,9 @@ type StrictServerInterface interface {
 	// Get a catalog item instance
 	// (GET /catalog-item-instances/{catalogItemInstanceId})
 	GetCatalogItemInstance(ctx context.Context, request GetCatalogItemInstanceRequestObject) (GetCatalogItemInstanceResponseObject, error)
+	// Rehydrate a catalog item instance
+	// (POST /catalog-item-instances/{catalogItemInstanceId}:rehydrate)
+	RehydrateCatalogItemInstance(ctx context.Context, request RehydrateCatalogItemInstanceRequestObject) (RehydrateCatalogItemInstanceResponseObject, error)
 	// List catalog items
 	// (GET /catalog-items)
 	ListCatalogItems(ctx context.Context, request ListCatalogItemsRequestObject) (ListCatalogItemsResponseObject, error)
@@ -1877,6 +1969,32 @@ func (sh *strictHandler) GetCatalogItemInstance(w http.ResponseWriter, r *http.R
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetCatalogItemInstanceResponseObject); ok {
 		if err := validResponse.VisitGetCatalogItemInstanceResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RehydrateCatalogItemInstance operation middleware
+func (sh *strictHandler) RehydrateCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath) {
+	var request RehydrateCatalogItemInstanceRequestObject
+
+	request.CatalogItemInstanceId = catalogItemInstanceId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RehydrateCatalogItemInstance(ctx, request.(RehydrateCatalogItemInstanceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RehydrateCatalogItemInstance")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RehydrateCatalogItemInstanceResponseObject); ok {
+		if err := validResponse.VisitRehydrateCatalogItemInstanceResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

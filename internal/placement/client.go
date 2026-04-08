@@ -27,6 +27,7 @@ type Resource struct {
 type Client interface {
 	CreateResource(ctx context.Context, req CreateResourceRequest, id string) (*Resource, error)
 	DeleteResource(ctx context.Context, resourceID string) error
+	RehydrateResource(ctx context.Context, resourceID string, newResourceID string) (*Resource, error)
 }
 
 type client struct {
@@ -105,6 +106,41 @@ func (c *client) DeleteResource(ctx context.Context, resourceID string) error {
 
 	c.logger.InfoContext(ctx, "Resource deleted from placement manager", "resource_id", resourceID)
 	return nil
+}
+
+// RehydrateResource rehydrates a resource in the Placement Manager
+func (c *client) RehydrateResource(ctx context.Context, resourceID string, newResourceID string) (*Resource, error) {
+	c.logger.InfoContext(ctx, "Rehydrating resource in placement manager",
+		"resource_id", resourceID,
+		"new_resource_id", newResourceID,
+	)
+
+	body := pmv1alpha1.RehydrateResourceJSONRequestBody{
+		NewResourceId: newResourceID,
+	}
+
+	resp, err := c.pm.RehydrateResourceWithResponse(ctx, resourceID, body)
+	if err != nil {
+		c.logger.ErrorContext(ctx, "Placement manager rehydrate resource call failed",
+			"resource_id", resourceID,
+			"error", err,
+		)
+		return nil, fmt.Errorf("failed to call placement manager: %w", err)
+	}
+
+	if resp.JSON200 == nil {
+		c.logger.ErrorContext(ctx, "Placement manager returned unexpected status",
+			"resource_id", resourceID,
+			"status", resp.StatusCode(),
+		)
+		return nil, fmt.Errorf("placement manager returned status %d: %s", resp.StatusCode(), string(resp.Body))
+	}
+
+	c.logger.InfoContext(ctx, "Resource rehydrated in placement manager",
+		"resource_id", resourceID,
+		"new_resource_id", newResourceID,
+	)
+	return mapResource(resp.JSON200), nil
 }
 
 func mapResource(r *pmv1alpha1.Resource) *Resource {

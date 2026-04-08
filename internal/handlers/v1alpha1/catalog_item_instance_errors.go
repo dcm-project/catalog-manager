@@ -64,6 +64,39 @@ func mapCreateCatalogItemInstanceErrorToHTTP(err error) server.CreateCatalogItem
 	}
 }
 
+// mapRehydrateCatalogItemInstanceErrorToHTTP converts service domain errors to RehydrateCatalogItemInstance HTTP responses
+func mapRehydrateCatalogItemInstanceErrorToHTTP(err error) server.RehydrateCatalogItemInstanceResponseObject {
+	switch {
+	case errors.Is(err, service.ErrCatalogItemInstanceNotFound):
+		return server.RehydrateCatalogItemInstance404JSONResponse{
+			NotFoundJSONResponse: server.NotFoundJSONResponse{
+				Type:   v1alpha1.NOTFOUND,
+				Status: 404,
+				Title:  "Not Found",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	case errors.Is(err, service.ErrPlacementManagerRehydrateFailed):
+		return server.RehydrateCatalogItemInstance500JSONResponse{
+			InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
+				Type:   v1alpha1.INTERNAL,
+				Status: 500,
+				Title:  "Placement Manager Error",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	default:
+		return server.RehydrateCatalogItemInstance500JSONResponse{
+			InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
+				Type:   v1alpha1.INTERNAL,
+				Status: 500,
+				Title:  "Internal Server Error",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	}
+}
+
 // mapGetCatalogItemInstanceErrorToHTTP converts service domain errors to GetCatalogItemInstance HTTP responses
 func mapGetCatalogItemInstanceErrorToHTTP(err error) server.GetCatalogItemInstanceResponseObject {
 	switch {

@@ -260,6 +260,45 @@ var _ = Describe("CatalogItemInstance Store", func() {
 		})
 	})
 
+	Describe("UpdateResourceID", func() {
+		It("should update resource_id for an existing instance", func() {
+			createTestServiceType("vm-st-upd", "vm")
+			createTestCatalogItem("small-vm-upd", "vm")
+
+			cii := model.CatalogItemInstance{
+				ID:          "upd-res-cii",
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Update ResourceID",
+				Spec: model.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm-upd",
+					UserValues:    []model.UserValue{},
+				},
+				ResourceID: "old-resource-id",
+				Path:       "catalog-item-instances/upd-res-cii",
+			}
+
+			_, err := catalogItemInstanceStore.Create(context.Background(), cii)
+			Expect(err).ToNot(HaveOccurred())
+
+			updated, err := catalogItemInstanceStore.UpdateResourceID(context.Background(), "upd-res-cii", "new-resource-id")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(updated).ToNot(BeNil())
+			Expect(updated.ResourceID).To(Equal("new-resource-id"))
+
+			// Verify persisted
+			retrieved, err := catalogItemInstanceStore.Get(context.Background(), "upd-res-cii")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(retrieved.ResourceID).To(Equal("new-resource-id"))
+			// Other fields unchanged
+			Expect(retrieved.DisplayName).To(Equal("Update ResourceID"))
+		})
+
+		It("should return error for non-existent instance", func() {
+			_, err := catalogItemInstanceStore.UpdateResourceID(context.Background(), "non-existent", "new-id")
+			Expect(err).To(Equal(store.ErrCatalogItemInstanceNotFound))
+		})
+	})
+
 	Describe("List", func() {
 		It("should return empty list when no catalog item instances exist", func() {
 			results, err := catalogItemInstanceStore.List(context.Background(), &store.CatalogItemInstanceListOptions{

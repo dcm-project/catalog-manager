@@ -60,4 +60,7 @@ var (
 
 	// ErrPlacementManagerDeleteFailed indicates the Placement Manager failed to delete a resource
 	ErrPlacementManagerDeleteFailed = errors.New("placement manager delete resource failed")
+
+	// ErrPlacementManagerRehydrateFailed indicates the Placement Manager failed to rehydrate a resource
+	ErrPlacementManagerRehydrateFailed = errors.New("placement manager rehydrate resource failed")
 )
