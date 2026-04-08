@@ -55,6 +55,12 @@ var (
 	// ErrUserValueDependsOnViolation indicates the user value is not allowed given the current value of the field it depends on
 	ErrUserValueDependsOnViolation = errors.New("user value violates depends_on constraint")
 
+	// ErrPlacementManagerPolicyRejected indicates the Placement Manager rejected the request due to policy (406)
+	ErrPlacementManagerPolicyRejected = errors.New("placement manager request rejected by policy engine")
+
+	// ErrPlacementManagerProviderError indicates the Placement Manager SPRM provider returned an error (422)
+	ErrPlacementManagerProviderError = errors.New("placement manager provider error")
+
 	// ErrPlacementManagerCreateFailed indicates the Placement Manager failed to create a resource
 	ErrPlacementManagerCreateFailed = errors.New("placement manager create resource failed")
 

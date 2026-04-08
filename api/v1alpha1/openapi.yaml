@@ -474,8 +474,14 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+        '406':
+          $ref: '#/components/responses/PolicyRejected'
+
         '409':
           $ref: '#/components/responses/AlreadyExists'
+
+        '422':
+          $ref: '#/components/responses/ProviderError'
 
         '500':
           $ref: '#/components/responses/InternalServerError'
@@ -553,6 +559,12 @@ paths:
 
         '404':
           $ref: '#/components/responses/NotFound'
+
+        '406':
+          $ref: '#/components/responses/PolicyRejected'
+
+        '422':
+          $ref: '#/components/responses/ProviderError'
 
         '500':
           $ref: '#/components/responses/InternalServerError'
@@ -1204,6 +1216,32 @@ components:
             title: Resource has instances
             detail: CatalogItem 'vm-standard' has instances
             instance: 0c67gh6h-7e96-75ce-e3h8-e1g683hf498h
+
+    PolicyRejected:
+      description: Policy Rejected
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: FAILED_PRECONDITION
+            status: 406
+            title: Policy rejected
+            detail: Request rejected by Policy Engine
+            instance: 1a23bc4d-5e67-89fg-h012-i3j456kl789m
+
+    ProviderError:
+      description: Provider Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: FAILED_PRECONDITION
+            status: 422
+            title: Provider error
+            detail: SPRM provider error
+            instance: 2b34cd5e-6f78-90gh-i123-j4k567lm890n
 
     InternalServerError:
       description: Internal Server Error

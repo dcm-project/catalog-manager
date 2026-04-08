@@ -353,6 +353,14 @@ type InternalServerError = Error
 // and AEP-193 Error Responses specification.
 type NotFound = Error
 
+// PolicyRejected Error response following RFC 7807 Problem Details for HTTP APIs
+// and AEP-193 Error Responses specification.
+type PolicyRejected = Error
+
+// ProviderError Error response following RFC 7807 Problem Details for HTTP APIs
+// and AEP-193 Error Responses specification.
+type ProviderError = Error
+
 // Unauthorized Error response following RFC 7807 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type Unauthorized = Error

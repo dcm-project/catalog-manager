@@ -1174,7 +1174,9 @@ type CreateCatalogItemInstanceResponse struct {
 	JSON400      *Error
 	JSON401      *Unauthorized
 	JSON403      *Forbidden
+	JSON406      *PolicyRejected
 	JSON409      *AlreadyExists
+	JSON422      *ProviderError
 	JSON500      *InternalServerError
 }
 
@@ -1250,6 +1252,8 @@ type RehydrateCatalogItemInstanceResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *CatalogItemInstance
 	JSON404      *NotFound
+	JSON406      *PolicyRejected
+	JSON422      *ProviderError
 	JSON500      *InternalServerError
 }
 
@@ -1748,12 +1752,26 @@ func ParseCreateCatalogItemInstanceResponse(rsp *http.Response) (*CreateCatalogI
 		}
 		response.JSON403 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 406:
+		var dest PolicyRejected
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON406 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
 		var dest AlreadyExists
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ProviderError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest InternalServerError
@@ -1895,6 +1913,20 @@ func ParseRehydrateCatalogItemInstanceResponse(rsp *http.Response) (*RehydrateCa
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 406:
+		var dest PolicyRejected
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON406 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ProviderError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest InternalServerError

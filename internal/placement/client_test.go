@@ -3,6 +3,7 @@ package placement_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -112,7 +113,7 @@ var _ = Describe("Placement Client", func() {
 				client = newTestClient(server.URL)
 			})
 
-			It("returns an error and nil resource", func() {
+			It("returns a PlacementError with StatusCode 500", func() {
 				resource, err := client.CreateResource(ctx, placement.CreateResourceRequest{
 					CatalogItemInstanceID: "instance-789",
 					Spec:                  map[string]any{},
@@ -120,6 +121,147 @@ var _ = Describe("Placement Client", func() {
 
 				Expect(err).To(HaveOccurred())
 				Expect(resource).To(BeNil())
+				var pmErr *placement.PlacementError
+				Expect(errors.As(err, &pmErr)).To(BeTrue())
+				Expect(pmErr.StatusCode).To(Equal(500))
+			})
+		})
+
+		Context("when the server returns 406 policy rejected", func() {
+			BeforeEach(func() {
+				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusNotAcceptable)
+					_, _ = w.Write([]byte(`{"title": "policy rejected", "type": "FAILED_PRECONDITION"}`))
+				}))
+				client = newTestClient(server.URL)
+			})
+
+			It("returns a PlacementError with StatusCode 406", func() {
+				resource, err := client.CreateResource(ctx, placement.CreateResourceRequest{
+					CatalogItemInstanceID: "instance-policy",
+					Spec:                  map[string]any{},
+				}, "")
+
+				Expect(err).To(HaveOccurred())
+				Expect(resource).To(BeNil())
+				var pmErr *placement.PlacementError
+				Expect(errors.As(err, &pmErr)).To(BeTrue())
+				Expect(pmErr.StatusCode).To(Equal(406))
+			})
+		})
+
+		Context("when the server returns 422 provider error", func() {
+			BeforeEach(func() {
+				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusUnprocessableEntity)
+					_, _ = w.Write([]byte(`{"title": "provider error", "type": "FAILED_PRECONDITION"}`))
+				}))
+				client = newTestClient(server.URL)
+			})
+
+			It("returns a PlacementError with StatusCode 422", func() {
+				resource, err := client.CreateResource(ctx, placement.CreateResourceRequest{
+					CatalogItemInstanceID: "instance-provider",
+					Spec:                  map[string]any{},
+				}, "")
+
+				Expect(err).To(HaveOccurred())
+				Expect(resource).To(BeNil())
+				var pmErr *placement.PlacementError
+				Expect(errors.As(err, &pmErr)).To(BeTrue())
+				Expect(pmErr.StatusCode).To(Equal(422))
+			})
+		})
+	})
+
+	Describe("RehydrateResource", func() {
+		Context("when the server returns success", func() {
+			BeforeEach(func() {
+				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					Expect(r.Method).To(Equal(http.MethodPost))
+
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusOK)
+					_ = json.NewEncoder(w).Encode(map[string]any{
+						"id":   "new-resource-id",
+						"path": "resources/new-resource-id",
+						"spec": map[string]any{},
+					})
+				}))
+				client = newTestClient(server.URL)
+			})
+
+			It("returns the rehydrated resource", func() {
+				resource, err := client.RehydrateResource(ctx, "old-resource-id", "new-resource-id")
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(resource).ToNot(BeNil())
+				Expect(resource.ID).To(Equal("new-resource-id"))
+			})
+		})
+
+		Context("when the server returns 406 policy rejected", func() {
+			BeforeEach(func() {
+				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusNotAcceptable)
+					_, _ = w.Write([]byte(`{"title": "policy rejected", "type": "FAILED_PRECONDITION"}`))
+				}))
+				client = newTestClient(server.URL)
+			})
+
+			It("returns a PlacementError with StatusCode 406", func() {
+				resource, err := client.RehydrateResource(ctx, "old-id", "new-id")
+
+				Expect(err).To(HaveOccurred())
+				Expect(resource).To(BeNil())
+				var pmErr *placement.PlacementError
+				Expect(errors.As(err, &pmErr)).To(BeTrue())
+				Expect(pmErr.StatusCode).To(Equal(406))
+			})
+		})
+
+		Context("when the server returns 422 provider error", func() {
+			BeforeEach(func() {
+				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusUnprocessableEntity)
+					_, _ = w.Write([]byte(`{"title": "provider error", "type": "FAILED_PRECONDITION"}`))
+				}))
+				client = newTestClient(server.URL)
+			})
+
+			It("returns a PlacementError with StatusCode 422", func() {
+				resource, err := client.RehydrateResource(ctx, "old-id", "new-id")
+
+				Expect(err).To(HaveOccurred())
+				Expect(resource).To(BeNil())
+				var pmErr *placement.PlacementError
+				Expect(errors.As(err, &pmErr)).To(BeTrue())
+				Expect(pmErr.StatusCode).To(Equal(422))
+			})
+		})
+
+		Context("when the server returns 500", func() {
+			BeforeEach(func() {
+				server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusInternalServerError)
+					_, _ = w.Write([]byte(`{"title": "internal error", "type": "internal"}`))
+				}))
+				client = newTestClient(server.URL)
+			})
+
+			It("returns a PlacementError with StatusCode 500", func() {
+				resource, err := client.RehydrateResource(ctx, "old-id", "new-id")
+
+				Expect(err).To(HaveOccurred())
+				Expect(resource).To(BeNil())
+				var pmErr *placement.PlacementError
+				Expect(errors.As(err, &pmErr)).To(BeTrue())
+				Expect(pmErr.StatusCode).To(Equal(500))
 			})
 		})
 	})

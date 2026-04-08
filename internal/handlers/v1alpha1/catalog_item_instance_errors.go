@@ -43,6 +43,24 @@ func mapCreateCatalogItemInstanceErrorToHTTP(err error) server.CreateCatalogItem
 			Title:  "Bad Request",
 			Detail: stringPtr(err.Error()),
 		})
+	case errors.Is(err, service.ErrPlacementManagerPolicyRejected):
+		return server.CreateCatalogItemInstance406JSONResponse{
+			PolicyRejectedJSONResponse: server.PolicyRejectedJSONResponse{
+				Type:   v1alpha1.FAILEDPRECONDITION,
+				Status: 406,
+				Title:  "Policy Rejected",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	case errors.Is(err, service.ErrPlacementManagerProviderError):
+		return server.CreateCatalogItemInstance422JSONResponse{
+			ProviderErrorJSONResponse: server.ProviderErrorJSONResponse{
+				Type:   v1alpha1.FAILEDPRECONDITION,
+				Status: 422,
+				Title:  "Provider Error",
+				Detail: stringPtr(err.Error()),
+			},
+		}
 	case errors.Is(err, service.ErrPlacementManagerCreateFailed):
 		return server.CreateCatalogItemInstance500JSONResponse{
 			InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
@@ -73,6 +91,24 @@ func mapRehydrateCatalogItemInstanceErrorToHTTP(err error) server.RehydrateCatal
 				Type:   v1alpha1.NOTFOUND,
 				Status: 404,
 				Title:  "Not Found",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	case errors.Is(err, service.ErrPlacementManagerPolicyRejected):
+		return server.RehydrateCatalogItemInstance406JSONResponse{
+			PolicyRejectedJSONResponse: server.PolicyRejectedJSONResponse{
+				Type:   v1alpha1.FAILEDPRECONDITION,
+				Status: 406,
+				Title:  "Policy Rejected",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	case errors.Is(err, service.ErrPlacementManagerProviderError):
+		return server.RehydrateCatalogItemInstance422JSONResponse{
+			ProviderErrorJSONResponse: server.ProviderErrorJSONResponse{
+				Type:   v1alpha1.FAILEDPRECONDITION,
+				Status: 422,
+				Title:  "Provider Error",
 				Detail: stringPtr(err.Error()),
 			},
 		}

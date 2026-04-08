@@ -10,6 +10,17 @@ import (
 	pmclient "github.com/dcm-project/placement-manager/pkg/client"
 )
 
+// PlacementError represents a structured error from the Placement Manager,
+// preserving the HTTP status code for upstream handling.
+type PlacementError struct {
+	StatusCode int
+	Body       string
+}
+
+func (e *PlacementError) Error() string {
+	return fmt.Sprintf("placement manager returned status %d: %s", e.StatusCode, e.Body)
+}
+
 // CreateResourceRequest is the request body for creating a resource in the Placement Manager
 type CreateResourceRequest struct {
 	CatalogItemInstanceID string         `json:"catalog_item_instance_id"`
@@ -76,7 +87,7 @@ func (c *client) CreateResource(ctx context.Context, req CreateResourceRequest, 
 			"resource_id", id,
 			"status", resp.StatusCode(),
 		)
-		return nil, fmt.Errorf("placement manager returned status %d: %s", resp.StatusCode(), string(resp.Body))
+		return nil, &PlacementError{StatusCode: resp.StatusCode(), Body: string(resp.Body)}
 	}
 
 	c.logger.InfoContext(ctx, "Resource created in placement manager", "resource_id", id)
@@ -133,7 +144,7 @@ func (c *client) RehydrateResource(ctx context.Context, resourceID string, newRe
 			"resource_id", resourceID,
 			"status", resp.StatusCode(),
 		)
-		return nil, fmt.Errorf("placement manager returned status %d: %s", resp.StatusCode(), string(resp.Body))
+		return nil, &PlacementError{StatusCode: resp.StatusCode(), Body: string(resp.Body)}
 	}
 
 	c.logger.InfoContext(ctx, "Resource rehydrated in placement manager",

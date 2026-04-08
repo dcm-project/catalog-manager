@@ -101,6 +101,94 @@ func stubPMDeleteResource() {
 	postWireMockMapping(stub)
 }
 
+func stubPMCreateResourcePolicyRejected() {
+	stub := map[string]any{
+		"request": map[string]any{
+			"method":     "POST",
+			"urlPattern": "/api/v1alpha1/resources.*",
+		},
+		"response": map[string]any{
+			"status": 406,
+			"headers": map[string]string{
+				"Content-Type": "application/json",
+			},
+			"jsonBody": map[string]any{
+				"type":   "FAILED_PRECONDITION",
+				"title":  "Policy rejected",
+				"status": 406,
+				"detail": "Request rejected by Policy Engine",
+			},
+		},
+	}
+	postWireMockMapping(stub)
+}
+
+func stubPMCreateResourceProviderError() {
+	stub := map[string]any{
+		"request": map[string]any{
+			"method":     "POST",
+			"urlPattern": "/api/v1alpha1/resources.*",
+		},
+		"response": map[string]any{
+			"status": 422,
+			"headers": map[string]string{
+				"Content-Type": "application/json",
+			},
+			"jsonBody": map[string]any{
+				"type":   "FAILED_PRECONDITION",
+				"title":  "Provider error",
+				"status": 422,
+				"detail": "SPRM provider error",
+			},
+		},
+	}
+	postWireMockMapping(stub)
+}
+
+func stubPMRehydrateResourcePolicyRejected() {
+	stub := map[string]any{
+		"request": map[string]any{
+			"method":         "POST",
+			"urlPathPattern": "/api/v1alpha1/resources/.*:rehydrate",
+		},
+		"response": map[string]any{
+			"status": 406,
+			"headers": map[string]string{
+				"Content-Type": "application/json",
+			},
+			"jsonBody": map[string]any{
+				"type":   "FAILED_PRECONDITION",
+				"title":  "Policy rejected",
+				"status": 406,
+				"detail": "Request rejected by Policy Engine",
+			},
+		},
+	}
+	postWireMockMapping(stub)
+}
+
+func stubPMRehydrateResourceProviderError() {
+	stub := map[string]any{
+		"request": map[string]any{
+			"method":         "POST",
+			"urlPathPattern": "/api/v1alpha1/resources/.*:rehydrate",
+		},
+		"response": map[string]any{
+			"status": 422,
+			"headers": map[string]string{
+				"Content-Type": "application/json",
+			},
+			"jsonBody": map[string]any{
+				"type":   "FAILED_PRECONDITION",
+				"title":  "Provider error",
+				"status": 422,
+				"detail": "SPRM provider error",
+			},
+		},
+	}
+	postWireMockMapping(stub)
+}
+
 func stubPMCreateResourceFailure() {
 	stub := map[string]any{
 		"request": map[string]any{

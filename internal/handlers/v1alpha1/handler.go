@@ -56,6 +56,8 @@ var clientErrors = []error{
 	service.ErrDependsOnCycleDetected,
 	service.ErrDependsOnPathNotFound,
 	service.ErrUserValueDependsOnViolation,
+	service.ErrPlacementManagerPolicyRejected,
+	service.ErrPlacementManagerProviderError,
 }
 
 // logServiceError logs at Warn for expected client errors (4xx) and Error for
