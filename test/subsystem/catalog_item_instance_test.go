@@ -429,6 +429,72 @@ var _ = Describe("CatalogItemInstance API", func() {
 			Expect(resp.StatusCode()).To(Equal(http.StatusNotFound))
 		})
 
+		It("returns 406 when PM rehydrate returns policy rejected, resource_id unchanged", func() {
+			instID := "inst-rehy-policy-" + uuid.NewString()[:8]
+			params := &v1alpha1.CreateCatalogItemInstanceParams{Id: &instID}
+			body := v1alpha1.CatalogItemInstance{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Rehydrate Policy Rejected",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: catalogItemID,
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			}
+			createResp, err := apiClient.CreateCatalogItemInstanceWithResponse(context.Background(), params, body)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(createResp.StatusCode()).To(Equal(http.StatusCreated))
+			oldResourceID := *createResp.JSON201.ResourceId
+
+			// Reset WireMock and stub rehydrate as policy rejected
+			resetWireMock()
+			stubPMCreateResource()
+			stubPMDeleteResource()
+			stubPMRehydrateResourcePolicyRejected()
+
+			resp, err := apiClient.RehydrateCatalogItemInstanceWithResponse(context.Background(), instID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode()).To(Equal(http.StatusNotAcceptable))
+
+			// Verify resource_id is unchanged
+			getResp, err := apiClient.GetCatalogItemInstanceWithResponse(context.Background(), instID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getResp.StatusCode()).To(Equal(http.StatusOK))
+			Expect(*getResp.JSON200.ResourceId).To(Equal(oldResourceID))
+		})
+
+		It("returns 422 when PM rehydrate returns provider error, resource_id unchanged", func() {
+			instID := "inst-rehy-provider-" + uuid.NewString()[:8]
+			params := &v1alpha1.CreateCatalogItemInstanceParams{Id: &instID}
+			body := v1alpha1.CatalogItemInstance{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Rehydrate Provider Error",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: catalogItemID,
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			}
+			createResp, err := apiClient.CreateCatalogItemInstanceWithResponse(context.Background(), params, body)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(createResp.StatusCode()).To(Equal(http.StatusCreated))
+			oldResourceID := *createResp.JSON201.ResourceId
+
+			// Reset WireMock and stub rehydrate as provider error
+			resetWireMock()
+			stubPMCreateResource()
+			stubPMDeleteResource()
+			stubPMRehydrateResourceProviderError()
+
+			resp, err := apiClient.RehydrateCatalogItemInstanceWithResponse(context.Background(), instID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode()).To(Equal(http.StatusUnprocessableEntity))
+
+			// Verify resource_id is unchanged
+			getResp, err := apiClient.GetCatalogItemInstanceWithResponse(context.Background(), instID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getResp.StatusCode()).To(Equal(http.StatusOK))
+			Expect(*getResp.JSON200.ResourceId).To(Equal(oldResourceID))
+		})
+
 		It("returns 500 when PM rehydrate fails, resource_id unchanged", func() {
 			instID := "inst-rehy-fail-" + uuid.NewString()[:8]
 			params := &v1alpha1.CreateCatalogItemInstanceParams{Id: &instID}
@@ -464,6 +530,56 @@ var _ = Describe("CatalogItemInstance API", func() {
 	})
 
 	Describe("PlacementManager failures", func() {
+		It("returns 406 when PM create returns policy rejected, instance not persisted", func() {
+			resetWireMock()
+			stubPMCreateResourcePolicyRejected()
+
+			instID := "inst-pm-policy-" + uuid.NewString()[:8]
+			params := &v1alpha1.CreateCatalogItemInstanceParams{Id: &instID}
+			body := v1alpha1.CatalogItemInstance{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "PM Policy Rejected",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: catalogItemID,
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			}
+
+			resp, err := apiClient.CreateCatalogItemInstanceWithResponse(context.Background(), params, body)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode()).To(Equal(http.StatusNotAcceptable))
+
+			// Verify instance was not persisted
+			getResp, err := apiClient.GetCatalogItemInstanceWithResponse(context.Background(), instID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getResp.StatusCode()).To(Equal(http.StatusNotFound))
+		})
+
+		It("returns 422 when PM create returns provider error, instance not persisted", func() {
+			resetWireMock()
+			stubPMCreateResourceProviderError()
+
+			instID := "inst-pm-provider-" + uuid.NewString()[:8]
+			params := &v1alpha1.CreateCatalogItemInstanceParams{Id: &instID}
+			body := v1alpha1.CatalogItemInstance{
+				ApiVersion:  "v1alpha1",
+				DisplayName: "PM Provider Error",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: catalogItemID,
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			}
+
+			resp, err := apiClient.CreateCatalogItemInstanceWithResponse(context.Background(), params, body)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode()).To(Equal(http.StatusUnprocessableEntity))
+
+			// Verify instance was not persisted
+			getResp, err := apiClient.GetCatalogItemInstanceWithResponse(context.Background(), instID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(getResp.StatusCode()).To(Equal(http.StatusNotFound))
+		})
+
 		It("returns 500 when PM create fails, instance not persisted", func() {
 			resetWireMock()
 			stubPMCreateResourceFailure()

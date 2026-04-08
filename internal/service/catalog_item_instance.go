@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/placement"
@@ -128,7 +130,7 @@ func (s *catalogItemInstanceService) Create(ctx context.Context, req *CreateCata
 			)
 			// Rollback: delete DB record
 			_ = s.store.CatalogItemInstance().Delete(ctx, id)
-			return nil, fmt.Errorf("%w: %s", ErrPlacementManagerCreateFailed, err.Error())
+			return nil, mapPlacementError(err, ErrPlacementManagerCreateFailed)
 		}
 	}
 
@@ -176,7 +178,7 @@ func (s *catalogItemInstanceService) Rehydrate(ctx context.Context, id string) (
 				"id", id,
 				"error", err,
 			)
-			return nil, fmt.Errorf("%w: %s", ErrPlacementManagerRehydrateFailed, err.Error())
+			return nil, mapPlacementError(err, ErrPlacementManagerRehydrateFailed)
 		}
 	}
 
@@ -225,4 +227,20 @@ func (s *catalogItemInstanceService) Delete(ctx context.Context, id string) erro
 
 	s.logger.InfoContext(ctx, "Catalog item instance deleted", "id", id)
 	return nil
+}
+
+// mapPlacementError inspects the error from the placement client and maps
+// known HTTP status codes (406, 422) to specific sentinel errors. For
+// unrecognised codes or non-PlacementError errors, the genericSentinel is used.
+func mapPlacementError(err error, genericSentinel error) error {
+	var pmErr *placement.PlacementError
+	if errors.As(err, &pmErr) {
+		switch pmErr.StatusCode {
+		case http.StatusNotAcceptable:
+			return fmt.Errorf("%w: %s", ErrPlacementManagerPolicyRejected, pmErr.Error())
+		case http.StatusUnprocessableEntity:
+			return fmt.Errorf("%w: %s", ErrPlacementManagerProviderError, pmErr.Error())
+		}
+	}
+	return fmt.Errorf("%w: %s", genericSentinel, err.Error())
 }

@@ -667,6 +667,58 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			_, getErr := svc.CatalogItemInstance().Get(ctx, instanceID)
 			Expect(getErr).To(Equal(service.ErrCatalogItemInstanceNotFound))
 		})
+
+		It("should return ErrPlacementManagerPolicyRejected when PM create returns 406", func() {
+			mockPM.createFunc = func(_ context.Context, _ placement.CreateResourceRequest, _ string) (*placement.Resource, error) {
+				return nil, &placement.PlacementError{StatusCode: 406, Body: "policy rejected"}
+			}
+
+			instanceID := "pm-policy-fail"
+			req := &service.CreateCatalogItemInstanceRequest{
+				ID:          &instanceID,
+				ApiVersion:  "v1alpha1",
+				DisplayName: "PM Policy Fail",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			}
+
+			result, err := svc.CatalogItemInstance().Create(ctx, req)
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, service.ErrPlacementManagerPolicyRejected)).To(BeTrue())
+			Expect(result).To(BeNil())
+
+			// Verify DB record was cleaned up (rollback)
+			_, getErr := svc.CatalogItemInstance().Get(ctx, instanceID)
+			Expect(getErr).To(Equal(service.ErrCatalogItemInstanceNotFound))
+		})
+
+		It("should return ErrPlacementManagerProviderError when PM create returns 422", func() {
+			mockPM.createFunc = func(_ context.Context, _ placement.CreateResourceRequest, _ string) (*placement.Resource, error) {
+				return nil, &placement.PlacementError{StatusCode: 422, Body: "provider error"}
+			}
+
+			instanceID := "pm-provider-fail"
+			req := &service.CreateCatalogItemInstanceRequest{
+				ID:          &instanceID,
+				ApiVersion:  "v1alpha1",
+				DisplayName: "PM Provider Fail",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			}
+
+			result, err := svc.CatalogItemInstance().Create(ctx, req)
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, service.ErrPlacementManagerProviderError)).To(BeTrue())
+			Expect(result).To(BeNil())
+
+			// Verify DB record was cleaned up (rollback)
+			_, getErr := svc.CatalogItemInstance().Get(ctx, instanceID)
+			Expect(getErr).To(Equal(service.ErrCatalogItemInstanceNotFound))
+		})
 	})
 
 	Describe("Rehydrate with PM", func() {
@@ -742,6 +794,64 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			result, err := svc.CatalogItemInstance().Rehydrate(ctx, instanceID)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("placement manager rehydrate resource failed"))
+			Expect(result).To(BeNil())
+
+			// Verify resource_id unchanged
+			got, err := svc.CatalogItemInstance().Get(ctx, instanceID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(*got.ResourceId).To(Equal(oldResourceID))
+		})
+
+		It("should return ErrPlacementManagerPolicyRejected when PM rehydrate returns 406", func() {
+			instanceID := "rehydrate-policy-fail"
+			created, err := svc.CatalogItemInstance().Create(ctx, &service.CreateCatalogItemInstanceRequest{
+				ID:          &instanceID,
+				ApiVersion:  "v1alpha1",
+				DisplayName: "PM Rehydrate Policy Fail",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			})
+			Expect(err).ToNot(HaveOccurred())
+			oldResourceID := *created.ResourceId
+
+			mockPM.rehydrateFunc = func(_ context.Context, _ string, _ string) (*placement.Resource, error) {
+				return nil, &placement.PlacementError{StatusCode: 406, Body: "policy rejected"}
+			}
+
+			result, err := svc.CatalogItemInstance().Rehydrate(ctx, instanceID)
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, service.ErrPlacementManagerPolicyRejected)).To(BeTrue())
+			Expect(result).To(BeNil())
+
+			// Verify resource_id unchanged
+			got, err := svc.CatalogItemInstance().Get(ctx, instanceID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(*got.ResourceId).To(Equal(oldResourceID))
+		})
+
+		It("should return ErrPlacementManagerProviderError when PM rehydrate returns 422", func() {
+			instanceID := "rehydrate-provider-fail"
+			created, err := svc.CatalogItemInstance().Create(ctx, &service.CreateCatalogItemInstanceRequest{
+				ID:          &instanceID,
+				ApiVersion:  "v1alpha1",
+				DisplayName: "PM Rehydrate Provider Fail",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			})
+			Expect(err).ToNot(HaveOccurred())
+			oldResourceID := *created.ResourceId
+
+			mockPM.rehydrateFunc = func(_ context.Context, _ string, _ string) (*placement.Resource, error) {
+				return nil, &placement.PlacementError{StatusCode: 422, Body: "provider error"}
+			}
+
+			result, err := svc.CatalogItemInstance().Rehydrate(ctx, instanceID)
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, service.ErrPlacementManagerProviderError)).To(BeTrue())
 			Expect(result).To(BeNil())
 
 			// Verify resource_id unchanged

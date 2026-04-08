@@ -266,6 +266,18 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 					Expect(resp.Status).To(Equal(expectedStatus))
 					Expect(resp.Type).To(Equal(expectedType))
 					Expect(resp.Title).To(Equal(expectedTitle))
+				case 406:
+					Expect(response).To(BeAssignableToTypeOf(server.CreateCatalogItemInstance406JSONResponse{}))
+					resp := response.(server.CreateCatalogItemInstance406JSONResponse)
+					Expect(resp.Status).To(Equal(expectedStatus))
+					Expect(resp.Type).To(Equal(expectedType))
+					Expect(resp.Title).To(Equal(expectedTitle))
+				case 422:
+					Expect(response).To(BeAssignableToTypeOf(server.CreateCatalogItemInstance422JSONResponse{}))
+					resp := response.(server.CreateCatalogItemInstance422JSONResponse)
+					Expect(resp.Status).To(Equal(expectedStatus))
+					Expect(resp.Type).To(Equal(expectedType))
+					Expect(resp.Title).To(Equal(expectedTitle))
 				case 500:
 					Expect(response).To(BeAssignableToTypeOf(server.CreateCatalogItemInstance500JSONResponse{}))
 					resp := response.(server.CreateCatalogItemInstance500JSONResponse)
@@ -280,6 +292,8 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 			Entry("user value path not found", service.ErrUserValuePathNotFound, int32(400), v1alpha1API.INVALIDARGUMENT, "Bad Request"),
 			Entry("user value not editable", service.ErrUserValueNotEditable, int32(400), v1alpha1API.INVALIDARGUMENT, "Bad Request"),
 			Entry("user value validation failed", service.ErrUserValueValidationFailed, int32(400), v1alpha1API.INVALIDARGUMENT, "Bad Request"),
+			Entry("placement manager policy rejected", service.ErrPlacementManagerPolicyRejected, int32(406), v1alpha1API.FAILEDPRECONDITION, "Policy Rejected"),
+			Entry("placement manager provider error", service.ErrPlacementManagerProviderError, int32(422), v1alpha1API.FAILEDPRECONDITION, "Provider Error"),
 			Entry("placement manager create failed", service.ErrPlacementManagerCreateFailed, int32(500), v1alpha1API.INTERNAL, "Placement Manager Error"),
 			Entry("generic service error", errors.New("database error"), int32(500), v1alpha1API.INTERNAL, "Internal Server Error"),
 		)
@@ -493,6 +507,18 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 					Expect(resp.Status).To(Equal(expectedStatus))
 					Expect(resp.Type).To(Equal(expectedType))
 					Expect(resp.Title).To(Equal(expectedTitle))
+				case 406:
+					Expect(response).To(BeAssignableToTypeOf(server.RehydrateCatalogItemInstance406JSONResponse{}))
+					resp := response.(server.RehydrateCatalogItemInstance406JSONResponse)
+					Expect(resp.Status).To(Equal(expectedStatus))
+					Expect(resp.Type).To(Equal(expectedType))
+					Expect(resp.Title).To(Equal(expectedTitle))
+				case 422:
+					Expect(response).To(BeAssignableToTypeOf(server.RehydrateCatalogItemInstance422JSONResponse{}))
+					resp := response.(server.RehydrateCatalogItemInstance422JSONResponse)
+					Expect(resp.Status).To(Equal(expectedStatus))
+					Expect(resp.Type).To(Equal(expectedType))
+					Expect(resp.Title).To(Equal(expectedTitle))
 				case 500:
 					Expect(response).To(BeAssignableToTypeOf(server.RehydrateCatalogItemInstance500JSONResponse{}))
 					resp := response.(server.RehydrateCatalogItemInstance500JSONResponse)
@@ -504,6 +530,8 @@ var _ = Describe("CatalogItemInstance Handler", func() {
 				}
 			},
 			Entry("not found", service.ErrCatalogItemInstanceNotFound, int32(404), v1alpha1API.NOTFOUND, "Not Found"),
+			Entry("placement manager policy rejected", service.ErrPlacementManagerPolicyRejected, int32(406), v1alpha1API.FAILEDPRECONDITION, "Policy Rejected"),
+			Entry("placement manager provider error", service.ErrPlacementManagerProviderError, int32(422), v1alpha1API.FAILEDPRECONDITION, "Provider Error"),
 			Entry("placement manager rehydrate failed", service.ErrPlacementManagerRehydrateFailed, int32(500), v1alpha1API.INTERNAL, "Placement Manager Error"),
 			Entry("generic service error", errors.New("database error"), int32(500), v1alpha1API.INTERNAL, "Internal Server Error"),
 		)
