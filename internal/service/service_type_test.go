@@ -33,7 +33,8 @@ var _ = Describe("ServiceType Service", func() {
 		err = db.AutoMigrate(&model.ServiceType{})
 		Expect(err).ToNot(HaveOccurred())
 		str = store.NewStore(db, slog.Default())
-		svc = service.NewService(str, nil, slog.Default())
+		svc, err = service.NewService(str, &mockPMClient{}, slog.Default())
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	AfterEach(func() {

@@ -125,7 +125,8 @@ var _ = Describe("CatalogItemInstance Service", func() {
 		Expect(err).ToNot(HaveOccurred())
 		str = store.NewStore(db, slog.Default())
 		mockPM = &mockPMClient{}
-		svc = service.NewService(str, mockPM, slog.Default())
+		svc, err = service.NewService(str, mockPM, slog.Default())
+		Expect(err).ToNot(HaveOccurred())
 		// Ensure prerequisites with specs
 		ensureServiceTypeWithSpec(ctx, str, "vm-st", "vm", map[string]any{
 			"vcpu":   map[string]any{"count": float64(2)},
@@ -587,7 +588,8 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 		Expect(err).ToNot(HaveOccurred())
 		str = store.NewStore(db, slog.Default())
 		mockPM = &mockPMClient{}
-		svc = service.NewService(str, mockPM, slog.Default())
+		svc, err = service.NewService(str, mockPM, slog.Default())
+		Expect(err).ToNot(HaveOccurred())
 		// Ensure prerequisites
 		ensureServiceTypeWithSpec(ctx, str, "vm-st", "vm", map[string]any{
 			"vcpu":   map[string]any{"count": float64(2)},

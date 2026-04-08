@@ -12,10 +12,28 @@ import (
 
 	"github.com/dcm-project/catalog-manager/internal/api/server"
 	v1alpha1 "github.com/dcm-project/catalog-manager/internal/handlers/v1alpha1"
+	"github.com/dcm-project/catalog-manager/internal/placement"
 	"github.com/dcm-project/catalog-manager/internal/service"
 	"github.com/dcm-project/catalog-manager/internal/store"
 	"github.com/dcm-project/catalog-manager/internal/store/model"
 )
+
+type noopPMClient struct{}
+
+// Ensure noopPMClient implements placement.Client at compile time.
+var _ placement.Client = (*noopPMClient)(nil)
+
+func (n *noopPMClient) CreateResource(_ context.Context, _ placement.CreateResourceRequest, _ string) (*placement.Resource, error) {
+	return &placement.Resource{}, nil
+}
+
+func (n *noopPMClient) DeleteResource(_ context.Context, _ string) error {
+	return nil
+}
+
+func (n *noopPMClient) RehydrateResource(_ context.Context, _ string, newResourceID string) (*placement.Resource, error) {
+	return &placement.Resource{ID: newResourceID}, nil
+}
 
 var _ = Describe("Health Handler", func() {
 	var (
@@ -41,7 +59,8 @@ var _ = Describe("Health Handler", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		dataStore = store.NewStore(db, slog.Default())
-		svc := service.NewService(dataStore, nil, slog.Default())
+		svc, err := service.NewService(dataStore, &noopPMClient{}, slog.Default())
+		Expect(err).ToNot(HaveOccurred())
 		handler = v1alpha1.NewHandler(svc, slog.Default())
 	})
 

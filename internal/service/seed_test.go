@@ -38,7 +38,8 @@ var _ = Describe("Seed", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		dataStore = store.NewStore(db, slog.Default())
-		svc = service.NewService(dataStore, nil, slog.Default())
+		svc, err = service.NewService(dataStore, &mockPMClient{}, slog.Default())
+		Expect(err).ToNot(HaveOccurred())
 	})
 
 	AfterEach(func() {
