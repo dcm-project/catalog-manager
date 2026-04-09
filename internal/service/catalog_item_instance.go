@@ -50,14 +50,18 @@ type catalogItemInstanceService struct {
 	logger      *slog.Logger
 }
 
-// newCatalogItemInstanceService creates a new CatalogItemInstanceService instance
-func newCatalogItemInstanceService(store store.Store, pmClient placement.Client, logger *slog.Logger) CatalogItemInstanceService {
+// newCatalogItemInstanceService creates a new CatalogItemInstanceService instance.
+// pmClient must not be nil.
+func newCatalogItemInstanceService(store store.Store, pmClient placement.Client, logger *slog.Logger) (CatalogItemInstanceService, error) {
+	if pmClient == nil {
+		return nil, fmt.Errorf("pmClient must not be nil")
+	}
 	return &catalogItemInstanceService{
 		store:       store,
 		specBuilder: newSpecBuilder(store),
 		pmClient:    pmClient,
 		logger:      logger,
-	}
+	}, nil
 }
 
 // List returns a paginated list of catalog item instances
@@ -117,21 +121,19 @@ func (s *catalogItemInstanceService) Create(ctx context.Context, req *CreateCata
 	}
 
 	// Call Placement Manager — only after DB validation passes
-	if s.pmClient != nil {
-		s.logger.DebugContext(ctx, "Calling placement manager to create resource", "id", id)
-		_, err := s.pmClient.CreateResource(ctx, placement.CreateResourceRequest{
-			CatalogItemInstanceID: id,
-			Spec:                  resourceSpec,
-		}, resourceID)
-		if err != nil {
-			s.logger.ErrorContext(ctx, "Placement manager create failed, rolling back",
-				"id", id,
-				"error", err,
-			)
-			// Rollback: delete DB record
-			_ = s.store.CatalogItemInstance().Delete(ctx, id)
-			return nil, mapPlacementError(err, ErrPlacementManagerCreateFailed)
-		}
+	s.logger.DebugContext(ctx, "Calling placement manager to create resource", "id", id)
+	_, err = s.pmClient.CreateResource(ctx, placement.CreateResourceRequest{
+		CatalogItemInstanceID: id,
+		Spec:                  resourceSpec,
+	}, resourceID)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "Placement manager create failed, rolling back",
+			"id", id,
+			"error", err,
+		)
+		// Rollback: delete DB record
+		_ = s.store.CatalogItemInstance().Delete(ctx, id)
+		return nil, mapPlacementError(err, ErrPlacementManagerCreateFailed)
 	}
 
 	s.logger.InfoContext(ctx, "Catalog item instance created", "id", id, "catalog_item_id", req.Spec.CatalogItemId)
@@ -166,20 +168,18 @@ func (s *catalogItemInstanceService) Rehydrate(ctx context.Context, id string) (
 	newResourceID := uuid.New().String()
 
 	// Call Placement Manager rehydrate
-	if s.pmClient != nil {
-		s.logger.DebugContext(ctx, "Calling placement manager to rehydrate resource",
+	s.logger.DebugContext(ctx, "Calling placement manager to rehydrate resource",
+		"id", id,
+		"old_resource_id", instance.ResourceID,
+		"new_resource_id", newResourceID,
+	)
+	_, err = s.pmClient.RehydrateResource(ctx, instance.ResourceID, newResourceID)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "Placement manager rehydrate failed",
 			"id", id,
-			"old_resource_id", instance.ResourceID,
-			"new_resource_id", newResourceID,
+			"error", err,
 		)
-		_, err := s.pmClient.RehydrateResource(ctx, instance.ResourceID, newResourceID)
-		if err != nil {
-			s.logger.ErrorContext(ctx, "Placement manager rehydrate failed",
-				"id", id,
-				"error", err,
-			)
-			return nil, mapPlacementError(err, ErrPlacementManagerRehydrateFailed)
-		}
+		return nil, mapPlacementError(err, ErrPlacementManagerRehydrateFailed)
 	}
 
 	// Update resource_id in DB
@@ -210,7 +210,7 @@ func (s *catalogItemInstanceService) Delete(ctx context.Context, id string) erro
 	}
 
 	// Delete PM resource using the stored resource ID
-	if s.pmClient != nil && instance.ResourceID != "" {
+	if instance.ResourceID != "" {
 		s.logger.DebugContext(ctx, "Calling placement manager to delete resource", "id", id, "resource_id", instance.ResourceID)
 		if err := s.pmClient.DeleteResource(ctx, instance.ResourceID); err != nil {
 			s.logger.ErrorContext(ctx, "Placement manager delete failed", "id", id, "error", err)

@@ -36,7 +36,8 @@ var _ = Describe("SpecBuilder (via CatalogItemInstance Create)", func() {
 		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{}, &model.CatalogItemInstance{})
 		Expect(err).ToNot(HaveOccurred())
 		str = store.NewStore(db, slog.Default())
-		svc = service.NewService(str, nil, slog.Default())
+		svc, err = service.NewService(str, &mockPMClient{}, slog.Default())
+		Expect(err).ToNot(HaveOccurred())
 
 		// Seed ServiceType with a rich spec
 		ensureServiceTypeWithSpec(ctx, str, "vm-spec-builder", "vm-sb", map[string]any{

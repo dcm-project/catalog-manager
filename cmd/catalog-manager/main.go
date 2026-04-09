@@ -68,7 +68,11 @@ func run() int {
 	defer cancel()
 
 	// Create service layer
-	svc := service.NewService(dataStore, pmClient, logger)
+	svc, err := service.NewService(dataStore, pmClient, logger)
+	if err != nil {
+		logger.Error("Failed to create service", "error", err)
+		return 1
+	}
 
 	// Seed service types and default catalog items if empty
 	if err := svc.Seed(ctx); err != nil {

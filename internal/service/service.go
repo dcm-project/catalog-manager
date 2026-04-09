@@ -3,6 +3,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/dcm-project/catalog-manager/internal/placement"
@@ -28,15 +29,19 @@ type service struct {
 }
 
 // NewService creates a new Service instance
-func NewService(store store.Store, pmClient placement.Client, logger *slog.Logger) Service {
+func NewService(store store.Store, pmClient placement.Client, logger *slog.Logger) (Service, error) {
 	svcLogger := logger.With("component", "service")
+	catalogItemInstanceSvc, err := newCatalogItemInstanceService(store, pmClient, svcLogger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create catalog item instance service: %w", err)
+	}
 	return &service{
 		store:                      store,
 		logger:                     svcLogger,
 		serviceTypeService:         newServiceTypeService(store, svcLogger),
 		catalogItemService:         newCatalogItemService(store, svcLogger),
-		catalogItemInstanceService: newCatalogItemInstanceService(store, pmClient, svcLogger),
-	}
+		catalogItemInstanceService: catalogItemInstanceSvc,
+	}, nil
 }
 
 // ServiceType returns the ServiceTypeService
