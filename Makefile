@@ -1,9 +1,16 @@
 BINARY_NAME := catalog-manager
 
 # CONTAINER_ENGINE: container runtime command. Set to override; otherwise auto-detect podman or docker.
-CONTAINER_ENGINE ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || \
-	(command -v docker >/dev/null 2>&1 && echo docker || \
-	(echo "docker")))
+CONTAINER_ENGINE ?= $(shell \
+	if command -v podman >/dev/null 2>&1; then \
+		echo podman; \
+	elif command -v docker >/dev/null 2>&1; then \
+		echo docker; \
+	fi)
+
+ifeq ($(CONTAINER_ENGINE),)
+$(error No supported container engine found. Please install podman or docker, or set CONTAINER_ENGINE explicitly.)
+endif
 
 # COMPOSE: compose command. Set to override; otherwise auto-detect podman-compose or docker-compose.
 COMPOSE ?= $(shell command -v podman-compose >/dev/null 2>&1 && echo podman-compose || \
