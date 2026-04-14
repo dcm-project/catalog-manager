@@ -1,9 +1,20 @@
 BINARY_NAME := catalog-manager
+
+# CONTAINER_ENGINE: container runtime command. Set to override; otherwise auto-detect podman or docker.
+CONTAINER_ENGINE ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || \
+	(command -v docker >/dev/null 2>&1 && echo docker || \
+	(echo "docker")))
+
 # COMPOSE: compose command. Set to override; otherwise auto-detect podman-compose or docker-compose.
 COMPOSE ?= $(shell command -v podman-compose >/dev/null 2>&1 && echo podman-compose || \
 	(command -v docker-compose >/dev/null 2>&1 && echo docker-compose || \
-	(echo "docker compose")))
+	(echo "$(CONTAINER_ENGINE) compose")))
 
+# CONTAINER_IMAGE_NAME: FQDN (without tag) of the container image. Set to override
+CONTAINER_IMAGE_NAME ?= quay.io/dcm-project/${BINARY_NAME}
+
+# CONTAINER_IMAGE_TAG: Container image tag. Set to override; otherwise git short hash is used
+CONTAINER_IMAGE_TAG ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
 
 build:
 	go build -o bin/$(BINARY_NAME) ./cmd/$(BINARY_NAME)
@@ -114,4 +125,7 @@ subsystem-test:
 
 subsystem-test-full: subsystem-test-up subsystem-test subsystem-test-down
 
-.PHONY: build run clean fmt vet lint test tidy generate-types generate-spec generate-server generate-client generate-api check-generate-api check-aep generate-service-types subsystem-test-up subsystem-test-down subsystem-test subsystem-test-full
+image:
+	$(CONTAINER_ENGINE) build -t $(CONTAINER_IMAGE_NAME):$(CONTAINER_IMAGE_TAG) .
+
+.PHONY: build run clean fmt vet lint test tidy generate-types generate-spec generate-server generate-client generate-api check-generate-api check-aep generate-service-types subsystem-test-up subsystem-test-down subsystem-test subsystem-test-full image
