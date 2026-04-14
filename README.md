@@ -235,6 +235,12 @@ GitHub Actions workflows enforce:
 3. **Check AEP Compliance** (`.github/workflows/check-aep.yaml`) — Validates API
    standards compliance.
 
+### Releasing
+
+Images are pushed to `quay.io/dcm-project/catalog-manager`.
+See [Releasing](https://github.com/dcm-project/shared-workflows#release-flow)
+in shared-workflows for the full release process, tag behavior, and version conventions.
+
 ## License
 
 Apache 2.0 — see the [OpenAPI spec](api/v1alpha1/openapi.yaml) for license
