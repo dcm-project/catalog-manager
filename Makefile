@@ -132,7 +132,7 @@ subsystem-test:
 
 subsystem-test-full: subsystem-test-up subsystem-test subsystem-test-down
 
-image:
+image-build:
 	$(CONTAINER_ENGINE) build -t $(CONTAINER_IMAGE_NAME):$(CONTAINER_IMAGE_TAG) .
 
-.PHONY: build run clean fmt vet lint test tidy generate-types generate-spec generate-server generate-client generate-api check-generate-api check-aep generate-service-types subsystem-test-up subsystem-test-down subsystem-test subsystem-test-full image
+.PHONY: build run clean fmt vet lint test tidy generate-types generate-spec generate-server generate-client generate-api check-generate-api check-aep generate-service-types subsystem-test-up subsystem-test-down subsystem-test subsystem-test-full image-build
