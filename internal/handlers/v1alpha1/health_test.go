@@ -69,7 +69,7 @@ var _ = Describe("Health Handler", func() {
 	})
 
 	Describe("GetHealth", func() {
-		It("should return healthy status", func() {
+		It("should return ok status", func() {
 			request := server.GetHealthRequestObject{}
 			response, err := handler.GetHealth(context.Background(), request)
 
@@ -77,7 +77,7 @@ var _ = Describe("Health Handler", func() {
 			Expect(response).To(BeAssignableToTypeOf(server.GetHealth200JSONResponse{}))
 
 			healthResponse := response.(server.GetHealth200JSONResponse)
-			Expect(healthResponse.Status).To(Equal("healthy"))
+			Expect(healthResponse.Status).To(Equal("ok"))
 			Expect(healthResponse.Path).ToNot(BeNil())
 			Expect(*healthResponse.Path).To(Equal("/api/v1alpha1/health"))
 		})

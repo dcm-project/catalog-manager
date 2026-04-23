@@ -1130,7 +1130,7 @@ components:
         status:
           type: string
           description: Health status
-          example: healthy
+          example: ok
 
         path:
           type: string
