@@ -8,7 +8,7 @@ import (
 )
 
 func (h *Handler) GetHealth(_ context.Context, _ server.GetHealthRequestObject) (server.GetHealthResponseObject, error) {
-	status := "healthy"
+	status := "ok"
 	path := fmt.Sprintf("%shealth", apiPrefix)
 	return server.GetHealth200JSONResponse{
 		Status: status,
