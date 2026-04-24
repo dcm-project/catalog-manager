@@ -156,7 +156,9 @@ func (s *catalogItemInstanceService) Get(ctx context.Context, id string) (*v1alp
 }
 
 // Rehydrate rehydrates a catalog item instance by generating a new resource ID
-// and delegating to the Placement Manager
+// and delegating to the Placement Manager.
+// Uses DB-first CAS (compare-and-swap) to prevent concurrent rehydrates: the resource_id is updated
+// in the DB before calling PM, so only one concurrent caller can proceed.
 func (s *catalogItemInstanceService) Rehydrate(ctx context.Context, id string) (*v1alpha1.CatalogItemInstance, error) {
 	// Look up existing instance
 	instance, err := s.store.CatalogItemInstance().Get(ctx, id)
@@ -164,32 +166,41 @@ func (s *catalogItemInstanceService) Rehydrate(ctx context.Context, id string) (
 		return nil, mapCatalogItemInstanceStoreError(err)
 	}
 
+	oldResourceID := instance.ResourceID
 	// Generate new resource ID
 	newResourceID := uuid.New().String()
 
-	// Call Placement Manager rehydrate
-	s.logger.DebugContext(ctx, "Calling placement manager to rehydrate resource",
-		"id", id,
-		"old_resource_id", instance.ResourceID,
-		"new_resource_id", newResourceID,
-	)
-	_, err = s.pmClient.RehydrateResource(ctx, instance.ResourceID, newResourceID)
-	if err != nil {
-		s.logger.ErrorContext(ctx, "Placement manager rehydrate failed",
-			"id", id,
-			"error", err,
-		)
-		return nil, mapPlacementError(err, ErrPlacementManagerRehydrateFailed)
-	}
-
-	// Update resource_id in DB
-	updatedModel, err := s.store.CatalogItemInstance().UpdateResourceID(ctx, id, newResourceID)
+	// DB first — CAS rejects concurrent callers here
+	updatedModel, err := s.store.CatalogItemInstance().UpdateResourceID(ctx, id, oldResourceID, newResourceID)
 	if err != nil {
 		s.logger.ErrorContext(ctx, "Failed to update resource ID in store",
 			"id", id,
 			"error", err,
 		)
-		return nil, err
+		return nil, mapCatalogItemInstanceStoreError(err)
+	}
+
+	// Call Placement Manager rehydrate
+	s.logger.DebugContext(ctx, "Calling placement manager to rehydrate resource",
+		"id", id,
+		"old_resource_id", oldResourceID,
+		"new_resource_id", newResourceID,
+	)
+	_, err = s.pmClient.RehydrateResource(ctx, oldResourceID, newResourceID)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "Placement manager rehydrate failed, rolling back resource ID",
+			"id", id,
+			"error", err,
+		)
+		// Rollback: restore the old resource_id
+		if _, rbErr := s.store.CatalogItemInstance().UpdateResourceID(ctx, id, newResourceID, oldResourceID); rbErr != nil {
+			s.logger.ErrorContext(ctx, "Failed to rollback resource ID after PM failure",
+				"id", id,
+				"rollback_error", rbErr,
+			)
+			return nil, fmt.Errorf("%w; additionally, rollback failed: %v", ErrPlacementManagerRehydrateFailed, rbErr)
+		}
+		return nil, mapPlacementError(err, ErrPlacementManagerRehydrateFailed)
 	}
 
 	s.logger.InfoContext(ctx, "Catalog item instance rehydrated",
