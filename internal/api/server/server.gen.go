@@ -1120,6 +1120,20 @@ func (response RehydrateCatalogItemInstance406JSONResponse) VisitRehydrateCatalo
 	return err
 }
 
+type RehydrateCatalogItemInstance409JSONResponse struct{ AlreadyExistsJSONResponse }
+
+func (response RehydrateCatalogItemInstance409JSONResponse) VisitRehydrateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type RehydrateCatalogItemInstance422JSONResponse struct{ ProviderErrorJSONResponse }
 
 func (response RehydrateCatalogItemInstance422JSONResponse) VisitRehydrateCatalogItemInstanceResponse(w http.ResponseWriter) error {

@@ -21,6 +21,8 @@ var (
 	ErrCatalogItemInstanceIDTaken = errors.New("catalog item instance ID already exists")
 	// ErrCatalogItemNotFoundRef is returned when the referenced catalog item does not exist
 	ErrCatalogItemNotFoundRef = errors.New("referenced catalog item does not exist")
+	// ErrCatalogItemInstanceConflict is returned when a concurrent modification is detected
+	ErrCatalogItemInstanceConflict = errors.New("catalog item instance was modified concurrently")
 )
 
 // CatalogItemInstanceListOptions contains options for listing catalog item instances
@@ -42,7 +44,7 @@ type CatalogItemInstanceStore interface {
 	Create(ctx context.Context, catalogItemInstance model.CatalogItemInstance) (*model.CatalogItemInstance, error)
 	Get(ctx context.Context, id string) (*model.CatalogItemInstance, error)
 	Update(ctx context.Context, catalogItemInstance *model.CatalogItemInstance) (*model.CatalogItemInstance, error)
-	UpdateResourceID(ctx context.Context, id string, resourceID string) (*model.CatalogItemInstance, error)
+	UpdateResourceID(ctx context.Context, id string, expectedResourceID string, newResourceID string) (*model.CatalogItemInstance, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -176,17 +178,25 @@ func (s *catalogItemInstanceStore) Update(ctx context.Context, catalogItemInstan
 	return catalogItemInstance, nil
 }
 
-// UpdateResourceID updates only the resource_id field of a catalog item instance
-func (s *catalogItemInstanceStore) UpdateResourceID(ctx context.Context, id string, resourceID string) (*model.CatalogItemInstance, error) {
+// UpdateResourceID atomically updates resource_id only when it still matches expectedResourceID.
+// Returns ErrCatalogItemInstanceConflict if the row exists but resource_id has changed (concurrent modification).
+func (s *catalogItemInstanceStore) UpdateResourceID(ctx context.Context, id string, expectedResourceID string, newResourceID string) (*model.CatalogItemInstance, error) {
 	result := s.db.WithContext(ctx).Model(&model.CatalogItemInstance{}).
-		Where("id = ?", id).
-		Update("resource_id", resourceID)
+		Where("id = ? AND resource_id = ?", id, expectedResourceID).
+		Update("resource_id", newResourceID)
 
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to update resource ID: %w", result.Error)
 	}
 	if result.RowsAffected == 0 {
-		return nil, ErrCatalogItemInstanceNotFound
+		_, err := s.Get(ctx, id)
+		if errors.Is(err, ErrCatalogItemInstanceNotFound) {
+			return nil, ErrCatalogItemInstanceNotFound
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to check instance existence: %w", err)
+		}
+		return nil, ErrCatalogItemInstanceConflict
 	}
 
 	return s.Get(ctx, id)
