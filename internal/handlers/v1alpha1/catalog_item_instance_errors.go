@@ -94,6 +94,15 @@ func mapRehydrateCatalogItemInstanceErrorToHTTP(err error) server.RehydrateCatal
 				Detail: stringPtr(err.Error()),
 			},
 		}
+	case errors.Is(err, service.ErrCatalogItemInstanceConflict):
+		return server.RehydrateCatalogItemInstance409JSONResponse{
+			AlreadyExistsJSONResponse: server.AlreadyExistsJSONResponse{
+				Type:   v1alpha1.ALREADYEXISTS,
+				Status: 409,
+				Title:  "Conflict",
+				Detail: stringPtr("this instance was modified by another request; please retry"),
+			},
+		}
 	case errors.Is(err, service.ErrPlacementManagerPolicyRejected):
 		return server.RehydrateCatalogItemInstance406JSONResponse{
 			PolicyRejectedJSONResponse: server.PolicyRejectedJSONResponse{

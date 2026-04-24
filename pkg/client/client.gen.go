@@ -1253,6 +1253,7 @@ type RehydrateCatalogItemInstanceResponse struct {
 	JSON200      *CatalogItemInstance
 	JSON404      *NotFound
 	JSON406      *PolicyRejected
+	JSON409      *AlreadyExists
 	JSON422      *ProviderError
 	JSON500      *InternalServerError
 }
@@ -1920,6 +1921,13 @@ func ParseRehydrateCatalogItemInstanceResponse(rsp *http.Response) (*RehydrateCa
 			return nil, err
 		}
 		response.JSON406 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest AlreadyExists
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
 		var dest ProviderError
