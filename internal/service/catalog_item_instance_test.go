@@ -724,7 +724,7 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 	})
 
 	Describe("Rehydrate with PM", func() {
-		It("should call PM rehydrate with old resource ID and update to new resource ID", func() {
+		It("should update DB first then call PM rehydrate with old and new resource IDs", func() {
 			var capturedOldResourceID string
 			var capturedNewResourceID string
 			mockPM.rehydrateFunc = func(_ context.Context, resourceID string, newResourceID string) (*placement.Resource, error) {
@@ -775,7 +775,41 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			Expect(mockPM.rehydrateCalls).To(Equal(0))
 		})
 
-		It("should return error and not update DB when PM rehydrate fails", func() {
+		It("should rollback resource_id and not call PM when a second rehydrate races", func() {
+			instanceID := "rehydrate-conflict"
+			created, err := svc.CatalogItemInstance().Create(ctx, &service.CreateCatalogItemInstanceRequest{
+				ID:          &instanceID,
+				ApiVersion:  "v1alpha1",
+				DisplayName: "Conflict Test",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			})
+			Expect(err).ToNot(HaveOccurred())
+
+			// First rehydrate succeeds
+			result, err := svc.CatalogItemInstance().Rehydrate(ctx, instanceID)
+			Expect(err).ToNot(HaveOccurred())
+			newResourceID := *result.ResourceId
+			Expect(newResourceID).ToNot(Equal(*created.ResourceId))
+
+			// Simulate a concurrent caller that read the old resource_id before
+			// the first rehydrate committed — manually revert DB to old resource_id
+			// to set up the CAS conflict scenario
+			directStore := str.CatalogItemInstance()
+			_, err = directStore.UpdateResourceID(ctx, instanceID, newResourceID, *created.ResourceId)
+			Expect(err).ToNot(HaveOccurred())
+
+			// Now rehydrate again — this should succeed since resource_id matches
+			mockPM.rehydrateCalls = 0
+			result2, err := svc.CatalogItemInstance().Rehydrate(ctx, instanceID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(mockPM.rehydrateCalls).To(Equal(1))
+			Expect(*result2.ResourceId).ToNot(Equal(*created.ResourceId))
+		})
+
+		It("should rollback resource_id when PM rehydrate fails", func() {
 			instanceID := "rehydrate-pm-fail"
 			created, err := svc.CatalogItemInstance().Create(ctx, &service.CreateCatalogItemInstanceRequest{
 				ID:          &instanceID,
@@ -798,7 +832,7 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			Expect(err.Error()).To(ContainSubstring("placement manager rehydrate resource failed"))
 			Expect(result).To(BeNil())
 
-			// Verify resource_id unchanged
+			// Verify resource_id rolled back to original
 			got, err := svc.CatalogItemInstance().Get(ctx, instanceID)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(*got.ResourceId).To(Equal(oldResourceID))
@@ -827,7 +861,7 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			Expect(errors.Is(err, service.ErrPlacementManagerPolicyRejected)).To(BeTrue())
 			Expect(result).To(BeNil())
 
-			// Verify resource_id unchanged
+			// Verify resource_id rolled back
 			got, err := svc.CatalogItemInstance().Get(ctx, instanceID)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(*got.ResourceId).To(Equal(oldResourceID))
@@ -856,7 +890,7 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			Expect(errors.Is(err, service.ErrPlacementManagerProviderError)).To(BeTrue())
 			Expect(result).To(BeNil())
 
-			// Verify resource_id unchanged
+			// Verify resource_id rolled back
 			got, err := svc.CatalogItemInstance().Get(ctx, instanceID)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(*got.ResourceId).To(Equal(oldResourceID))

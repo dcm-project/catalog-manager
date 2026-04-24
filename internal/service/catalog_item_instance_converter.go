@@ -72,6 +72,8 @@ func mapCatalogItemInstanceStoreError(err error) error {
 		return ErrCatalogItemInstanceIDTaken
 	case errors.Is(err, store.ErrCatalogItemNotFoundRef):
 		return ErrCatalogItemNotFoundForInstance
+	case errors.Is(err, store.ErrCatalogItemInstanceConflict):
+		return ErrCatalogItemInstanceConflict
 	default:
 		return err
 	}

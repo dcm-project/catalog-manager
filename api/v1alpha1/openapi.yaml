@@ -563,6 +563,9 @@ paths:
         '406':
           $ref: '#/components/responses/PolicyRejected'
 
+        '409':
+          $ref: '#/components/responses/AlreadyExists'
+
         '422':
           $ref: '#/components/responses/ProviderError'
 

@@ -69,4 +69,7 @@ var (
 
 	// ErrPlacementManagerRehydrateFailed indicates the Placement Manager failed to rehydrate a resource
 	ErrPlacementManagerRehydrateFailed = errors.New("placement manager rehydrate resource failed")
+
+	// ErrCatalogItemInstanceConflict indicates a concurrent modification was detected
+	ErrCatalogItemInstanceConflict = errors.New("catalog item instance was modified concurrently")
 )
