@@ -114,6 +114,24 @@ func (h *Handler) RehydrateCatalogItemInstance(ctx context.Context, request serv
 	return server.RehydrateCatalogItemInstance200JSONResponse(*result), nil
 }
 
+func (h *Handler) UpdateCatalogItemInstance(ctx context.Context, request server.UpdateCatalogItemInstanceRequestObject) (server.UpdateCatalogItemInstanceResponseObject, error) {
+	h.logger.InfoContext(ctx, "Updating catalog item instance", "id", request.CatalogItemInstanceId)
+
+	updateReq := &service.UpdateCatalogItemInstanceRequest{
+		DisplayName: &request.Body.DisplayName,
+		Spec:        &request.Body.Spec,
+	}
+
+	result, err := h.service.CatalogItemInstance().Update(ctx, request.CatalogItemInstanceId, updateReq)
+	if err != nil {
+		h.logServiceError(ctx, "Failed to update catalog item instance", err, "id", request.CatalogItemInstanceId)
+		return mapUpdateCatalogItemInstanceErrorToHTTP(err), nil
+	}
+
+	h.logger.InfoContext(ctx, "Updated catalog item instance", "id", request.CatalogItemInstanceId)
+	return server.UpdateCatalogItemInstance200JSONResponse(*result), nil
+}
+
 func (h *Handler) DeleteCatalogItemInstance(ctx context.Context, request server.DeleteCatalogItemInstanceRequestObject) (server.DeleteCatalogItemInstanceResponseObject, error) {
 	h.logger.InfoContext(ctx, "Deleting catalog item instance", "id", request.CatalogItemInstanceId)
 

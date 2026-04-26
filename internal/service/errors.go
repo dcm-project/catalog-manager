@@ -69,4 +69,7 @@ var (
 
 	// ErrPlacementManagerRehydrateFailed indicates the Placement Manager failed to rehydrate a resource
 	ErrPlacementManagerRehydrateFailed = errors.New("placement manager rehydrate resource failed")
+
+	// ErrServiceTypeHasCatalogItems indicates a service type has existing catalog items
+	ErrServiceTypeHasCatalogItems = errors.New("service type has existing catalog items")
 )

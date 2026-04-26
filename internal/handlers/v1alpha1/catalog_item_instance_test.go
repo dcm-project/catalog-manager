@@ -21,6 +21,7 @@ type mockCatalogItemInstanceService struct {
 	listFunc      func(ctx context.Context, opts service.CatalogItemInstanceListOptions) (*service.CatalogItemInstanceListResult, error)
 	createFunc    func(ctx context.Context, req *service.CreateCatalogItemInstanceRequest) (*v1alpha1API.CatalogItemInstance, error)
 	getFunc       func(ctx context.Context, id string) (*v1alpha1API.CatalogItemInstance, error)
+	updateFunc    func(ctx context.Context, id string, req *service.UpdateCatalogItemInstanceRequest) (*v1alpha1API.CatalogItemInstance, error)
 	deleteFunc    func(ctx context.Context, id string) error
 	rehydrateFunc func(ctx context.Context, id string) (*v1alpha1API.CatalogItemInstance, error)
 }
@@ -42,6 +43,13 @@ func (m *mockCatalogItemInstanceService) Create(ctx context.Context, req *servic
 func (m *mockCatalogItemInstanceService) Get(ctx context.Context, id string) (*v1alpha1API.CatalogItemInstance, error) {
 	if m.getFunc != nil {
 		return m.getFunc(ctx, id)
+	}
+	return &v1alpha1API.CatalogItemInstance{}, nil
+}
+
+func (m *mockCatalogItemInstanceService) Update(ctx context.Context, id string, req *service.UpdateCatalogItemInstanceRequest) (*v1alpha1API.CatalogItemInstance, error) {
+	if m.updateFunc != nil {
+		return m.updateFunc(ctx, id, req)
 	}
 	return &v1alpha1API.CatalogItemInstance{}, nil
 }

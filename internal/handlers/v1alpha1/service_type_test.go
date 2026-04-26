@@ -20,6 +20,8 @@ type mockServiceTypeService struct {
 	listFunc   func(ctx context.Context, opts *service.ServiceTypeListOptions) (*service.ServiceTypeListResult, error)
 	createFunc func(ctx context.Context, req *service.CreateServiceTypeRequest) (*v1alpha1API.ServiceType, error)
 	getFunc    func(ctx context.Context, id string) (*v1alpha1API.ServiceType, error)
+	updateFunc func(ctx context.Context, id string, req *service.UpdateServiceTypeRequest) (*v1alpha1API.ServiceType, error)
+	deleteFunc func(ctx context.Context, id string) error
 }
 
 func (m *mockServiceTypeService) List(ctx context.Context, opts *service.ServiceTypeListOptions) (*service.ServiceTypeListResult, error) {
@@ -41,6 +43,20 @@ func (m *mockServiceTypeService) Get(ctx context.Context, id string) (*v1alpha1A
 		return m.getFunc(ctx, id)
 	}
 	return &v1alpha1API.ServiceType{}, nil
+}
+
+func (m *mockServiceTypeService) Update(ctx context.Context, id string, req *service.UpdateServiceTypeRequest) (*v1alpha1API.ServiceType, error) {
+	if m.updateFunc != nil {
+		return m.updateFunc(ctx, id, req)
+	}
+	return &v1alpha1API.ServiceType{}, nil
+}
+
+func (m *mockServiceTypeService) Delete(ctx context.Context, id string) error {
+	if m.deleteFunc != nil {
+		return m.deleteFunc(ctx, id)
+	}
+	return nil
 }
 
 // Mock Service

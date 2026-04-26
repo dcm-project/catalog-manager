@@ -1,4 +1,5 @@
 //go:build subsystem
+
 package subsystem_test
 
 import (
@@ -28,7 +29,7 @@ func resetWireMock() {
 func stubPMCreateResource() {
 	stub := map[string]any{
 		"request": map[string]any{
-			"method":   "POST",
+			"method":     "POST",
 			"urlPattern": "/api/v1alpha1/resources.*",
 		},
 		"response": map[string]any{
@@ -91,7 +92,7 @@ func stubPMRehydrateResourceFailure() {
 func stubPMDeleteResource() {
 	stub := map[string]any{
 		"request": map[string]any{
-			"method":     "DELETE",
+			"method":         "DELETE",
 			"urlPathPattern": "/api/v1alpha1/resources/.*",
 		},
 		"response": map[string]any{
@@ -192,7 +193,7 @@ func stubPMRehydrateResourceProviderError() {
 func stubPMCreateResourceFailure() {
 	stub := map[string]any{
 		"request": map[string]any{
-			"method":   "POST",
+			"method":     "POST",
 			"urlPattern": "/api/v1alpha1/resources.*",
 		},
 		"response": map[string]any{
@@ -213,7 +214,7 @@ func stubPMCreateResourceFailure() {
 func stubPMDeleteResourceFailure() {
 	stub := map[string]any{
 		"request": map[string]any{
-			"method":     "DELETE",
+			"method":         "DELETE",
 			"urlPathPattern": "/api/v1alpha1/resources/.*",
 		},
 		"response": map[string]any{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strconv"
 	"strings"
@@ -20,6 +21,8 @@ var (
 	ErrServiceTypeIDTaken = errors.New("store: service type ID already exists")
 	// ErrServiceTypeServiceTypeTaken is returned when a service type service type is already taken
 	ErrServiceTypeServiceTypeTaken = errors.New("store: service type service type already exists")
+	// ErrServiceTypeHasCatalogItems is returned when attempting to delete a service type with existing catalog items
+	ErrServiceTypeHasCatalogItems = errors.New("cannot delete service type with existing catalog items")
 )
 
 // ServiceTypeListOptions contains options for listing service types.
@@ -40,6 +43,8 @@ type ServiceTypeStore interface {
 	Create(ctx context.Context, serviceType model.ServiceType) (*model.ServiceType, error)
 	Get(ctx context.Context, id string) (*model.ServiceType, error)
 	GetByServiceType(ctx context.Context, serviceType string) (*model.ServiceType, error)
+	Update(ctx context.Context, serviceType *model.ServiceType) error
+	Delete(ctx context.Context, id string) error
 	SeedIfEmpty(ctx context.Context, items []model.ServiceType) error
 }
 
@@ -163,6 +168,38 @@ func (s *serviceTypeStore) GetByServiceType(ctx context.Context, serviceType str
 		return nil, err
 	}
 	return &st, nil
+}
+
+// Update updates a service type (only mutable fields)
+func (s *serviceTypeStore) Update(ctx context.Context, serviceType *model.ServiceType) error {
+	result := s.db.WithContext(ctx).Model(&model.ServiceType{}).
+		Where("id = ?", serviceType.ID).
+		Select("metadata", "spec").
+		Updates(serviceType)
+
+	if result.Error != nil {
+		return s.mapUniqueConstraintError(ctx, result.Error, *serviceType)
+	}
+	if result.RowsAffected == 0 {
+		return ErrServiceTypeNotFound
+	}
+	return nil
+}
+
+// Delete deletes a service type by ID
+func (s *serviceTypeStore) Delete(ctx context.Context, id string) error {
+	result := s.db.WithContext(ctx).Where("id = ?", id).Delete(&model.ServiceType{})
+	if result.Error != nil {
+		errStr := strings.ToLower(result.Error.Error())
+		if strings.Contains(errStr, "foreign key") {
+			return ErrServiceTypeHasCatalogItems
+		}
+		return fmt.Errorf("failed to delete service type: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return ErrServiceTypeNotFound
+	}
+	return nil
 }
 
 // SeedIfEmpty inserts the given service types if the table has no rows.

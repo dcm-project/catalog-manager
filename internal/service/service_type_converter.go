@@ -66,6 +66,8 @@ func mapStoreError(err error) error {
 		return ErrServiceTypeIDTaken
 	case errors.Is(err, store.ErrServiceTypeServiceTypeTaken):
 		return ErrServiceTypeNameTaken
+	case errors.Is(err, store.ErrServiceTypeHasCatalogItems):
+		return ErrServiceTypeHasCatalogItems
 	default:
 		return err
 	}

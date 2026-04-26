@@ -85,3 +85,34 @@ func (h *Handler) GetServiceType(ctx context.Context, request server.GetServiceT
 	// Return HTTP response
 	return server.GetServiceType200JSONResponse(*result), nil
 }
+
+func (h *Handler) UpdateServiceType(ctx context.Context, request server.UpdateServiceTypeRequestObject) (server.UpdateServiceTypeResponseObject, error) {
+	h.logger.InfoContext(ctx, "Updating service type", "id", request.ServiceTypeId)
+
+	updateReq := &service.UpdateServiceTypeRequest{
+		Metadata: request.Body.Metadata,
+		Spec:     request.Body.Spec,
+	}
+
+	result, err := h.service.ServiceType().Update(ctx, request.ServiceTypeId, updateReq)
+	if err != nil {
+		h.logServiceError(ctx, "Failed to update service type", err, "id", request.ServiceTypeId)
+		return mapUpdateServiceTypeErrorToHTTP(err), nil
+	}
+
+	h.logger.InfoContext(ctx, "Updated service type", "id", request.ServiceTypeId)
+	return server.UpdateServiceType200JSONResponse(*result), nil
+}
+
+func (h *Handler) DeleteServiceType(ctx context.Context, request server.DeleteServiceTypeRequestObject) (server.DeleteServiceTypeResponseObject, error) {
+	h.logger.InfoContext(ctx, "Deleting service type", "id", request.ServiceTypeId)
+
+	err := h.service.ServiceType().Delete(ctx, request.ServiceTypeId)
+	if err != nil {
+		h.logServiceError(ctx, "Failed to delete service type", err, "id", request.ServiceTypeId)
+		return mapDeleteServiceTypeErrorToHTTP(err), nil
+	}
+
+	h.logger.InfoContext(ctx, "Deleted service type", "id", request.ServiceTypeId)
+	return server.DeleteServiceType204Response{}, nil
+}

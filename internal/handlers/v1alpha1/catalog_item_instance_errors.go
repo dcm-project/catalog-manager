@@ -133,6 +133,30 @@ func mapRehydrateCatalogItemInstanceErrorToHTTP(err error) server.RehydrateCatal
 	}
 }
 
+// mapUpdateCatalogItemInstanceErrorToHTTP converts service domain errors to UpdateCatalogItemInstance HTTP responses
+func mapUpdateCatalogItemInstanceErrorToHTTP(err error) server.UpdateCatalogItemInstanceResponseObject {
+	switch {
+	case errors.Is(err, service.ErrCatalogItemInstanceNotFound):
+		return server.UpdateCatalogItemInstance404JSONResponse{
+			NotFoundJSONResponse: server.NotFoundJSONResponse{
+				Type:   v1alpha1.NOTFOUND,
+				Status: 404,
+				Title:  "Not Found",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	default:
+		return server.UpdateCatalogItemInstance500JSONResponse{
+			InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
+				Type:   v1alpha1.INTERNAL,
+				Status: 500,
+				Title:  "Internal Server Error",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	}
+}
+
 // mapGetCatalogItemInstanceErrorToHTTP converts service domain errors to GetCatalogItemInstance HTTP responses
 func mapGetCatalogItemInstanceErrorToHTTP(err error) server.GetCatalogItemInstanceResponseObject {
 	switch {

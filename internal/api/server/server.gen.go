@@ -30,6 +30,9 @@ type ServerInterface interface {
 	// Get a catalog item instance
 	// (GET /catalog-item-instances/{catalogItemInstanceId})
 	GetCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath)
+	// Update a catalog item instance
+	// (PATCH /catalog-item-instances/{catalogItemInstanceId})
+	UpdateCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath)
 	// Rehydrate a catalog item instance
 	// (POST /catalog-item-instances/{catalogItemInstanceId}:rehydrate)
 	RehydrateCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath)
@@ -57,9 +60,15 @@ type ServerInterface interface {
 	// Create a service type
 	// (POST /service-types)
 	CreateServiceType(w http.ResponseWriter, r *http.Request, params CreateServiceTypeParams)
+	// Delete a service type
+	// (DELETE /service-types/{serviceTypeId})
+	DeleteServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath)
 	// Get a service type
 	// (GET /service-types/{serviceTypeId})
 	GetServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath)
+	// Update a service type
+	// (PATCH /service-types/{serviceTypeId})
+	UpdateServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -87,6 +96,12 @@ func (_ Unimplemented) DeleteCatalogItemInstance(w http.ResponseWriter, r *http.
 // Get a catalog item instance
 // (GET /catalog-item-instances/{catalogItemInstanceId})
 func (_ Unimplemented) GetCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Update a catalog item instance
+// (PATCH /catalog-item-instances/{catalogItemInstanceId})
+func (_ Unimplemented) UpdateCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -144,9 +159,21 @@ func (_ Unimplemented) CreateServiceType(w http.ResponseWriter, r *http.Request,
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Delete a service type
+// (DELETE /service-types/{serviceTypeId})
+func (_ Unimplemented) DeleteServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Get a service type
 // (GET /service-types/{serviceTypeId})
 func (_ Unimplemented) GetServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Update a service type
+// (PATCH /service-types/{serviceTypeId})
+func (_ Unimplemented) UpdateServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -270,6 +297,31 @@ func (siw *ServerInterfaceWrapper) GetCatalogItemInstance(w http.ResponseWriter,
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetCatalogItemInstance(w, r, catalogItemInstanceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateCatalogItemInstance operation middleware
+func (siw *ServerInterfaceWrapper) UpdateCatalogItemInstance(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "catalogItemInstanceId" -------------
+	var catalogItemInstanceId CatalogItemInstanceIdPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "catalogItemInstanceId", chi.URLParam(r, "catalogItemInstanceId"), &catalogItemInstanceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "catalogItemInstanceId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateCatalogItemInstance(w, r, catalogItemInstanceId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -525,6 +577,31 @@ func (siw *ServerInterfaceWrapper) CreateServiceType(w http.ResponseWriter, r *h
 	handler.ServeHTTP(w, r)
 }
 
+// DeleteServiceType operation middleware
+func (siw *ServerInterfaceWrapper) DeleteServiceType(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "serviceTypeId" -------------
+	var serviceTypeId ServiceTypeIdPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "serviceTypeId", chi.URLParam(r, "serviceTypeId"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "serviceTypeId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteServiceType(w, r, serviceTypeId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetServiceType operation middleware
 func (siw *ServerInterfaceWrapper) GetServiceType(w http.ResponseWriter, r *http.Request) {
 
@@ -541,6 +618,31 @@ func (siw *ServerInterfaceWrapper) GetServiceType(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetServiceType(w, r, serviceTypeId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateServiceType operation middleware
+func (siw *ServerInterfaceWrapper) UpdateServiceType(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "serviceTypeId" -------------
+	var serviceTypeId ServiceTypeIdPath
+
+	err = runtime.BindStyledParameterWithOptions("simple", "serviceTypeId", chi.URLParam(r, "serviceTypeId"), &serviceTypeId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "serviceTypeId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateServiceType(w, r, serviceTypeId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -676,6 +778,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/catalog-item-instances/{catalogItemInstanceId}", wrapper.GetCatalogItemInstance)
 	})
 	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/catalog-item-instances/{catalogItemInstanceId}", wrapper.UpdateCatalogItemInstance)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/catalog-item-instances/{catalogItemInstanceId}:rehydrate", wrapper.RehydrateCatalogItemInstance)
 	})
 	r.Group(func(r chi.Router) {
@@ -703,7 +808,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/service-types", wrapper.CreateServiceType)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/service-types/{serviceTypeId}", wrapper.DeleteServiceType)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/service-types/{serviceTypeId}", wrapper.GetServiceType)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/service-types/{serviceTypeId}", wrapper.UpdateServiceType)
 	})
 
 	return r
@@ -714,6 +825,8 @@ type AlreadyExistsJSONResponse Error
 type BadRequestJSONResponse Error
 
 type ForbiddenJSONResponse Error
+
+type HasDependentsJSONResponse Error
 
 type HasInstancesJSONResponse Error
 
@@ -1059,6 +1172,101 @@ type GetCatalogItemInstance500JSONResponse struct {
 }
 
 func (response GetCatalogItemInstance500JSONResponse) VisitGetCatalogItemInstanceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCatalogItemInstanceRequestObject struct {
+	CatalogItemInstanceId CatalogItemInstanceIdPath `json:"catalogItemInstanceId"`
+	Body                  *UpdateCatalogItemInstanceApplicationMergePatchPlusJSONRequestBody
+}
+
+type UpdateCatalogItemInstanceResponseObject interface {
+	VisitUpdateCatalogItemInstanceResponse(w http.ResponseWriter) error
+}
+
+type UpdateCatalogItemInstance200JSONResponse CatalogItemInstance
+
+func (response UpdateCatalogItemInstance200JSONResponse) VisitUpdateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCatalogItemInstance400JSONResponse Error
+
+func (response UpdateCatalogItemInstance400JSONResponse) VisitUpdateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCatalogItemInstance401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateCatalogItemInstance401JSONResponse) VisitUpdateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCatalogItemInstance403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UpdateCatalogItemInstance403JSONResponse) VisitUpdateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCatalogItemInstance404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UpdateCatalogItemInstance404JSONResponse) VisitUpdateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCatalogItemInstance500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response UpdateCatalogItemInstance500JSONResponse) VisitUpdateCatalogItemInstanceResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response); err != nil {
@@ -1770,6 +1978,94 @@ func (response CreateServiceType500JSONResponse) VisitCreateServiceTypeResponse(
 	return err
 }
 
+type DeleteServiceTypeRequestObject struct {
+	ServiceTypeId ServiceTypeIdPath `json:"serviceTypeId"`
+}
+
+type DeleteServiceTypeResponseObject interface {
+	VisitDeleteServiceTypeResponse(w http.ResponseWriter) error
+}
+
+type DeleteServiceType204Response struct {
+}
+
+func (response DeleteServiceType204Response) VisitDeleteServiceTypeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteServiceType401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteServiceType401JSONResponse) VisitDeleteServiceTypeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServiceType403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteServiceType403JSONResponse) VisitDeleteServiceTypeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServiceType404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteServiceType404JSONResponse) VisitDeleteServiceTypeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServiceType409JSONResponse struct{ HasDependentsJSONResponse }
+
+func (response DeleteServiceType409JSONResponse) VisitDeleteServiceTypeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServiceType500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response DeleteServiceType500JSONResponse) VisitDeleteServiceTypeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetServiceTypeRequestObject struct {
 	ServiceTypeId ServiceTypeIdPath `json:"serviceTypeId"`
 }
@@ -1850,6 +2146,101 @@ func (response GetServiceType500JSONResponse) VisitGetServiceTypeResponse(w http
 	return err
 }
 
+type UpdateServiceTypeRequestObject struct {
+	ServiceTypeId ServiceTypeIdPath `json:"serviceTypeId"`
+	Body          *UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody
+}
+
+type UpdateServiceTypeResponseObject interface {
+	VisitUpdateServiceTypeResponse(w http.ResponseWriter) error
+}
+
+type UpdateServiceType200JSONResponse ServiceType
+
+func (response UpdateServiceType200JSONResponse) VisitUpdateServiceTypeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceType400JSONResponse Error
+
+func (response UpdateServiceType400JSONResponse) VisitUpdateServiceTypeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceType401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response UpdateServiceType401JSONResponse) VisitUpdateServiceTypeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceType403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response UpdateServiceType403JSONResponse) VisitUpdateServiceTypeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceType404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response UpdateServiceType404JSONResponse) VisitUpdateServiceTypeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceType500JSONResponse struct {
+	InternalServerErrorJSONResponse
+}
+
+func (response UpdateServiceType500JSONResponse) VisitUpdateServiceTypeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// List catalog item instances
@@ -1864,6 +2255,9 @@ type StrictServerInterface interface {
 	// Get a catalog item instance
 	// (GET /catalog-item-instances/{catalogItemInstanceId})
 	GetCatalogItemInstance(ctx context.Context, request GetCatalogItemInstanceRequestObject) (GetCatalogItemInstanceResponseObject, error)
+	// Update a catalog item instance
+	// (PATCH /catalog-item-instances/{catalogItemInstanceId})
+	UpdateCatalogItemInstance(ctx context.Context, request UpdateCatalogItemInstanceRequestObject) (UpdateCatalogItemInstanceResponseObject, error)
 	// Rehydrate a catalog item instance
 	// (POST /catalog-item-instances/{catalogItemInstanceId}:rehydrate)
 	RehydrateCatalogItemInstance(ctx context.Context, request RehydrateCatalogItemInstanceRequestObject) (RehydrateCatalogItemInstanceResponseObject, error)
@@ -1891,9 +2285,15 @@ type StrictServerInterface interface {
 	// Create a service type
 	// (POST /service-types)
 	CreateServiceType(ctx context.Context, request CreateServiceTypeRequestObject) (CreateServiceTypeResponseObject, error)
+	// Delete a service type
+	// (DELETE /service-types/{serviceTypeId})
+	DeleteServiceType(ctx context.Context, request DeleteServiceTypeRequestObject) (DeleteServiceTypeResponseObject, error)
 	// Get a service type
 	// (GET /service-types/{serviceTypeId})
 	GetServiceType(ctx context.Context, request GetServiceTypeRequestObject) (GetServiceTypeResponseObject, error)
+	// Update a service type
+	// (PATCH /service-types/{serviceTypeId})
+	UpdateServiceType(ctx context.Context, request UpdateServiceTypeRequestObject) (UpdateServiceTypeResponseObject, error)
 }
 
 type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
@@ -2029,6 +2429,39 @@ func (sh *strictHandler) GetCatalogItemInstance(w http.ResponseWriter, r *http.R
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetCatalogItemInstanceResponseObject); ok {
 		if err := validResponse.VisitGetCatalogItemInstanceResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateCatalogItemInstance operation middleware
+func (sh *strictHandler) UpdateCatalogItemInstance(w http.ResponseWriter, r *http.Request, catalogItemInstanceId CatalogItemInstanceIdPath) {
+	var request UpdateCatalogItemInstanceRequestObject
+
+	request.CatalogItemInstanceId = catalogItemInstanceId
+
+	var body UpdateCatalogItemInstanceApplicationMergePatchPlusJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateCatalogItemInstance(ctx, request.(UpdateCatalogItemInstanceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateCatalogItemInstance")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateCatalogItemInstanceResponseObject); ok {
+		if err := validResponse.VisitUpdateCatalogItemInstanceResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -2289,6 +2722,32 @@ func (sh *strictHandler) CreateServiceType(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// DeleteServiceType operation middleware
+func (sh *strictHandler) DeleteServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath) {
+	var request DeleteServiceTypeRequestObject
+
+	request.ServiceTypeId = serviceTypeId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteServiceType(ctx, request.(DeleteServiceTypeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteServiceType")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteServiceTypeResponseObject); ok {
+		if err := validResponse.VisitDeleteServiceTypeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetServiceType operation middleware
 func (sh *strictHandler) GetServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath) {
 	var request GetServiceTypeRequestObject
@@ -2308,6 +2767,39 @@ func (sh *strictHandler) GetServiceType(w http.ResponseWriter, r *http.Request, 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetServiceTypeResponseObject); ok {
 		if err := validResponse.VisitGetServiceTypeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateServiceType operation middleware
+func (sh *strictHandler) UpdateServiceType(w http.ResponseWriter, r *http.Request, serviceTypeId ServiceTypeIdPath) {
+	var request UpdateServiceTypeRequestObject
+
+	request.ServiceTypeId = serviceTypeId
+
+	var body UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateServiceType(ctx, request.(UpdateServiceTypeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateServiceType")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateServiceTypeResponseObject); ok {
+		if err := validResponse.VisitUpdateServiceTypeResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

@@ -10,6 +10,7 @@ import (
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/placement"
 	"github.com/dcm-project/catalog-manager/internal/store"
+	"github.com/dcm-project/catalog-manager/internal/store/model"
 	"github.com/google/uuid"
 )
 
@@ -34,11 +35,18 @@ type CatalogItemInstanceListResult struct {
 	NextPageToken        *string
 }
 
+// UpdateCatalogItemInstanceRequest contains the parameters for updating a catalog item instance
+type UpdateCatalogItemInstanceRequest struct {
+	DisplayName *string
+	Spec        *v1alpha1.CatalogItemInstanceSpec
+}
+
 // CatalogItemInstanceService defines the business logic for CatalogItemInstance operations
 type CatalogItemInstanceService interface {
 	List(ctx context.Context, opts CatalogItemInstanceListOptions) (*CatalogItemInstanceListResult, error)
 	Create(ctx context.Context, req *CreateCatalogItemInstanceRequest) (*v1alpha1.CatalogItemInstance, error)
 	Get(ctx context.Context, id string) (*v1alpha1.CatalogItemInstance, error)
+	Update(ctx context.Context, id string, req *UpdateCatalogItemInstanceRequest) (*v1alpha1.CatalogItemInstance, error)
 	Delete(ctx context.Context, id string) error
 	Rehydrate(ctx context.Context, id string) (*v1alpha1.CatalogItemInstance, error)
 }
@@ -199,6 +207,51 @@ func (s *catalogItemInstanceService) Rehydrate(ctx context.Context, id string) (
 
 	apiType := catalogItemInstanceToAPIType(updatedModel)
 	return &apiType, nil
+}
+
+// Update updates an existing catalog item instance with validation
+func (s *catalogItemInstanceService) Update(ctx context.Context, id string, req *UpdateCatalogItemInstanceRequest) (*v1alpha1.CatalogItemInstance, error) {
+	existing, err := s.store.CatalogItemInstance().Get(ctx, id)
+	if err != nil {
+		return nil, mapCatalogItemInstanceStoreError(err)
+	}
+
+	merged := mergeCatalogItemInstance(existing, req)
+
+	_, err = s.store.CatalogItemInstance().Update(ctx, merged)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to update catalog item instance in store", "id", id, "error", err)
+		return nil, mapCatalogItemInstanceStoreError(err)
+	}
+
+	updatedModel, err := s.store.CatalogItemInstance().Get(ctx, id)
+	if err != nil {
+		return nil, mapCatalogItemInstanceStoreError(err)
+	}
+
+	s.logger.InfoContext(ctx, "Catalog item instance updated", "id", id)
+	apiType := catalogItemInstanceToAPIType(updatedModel)
+	return &apiType, nil
+}
+
+func mergeCatalogItemInstance(existing *model.CatalogItemInstance, req *UpdateCatalogItemInstanceRequest) *model.CatalogItemInstance {
+	merged := *existing
+	if req.DisplayName != nil {
+		merged.DisplayName = *req.DisplayName
+	}
+	if req.Spec != nil {
+		if req.Spec.UserValues != nil {
+			userValues := make([]model.UserValue, len(req.Spec.UserValues))
+			for i, uv := range req.Spec.UserValues {
+				userValues[i] = model.UserValue{
+					Path:  uv.Path,
+					Value: uv.Value,
+				}
+			}
+			merged.Spec.UserValues = userValues
+		}
+	}
+	return &merged
 }
 
 // Delete deletes a catalog item instance by ID

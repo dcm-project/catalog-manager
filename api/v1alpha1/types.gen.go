@@ -168,7 +168,7 @@ type CatalogItemSpec struct {
 	ServiceType *string `json:"service_type,omitempty"`
 }
 
-// Error Error response following RFC 7807 Problem Details for HTTP APIs
+// Error Error response following RFC 9457 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type Error struct {
 	// Detail Human-readable explanation specific to this occurrence of the error.
@@ -329,39 +329,43 @@ type CatalogItemInstanceIdPath = string
 // ServiceTypeIdPath defines model for ServiceTypeIdPath.
 type ServiceTypeIdPath = string
 
-// AlreadyExists Error response following RFC 7807 Problem Details for HTTP APIs
+// AlreadyExists Error response following RFC 9457 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type AlreadyExists = Error
 
-// BadRequest Error response following RFC 7807 Problem Details for HTTP APIs
+// BadRequest Error response following RFC 9457 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type BadRequest = Error
 
-// Forbidden Error response following RFC 7807 Problem Details for HTTP APIs
+// Forbidden Error response following RFC 9457 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type Forbidden = Error
 
-// HasInstances Error response following RFC 7807 Problem Details for HTTP APIs
+// HasDependents Error response following RFC 9457 Problem Details for HTTP APIs
+// and AEP-193 Error Responses specification.
+type HasDependents = Error
+
+// HasInstances Error response following RFC 9457 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type HasInstances = Error
 
-// InternalServerError Error response following RFC 7807 Problem Details for HTTP APIs
+// InternalServerError Error response following RFC 9457 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type InternalServerError = Error
 
-// NotFound Error response following RFC 7807 Problem Details for HTTP APIs
+// NotFound Error response following RFC 9457 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type NotFound = Error
 
-// PolicyRejected Error response following RFC 7807 Problem Details for HTTP APIs
+// PolicyRejected Error response following RFC 9457 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type PolicyRejected = Error
 
-// ProviderError Error response following RFC 7807 Problem Details for HTTP APIs
+// ProviderError Error response following RFC 9457 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type ProviderError = Error
 
-// Unauthorized Error response following RFC 7807 Problem Details for HTTP APIs
+// Unauthorized Error response following RFC 9457 Problem Details for HTTP APIs
 // and AEP-193 Error Responses specification.
 type Unauthorized = Error
 
@@ -425,6 +429,9 @@ type CreateServiceTypeParams struct {
 // CreateCatalogItemInstanceJSONRequestBody defines body for CreateCatalogItemInstance for application/json ContentType.
 type CreateCatalogItemInstanceJSONRequestBody = CatalogItemInstance
 
+// UpdateCatalogItemInstanceApplicationMergePatchPlusJSONRequestBody defines body for UpdateCatalogItemInstance for application/merge-patch+json ContentType.
+type UpdateCatalogItemInstanceApplicationMergePatchPlusJSONRequestBody = CatalogItemInstance
+
 // CreateCatalogItemJSONRequestBody defines body for CreateCatalogItem for application/json ContentType.
 type CreateCatalogItemJSONRequestBody = CatalogItem
 
@@ -433,3 +440,6 @@ type UpdateCatalogItemApplicationMergePatchPlusJSONRequestBody = CatalogItem
 
 // CreateServiceTypeJSONRequestBody defines body for CreateServiceType for application/json ContentType.
 type CreateServiceTypeJSONRequestBody = ServiceType
+
+// UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody defines body for UpdateServiceType for application/merge-patch+json ContentType.
+type UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody = ServiceType

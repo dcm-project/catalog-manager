@@ -172,6 +172,78 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+    patch:
+      operationId: updateServiceType
+      summary: Update a service type
+      description: |
+        Updates specific fields of a service type using JSON Merge Patch (RFC 7396).
+
+        Note that api_version and service_type are immutable after creation.
+      parameters:
+        - $ref: '#/components/parameters/ServiceTypeIdPath'
+
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/ServiceType'
+
+      responses:
+        '200':
+          description: Service type updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceType'
+
+        '400':
+          description: Invalid update request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      operationId: deleteServiceType
+      summary: Delete a service type
+      description: |
+        Deletes a service type.
+        Fails if catalog items reference this service type.
+      parameters:
+        - $ref: '#/components/parameters/ServiceTypeIdPath'
+
+      responses:
+        '204':
+          description: Service type deleted successfully
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '409':
+          $ref: '#/components/responses/HasDependents'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /catalog-items:
     get:
       operationId: listCatalogItems
@@ -502,6 +574,50 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CatalogItemInstance'
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    patch:
+      operationId: updateCatalogItemInstance
+      summary: Update a catalog item instance
+      description: |
+        Updates specific fields of a catalog item instance using JSON Merge Patch (RFC 7396).
+
+        Note that api_version and spec.catalog_item_id are immutable after creation.
+      parameters:
+        - $ref: '#/components/parameters/CatalogItemInstanceIdPath'
+
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/CatalogItemInstance'
+
+      responses:
+        '200':
+          description: Catalog item instance updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItemInstance'
+
+        '400':
+          description: Invalid update request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -1059,7 +1175,7 @@ components:
     Error:
       type: object
       description: |
-        Error response following RFC 7807 Problem Details for HTTP APIs
+        Error response following RFC 9457 Problem Details for HTTP APIs
         and AEP-193 Error Responses specification.
       required:
         - type
@@ -1216,6 +1332,19 @@ components:
             title: Resource has instances
             detail: CatalogItem 'vm-standard' has instances
             instance: 0c67gh6h-7e96-75ce-e3h8-e1g683hf498h
+
+    HasDependents:
+      description: Has Dependents
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: FAILED_PRECONDITION
+            status: 409
+            title: Resource has dependents
+            detail: ServiceType 'vm' has catalog items that reference it
+            instance: 1d78hi7i-8f07-86df-f4i9-f2h794ig509i
 
     PolicyRejected:
       description: Policy Rejected

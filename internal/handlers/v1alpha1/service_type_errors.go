@@ -42,6 +42,63 @@ func mapCreateServiceErrorToHTTP(err error) server.CreateServiceTypeResponseObje
 	}
 }
 
+// mapUpdateServiceTypeErrorToHTTP converts service domain errors to UpdateServiceType HTTP responses
+func mapUpdateServiceTypeErrorToHTTP(err error) server.UpdateServiceTypeResponseObject {
+	switch {
+	case errors.Is(err, service.ErrServiceTypeNotFound):
+		return server.UpdateServiceType404JSONResponse{
+			NotFoundJSONResponse: server.NotFoundJSONResponse{
+				Type:   v1alpha1.NOTFOUND,
+				Status: 404,
+				Title:  "Not Found",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	default:
+		return server.UpdateServiceType500JSONResponse{
+			InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
+				Type:   v1alpha1.INTERNAL,
+				Status: 500,
+				Title:  "Internal Server Error",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	}
+}
+
+// mapDeleteServiceTypeErrorToHTTP converts service domain errors to DeleteServiceType HTTP responses
+func mapDeleteServiceTypeErrorToHTTP(err error) server.DeleteServiceTypeResponseObject {
+	switch {
+	case errors.Is(err, service.ErrServiceTypeNotFound):
+		return server.DeleteServiceType404JSONResponse{
+			NotFoundJSONResponse: server.NotFoundJSONResponse{
+				Type:   v1alpha1.NOTFOUND,
+				Status: 404,
+				Title:  "Not Found",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	case errors.Is(err, service.ErrServiceTypeHasCatalogItems):
+		return server.DeleteServiceType409JSONResponse{
+			HasDependentsJSONResponse: server.HasDependentsJSONResponse{
+				Type:   v1alpha1.FAILEDPRECONDITION,
+				Status: 409,
+				Title:  "Failed Precondition",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	default:
+		return server.DeleteServiceType500JSONResponse{
+			InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
+				Type:   v1alpha1.INTERNAL,
+				Status: 500,
+				Title:  "Internal Server Error",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	}
+}
+
 // mapGetServiceErrorToHTTP converts service domain errors to GetServiceType HTTP responses
 func mapGetServiceErrorToHTTP(err error) server.GetServiceTypeResponseObject {
 	switch {

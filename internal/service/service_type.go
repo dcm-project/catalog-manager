@@ -7,6 +7,7 @@ import (
 
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/store"
+	"github.com/dcm-project/catalog-manager/internal/store/model"
 )
 
 // allowedServiceTypes defines the restricted set of valid service type values
@@ -40,11 +41,21 @@ type ServiceTypeListResult struct {
 	NextPageToken *string
 }
 
+// UpdateServiceTypeRequest contains the parameters for updating a service type
+type UpdateServiceTypeRequest struct {
+	Metadata *struct {
+		Labels *map[string]string `json:"labels,omitempty"`
+	}
+	Spec map[string]any
+}
+
 // ServiceTypeService defines the business logic for ServiceType operations
 type ServiceTypeService interface {
 	List(ctx context.Context, opts *ServiceTypeListOptions) (*ServiceTypeListResult, error)
 	Create(ctx context.Context, req *CreateServiceTypeRequest) (*v1alpha1.ServiceType, error)
 	Get(ctx context.Context, id string) (*v1alpha1.ServiceType, error)
+	Update(ctx context.Context, id string, req *UpdateServiceTypeRequest) (*v1alpha1.ServiceType, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type serviceTypeService struct {
@@ -133,4 +144,53 @@ func (s *serviceTypeService) Get(ctx context.Context, id string) (*v1alpha1.Serv
 	// Convert to API type
 	apiType := toAPIType(storeModel)
 	return &apiType, nil
+}
+
+// Update updates an existing service type with validation
+func (s *serviceTypeService) Update(ctx context.Context, id string, req *UpdateServiceTypeRequest) (*v1alpha1.ServiceType, error) {
+	existing, err := s.store.ServiceType().Get(ctx, id)
+	if err != nil {
+		return nil, mapStoreError(err)
+	}
+
+	merged := mergeServiceType(existing, req)
+
+	err = s.store.ServiceType().Update(ctx, merged)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to update service type in store", "id", id, "error", err)
+		return nil, mapStoreError(err)
+	}
+
+	updatedModel, err := s.store.ServiceType().Get(ctx, id)
+	if err != nil {
+		return nil, mapStoreError(err)
+	}
+
+	s.logger.InfoContext(ctx, "Service type updated", "id", id)
+	apiType := toAPIType(updatedModel)
+	return &apiType, nil
+}
+
+func mergeServiceType(existing *model.ServiceType, req *UpdateServiceTypeRequest) *model.ServiceType {
+	merged := *existing
+	if req.Metadata != nil && req.Metadata.Labels != nil {
+		merged.Metadata = model.Metadata{
+			Labels: *req.Metadata.Labels,
+		}
+	}
+	if req.Spec != nil {
+		merged.Spec = req.Spec
+	}
+	return &merged
+}
+
+// Delete deletes a service type by ID
+func (s *serviceTypeService) Delete(ctx context.Context, id string) error {
+	err := s.store.ServiceType().Delete(ctx, id)
+	if err != nil {
+		s.logger.ErrorContext(ctx, "Failed to delete service type", "id", id, "error", err)
+		return mapStoreError(err)
+	}
+	s.logger.InfoContext(ctx, "Service type deleted", "id", id)
+	return nil
 }

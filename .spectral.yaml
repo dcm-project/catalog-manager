@@ -12,3 +12,37 @@ rules:
       functionOptions:
         schema:
           type: object
+  aep-148-resource-standard-fields-path:
+    description: AEP resources should have a 'path' field per AEP-148
+    message: "Resource with x-aep-resource should include 'path' field per AEP-148"
+    severity: warn
+    given: $.components.schemas[*][?(@property === 'x-aep-resource')]^.properties
+    then:
+      field: path
+      function: truthy
+
+  aep-148-resource-standard-fields-create-time:
+    description: AEP resources should have a 'create_time' field per AEP-148 (singleton resources may omit this)
+    message: "Resource with x-aep-resource should include 'create_time' field per AEP-148"
+    severity: info
+    given: $.components.schemas[*][?(@property === 'x-aep-resource')]^.properties
+    then:
+      field: create_time
+      function: truthy
+
+  aep-148-resource-standard-fields-update-time:
+    description: AEP resources should have an 'update_time' field per AEP-148 (singleton resources may omit this)
+    message: "Resource with x-aep-resource should include 'update_time' field per AEP-148"
+    severity: info
+    given: $.components.schemas[*][?(@property === 'x-aep-resource')]^.properties
+    then:
+      field: update_time
+      function: truthy
+
+overrides:
+  - files:
+      - "api/v1alpha1/servicetypes/*/spec.yaml"
+    rules:
+      oas3-api-servers: "off"
+      info-contact: "off"
+      oas3-unused-component: "off"

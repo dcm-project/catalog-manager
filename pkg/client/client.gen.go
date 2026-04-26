@@ -104,6 +104,11 @@ type ClientInterface interface {
 	// GetCatalogItemInstance request
 	GetCatalogItemInstance(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UpdateCatalogItemInstanceWithBody request with any body
+	UpdateCatalogItemInstanceWithBody(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateCatalogItemInstanceWithApplicationMergePatchPlusJSONBody(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, body UpdateCatalogItemInstanceApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RehydrateCatalogItemInstance request
 	RehydrateCatalogItemInstance(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -137,8 +142,16 @@ type ClientInterface interface {
 
 	CreateServiceType(ctx context.Context, params *CreateServiceTypeParams, body CreateServiceTypeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteServiceType request
+	DeleteServiceType(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetServiceType request
 	GetServiceType(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateServiceTypeWithBody request with any body
+	UpdateServiceTypeWithBody(ctx context.Context, serviceTypeId ServiceTypeIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateServiceTypeWithApplicationMergePatchPlusJSONBody(ctx context.Context, serviceTypeId ServiceTypeIdPath, body UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListCatalogItemInstances(ctx context.Context, params *ListCatalogItemInstancesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -191,6 +204,30 @@ func (c *Client) DeleteCatalogItemInstance(ctx context.Context, catalogItemInsta
 
 func (c *Client) GetCatalogItemInstance(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCatalogItemInstanceRequest(c.Server, catalogItemInstanceId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateCatalogItemInstanceWithBody(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateCatalogItemInstanceRequestWithBody(c.Server, catalogItemInstanceId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateCatalogItemInstanceWithApplicationMergePatchPlusJSONBody(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, body UpdateCatalogItemInstanceApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateCatalogItemInstanceRequestWithApplicationMergePatchPlusJSONBody(c.Server, catalogItemInstanceId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -345,8 +382,44 @@ func (c *Client) CreateServiceType(ctx context.Context, params *CreateServiceTyp
 	return c.Client.Do(req)
 }
 
+func (c *Client) DeleteServiceType(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteServiceTypeRequest(c.Server, serviceTypeId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) GetServiceType(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetServiceTypeRequest(c.Server, serviceTypeId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateServiceTypeWithBody(ctx context.Context, serviceTypeId ServiceTypeIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateServiceTypeRequestWithBody(c.Server, serviceTypeId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateServiceTypeWithApplicationMergePatchPlusJSONBody(ctx context.Context, serviceTypeId ServiceTypeIdPath, body UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateServiceTypeRequestWithApplicationMergePatchPlusJSONBody(c.Server, serviceTypeId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -564,6 +637,53 @@ func NewGetCatalogItemInstanceRequest(server string, catalogItemInstanceId Catal
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewUpdateCatalogItemInstanceRequestWithApplicationMergePatchPlusJSONBody calls the generic UpdateCatalogItemInstance builder with application/merge-patch+json body
+func NewUpdateCatalogItemInstanceRequestWithApplicationMergePatchPlusJSONBody(server string, catalogItemInstanceId CatalogItemInstanceIdPath, body UpdateCatalogItemInstanceApplicationMergePatchPlusJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateCatalogItemInstanceRequestWithBody(server, catalogItemInstanceId, "application/merge-patch+json", bodyReader)
+}
+
+// NewUpdateCatalogItemInstanceRequestWithBody generates requests for UpdateCatalogItemInstance with any type of body
+func NewUpdateCatalogItemInstanceRequestWithBody(server string, catalogItemInstanceId CatalogItemInstanceIdPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "catalogItemInstanceId", catalogItemInstanceId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/catalog-item-instances/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -1014,6 +1134,40 @@ func NewCreateServiceTypeRequestWithBody(server string, params *CreateServiceTyp
 	return req, nil
 }
 
+// NewDeleteServiceTypeRequest generates requests for DeleteServiceType
+func NewDeleteServiceTypeRequest(server string, serviceTypeId ServiceTypeIdPath) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "serviceTypeId", serviceTypeId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/service-types/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetServiceTypeRequest generates requests for GetServiceType
 func NewGetServiceTypeRequest(server string, serviceTypeId ServiceTypeIdPath) (*http.Request, error) {
 	var err error
@@ -1044,6 +1198,53 @@ func NewGetServiceTypeRequest(server string, serviceTypeId ServiceTypeIdPath) (*
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewUpdateServiceTypeRequestWithApplicationMergePatchPlusJSONBody calls the generic UpdateServiceType builder with application/merge-patch+json body
+func NewUpdateServiceTypeRequestWithApplicationMergePatchPlusJSONBody(server string, serviceTypeId ServiceTypeIdPath, body UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateServiceTypeRequestWithBody(server, serviceTypeId, "application/merge-patch+json", bodyReader)
+}
+
+// NewUpdateServiceTypeRequestWithBody generates requests for UpdateServiceType with any type of body
+func NewUpdateServiceTypeRequestWithBody(server string, serviceTypeId ServiceTypeIdPath, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "serviceTypeId", serviceTypeId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/service-types/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -1105,6 +1306,11 @@ type ClientWithResponsesInterface interface {
 	// GetCatalogItemInstanceWithResponse request
 	GetCatalogItemInstanceWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*GetCatalogItemInstanceResponse, error)
 
+	// UpdateCatalogItemInstanceWithBodyWithResponse request with any body
+	UpdateCatalogItemInstanceWithBodyWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateCatalogItemInstanceResponse, error)
+
+	UpdateCatalogItemInstanceWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, body UpdateCatalogItemInstanceApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateCatalogItemInstanceResponse, error)
+
 	// RehydrateCatalogItemInstanceWithResponse request
 	RehydrateCatalogItemInstanceWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, reqEditors ...RequestEditorFn) (*RehydrateCatalogItemInstanceResponse, error)
 
@@ -1138,8 +1344,16 @@ type ClientWithResponsesInterface interface {
 
 	CreateServiceTypeWithResponse(ctx context.Context, params *CreateServiceTypeParams, body CreateServiceTypeJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateServiceTypeResponse, error)
 
+	// DeleteServiceTypeWithResponse request
+	DeleteServiceTypeWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*DeleteServiceTypeResponse, error)
+
 	// GetServiceTypeWithResponse request
 	GetServiceTypeWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*GetServiceTypeResponse, error)
+
+	// UpdateServiceTypeWithBodyWithResponse request with any body
+	UpdateServiceTypeWithBodyWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateServiceTypeResponse, error)
+
+	UpdateServiceTypeWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, body UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateServiceTypeResponse, error)
 }
 
 type ListCatalogItemInstancesResponse struct {
@@ -1241,6 +1455,33 @@ func (r GetCatalogItemInstanceResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetCatalogItemInstanceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateCatalogItemInstanceResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *CatalogItemInstance
+	JSON400      *Error
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON404      *NotFound
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateCatalogItemInstanceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateCatalogItemInstanceResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1479,6 +1720,32 @@ func (r CreateServiceTypeResponse) StatusCode() int {
 	return 0
 }
 
+type DeleteServiceTypeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON404      *NotFound
+	JSON409      *HasDependents
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteServiceTypeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteServiceTypeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetServiceTypeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1499,6 +1766,33 @@ func (r GetServiceTypeResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetServiceTypeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateServiceTypeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ServiceType
+	JSON400      *Error
+	JSON401      *Unauthorized
+	JSON403      *Forbidden
+	JSON404      *NotFound
+	JSON500      *InternalServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateServiceTypeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateServiceTypeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1547,6 +1841,23 @@ func (c *ClientWithResponses) GetCatalogItemInstanceWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseGetCatalogItemInstanceResponse(rsp)
+}
+
+// UpdateCatalogItemInstanceWithBodyWithResponse request with arbitrary body returning *UpdateCatalogItemInstanceResponse
+func (c *ClientWithResponses) UpdateCatalogItemInstanceWithBodyWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateCatalogItemInstanceResponse, error) {
+	rsp, err := c.UpdateCatalogItemInstanceWithBody(ctx, catalogItemInstanceId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateCatalogItemInstanceResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateCatalogItemInstanceWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, catalogItemInstanceId CatalogItemInstanceIdPath, body UpdateCatalogItemInstanceApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateCatalogItemInstanceResponse, error) {
+	rsp, err := c.UpdateCatalogItemInstanceWithApplicationMergePatchPlusJSONBody(ctx, catalogItemInstanceId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateCatalogItemInstanceResponse(rsp)
 }
 
 // RehydrateCatalogItemInstanceWithResponse request returning *RehydrateCatalogItemInstanceResponse
@@ -1654,6 +1965,15 @@ func (c *ClientWithResponses) CreateServiceTypeWithResponse(ctx context.Context,
 	return ParseCreateServiceTypeResponse(rsp)
 }
 
+// DeleteServiceTypeWithResponse request returning *DeleteServiceTypeResponse
+func (c *ClientWithResponses) DeleteServiceTypeWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*DeleteServiceTypeResponse, error) {
+	rsp, err := c.DeleteServiceType(ctx, serviceTypeId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteServiceTypeResponse(rsp)
+}
+
 // GetServiceTypeWithResponse request returning *GetServiceTypeResponse
 func (c *ClientWithResponses) GetServiceTypeWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, reqEditors ...RequestEditorFn) (*GetServiceTypeResponse, error) {
 	rsp, err := c.GetServiceType(ctx, serviceTypeId, reqEditors...)
@@ -1661,6 +1981,23 @@ func (c *ClientWithResponses) GetServiceTypeWithResponse(ctx context.Context, se
 		return nil, err
 	}
 	return ParseGetServiceTypeResponse(rsp)
+}
+
+// UpdateServiceTypeWithBodyWithResponse request with arbitrary body returning *UpdateServiceTypeResponse
+func (c *ClientWithResponses) UpdateServiceTypeWithBodyWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateServiceTypeResponse, error) {
+	rsp, err := c.UpdateServiceTypeWithBody(ctx, serviceTypeId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateServiceTypeResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateServiceTypeWithApplicationMergePatchPlusJSONBodyWithResponse(ctx context.Context, serviceTypeId ServiceTypeIdPath, body UpdateServiceTypeApplicationMergePatchPlusJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateServiceTypeResponse, error) {
+	rsp, err := c.UpdateServiceTypeWithApplicationMergePatchPlusJSONBody(ctx, serviceTypeId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateServiceTypeResponse(rsp)
 }
 
 // ParseListCatalogItemInstancesResponse parses an HTTP response from a ListCatalogItemInstancesWithResponse call
@@ -1852,6 +2189,67 @@ func ParseGetCatalogItemInstanceResponse(rsp *http.Response) (*GetCatalogItemIns
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateCatalogItemInstanceResponse parses an HTTP response from a UpdateCatalogItemInstanceWithResponse call
+func ParseUpdateCatalogItemInstanceResponse(rsp *http.Response) (*UpdateCatalogItemInstanceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateCatalogItemInstanceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest CatalogItemInstance
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest Unauthorized
@@ -2358,6 +2756,60 @@ func ParseCreateServiceTypeResponse(rsp *http.Response) (*CreateServiceTypeRespo
 	return response, nil
 }
 
+// ParseDeleteServiceTypeResponse parses an HTTP response from a DeleteServiceTypeWithResponse call
+func ParseDeleteServiceTypeResponse(rsp *http.Response) (*DeleteServiceTypeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteServiceTypeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest HasDependents
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetServiceTypeResponse parses an HTTP response from a GetServiceTypeWithResponse call
 func ParseGetServiceTypeResponse(rsp *http.Response) (*GetServiceTypeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -2378,6 +2830,67 @@ func ParseGetServiceTypeResponse(rsp *http.Response) (*GetServiceTypeResponse, e
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateServiceTypeResponse parses an HTTP response from a UpdateServiceTypeWithResponse call
+func ParseUpdateServiceTypeResponse(rsp *http.Response) (*UpdateServiceTypeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateServiceTypeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ServiceType
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest Unauthorized

@@ -1,4 +1,5 @@
 //go:build subsystem
+
 package subsystem_test
 
 import (
