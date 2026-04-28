@@ -483,6 +483,9 @@ paths:
         '422':
           $ref: '#/components/responses/ProviderError'
 
+        '424':
+          $ref: '#/components/responses/PolicyDependency'
+
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -568,6 +571,9 @@ paths:
 
         '422':
           $ref: '#/components/responses/ProviderError'
+
+        '424':
+          $ref: '#/components/responses/PolicyDependency'
 
         '500':
           $ref: '#/components/responses/InternalServerError'
@@ -1232,6 +1238,19 @@ components:
             title: Policy rejected
             detail: Request rejected by Policy Engine
             instance: 1a23bc4d-5e67-89fg-h012-i3j456kl789m
+
+    PolicyDependency:
+      description: Policy Dependency
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            type: FAILED_PRECONDITION
+            status: 424
+            title: Policy dependency
+            detail: Policy evaluation succeeded but a required dependency was not satisfied
+            instance: 3c45de6f-7g89-01hi-j234-k5l678mn901o
 
     ProviderError:
       description: Provider Error
