@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	"github.com/dcm-project/catalog-manager/internal/api/server"
+	"github.com/dcm-project/catalog-manager/internal/config"
 	v1alpha1 "github.com/dcm-project/catalog-manager/internal/handlers/v1alpha1"
 	"github.com/dcm-project/catalog-manager/internal/placement"
 	"github.com/dcm-project/catalog-manager/internal/service"
@@ -59,7 +60,7 @@ var _ = Describe("Health Handler", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		dataStore = store.NewStore(db, slog.Default())
-		svc, err := service.NewService(dataStore, &noopPMClient{}, slog.Default())
+		svc, err := service.NewService(dataStore, &noopPMClient{}, config.PetClinicConfig{}, slog.Default())
 		Expect(err).ToNot(HaveOccurred())
 		handler = v1alpha1.NewHandler(svc, slog.Default())
 	})

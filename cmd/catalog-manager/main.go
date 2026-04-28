@@ -68,7 +68,7 @@ func run() int {
 	defer cancel()
 
 	// Create service layer
-	svc, err := service.NewService(dataStore, pmClient, logger)
+	svc, err := service.NewService(dataStore, pmClient, cfg.PetClinic, logger)
 	if err != nil {
 		logger.Error("Failed to create service", "error", err)
 		return 1

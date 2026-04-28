@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	"github.com/dcm-project/catalog-manager/api/v1alpha1/servicetypes/three_tier_app_demo"
+	"github.com/dcm-project/catalog-manager/internal/config"
 	"github.com/dcm-project/catalog-manager/internal/service"
 	"github.com/dcm-project/catalog-manager/internal/store"
 	"github.com/dcm-project/catalog-manager/internal/store/model"
@@ -38,7 +39,7 @@ var _ = Describe("Seed", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		dataStore = store.NewStore(db, slog.Default())
-		svc, err = service.NewService(dataStore, &mockPMClient{}, slog.Default())
+		svc, err = service.NewService(dataStore, &mockPMClient{}, config.PetClinicConfig{RegionEnum: []string{"region-a", "region-b"}}, slog.Default())
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -119,17 +120,29 @@ var _ = Describe("Seed", func() {
 				Expect(ci.DisplayName).To(Equal("Pet Clinic"))
 				Expect(ci.Path).To(Equal("catalog-items/pet-clinic"))
 				Expect(ci.Spec.ServiceType).To(Equal("three-tier-app-demo"))
-				Expect(ci.Spec.Fields).To(HaveLen(4))
+				Expect(ci.Spec.Fields).To(HaveLen(5))
 
 				// Verify key field configs
 				fieldPaths := make([]string, len(ci.Spec.Fields))
 				for i, f := range ci.Spec.Fields {
 					fieldPaths[i] = f.Path
 				}
+				Expect(fieldPaths).To(ContainElement("metadata.labels.region"))
 				Expect(fieldPaths).To(ContainElement("database.engine"))
 				Expect(fieldPaths).To(ContainElement("database.version"))
 				Expect(fieldPaths).To(ContainElement("app.image"))
 				Expect(fieldPaths).To(ContainElement("web.image"))
+
+				// Verify region field uses configured values
+				regionField := findFieldByPath(ci.Spec.Fields, "metadata.labels.region")
+				Expect(regionField).ToNot(BeNil())
+				Expect(regionField.Editable).To(BeTrue())
+				Expect(regionField.Default).To(Equal(""))
+				Expect(regionField.ValidationSchema).ToNot(BeNil())
+				Expect(regionField.ValidationSchema["type"]).To(Equal("string"))
+				regionEnum, ok := regionField.ValidationSchema["enum"].([]any)
+				Expect(ok).To(BeTrue(), "expected ValidationSchema.enum for region to be []any")
+				Expect(regionEnum).To(ConsistOf("region-a", "region-b"))
 
 				// Verify database.engine is editable and has validation schema enum
 				dbEngineField := findFieldByPath(ci.Spec.Fields, "database.engine")

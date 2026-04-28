@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
+	"github.com/dcm-project/catalog-manager/internal/config"
 	"github.com/dcm-project/catalog-manager/internal/service"
 	"github.com/dcm-project/catalog-manager/internal/store"
 	"github.com/dcm-project/catalog-manager/internal/store/model"
@@ -55,7 +56,7 @@ var _ = Describe("CatalogItem Service", func() {
 		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{})
 		Expect(err).ToNot(HaveOccurred())
 		str = store.NewStore(db, slog.Default())
-		svc, err = service.NewService(str, &mockPMClient{}, slog.Default())
+		svc, err = service.NewService(str, &mockPMClient{}, config.PetClinicConfig{}, slog.Default())
 		Expect(err).ToNot(HaveOccurred())
 		// Ensure service types exist for catalog item FK
 		ensureServiceType(ctx, str, "vm-st", "vm")

@@ -24,11 +24,18 @@ type PlacementConfig struct {
 	URL string `envconfig:"PLACEMENT_MANAGER_URL" default:"http://localhost:8081"`
 }
 
+// PetClinicConfig holds Pet Clinic catalog item configuration
+type PetClinicConfig struct {
+	RegionDefault string   `envconfig:"PETCLINIC_REGION_DEFAULT" default:""`
+	RegionEnum    []string `envconfig:"PETCLINIC_REGION_ENUM" default:"region-a,region-b"`
+}
+
 // Config holds all configuration for the application
 type Config struct {
 	Service   ServiceConfig
 	Database  DBConfig
 	Placement PlacementConfig
+	PetClinic PetClinicConfig
 }
 
 func Load() (*Config, error) {
@@ -40,6 +47,9 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 	if err := envconfig.Process("", &cfg.Placement); err != nil {
+		return nil, err
+	}
+	if err := envconfig.Process("", &cfg.PetClinic); err != nil {
 		return nil, err
 	}
 	return &cfg, nil

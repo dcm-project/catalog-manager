@@ -16,7 +16,7 @@ func (s *service) Seed(ctx context.Context) error {
 	if err := s.store.ServiceType().SeedIfEmpty(ctx, defaultServiceTypes()); err != nil {
 		return err
 	}
-	return s.store.CatalogItem().SeedIfEmpty(ctx, defaultCatalogItems())
+	return s.store.CatalogItem().SeedIfEmpty(ctx, s.defaultCatalogItems())
 }
 
 func defaultServiceTypes() []model.ServiceType {
@@ -81,13 +81,13 @@ func defaultServiceTypes() []model.ServiceType {
 	}
 }
 
-func defaultCatalogItems() []model.CatalogItem {
+func (s *service) defaultCatalogItems() []model.CatalogItem {
 	return []model.CatalogItem{
-		petClinicCatalogItem(),
+		s.petClinicCatalogItem(),
 	}
 }
 
-func petClinicCatalogItem() model.CatalogItem {
+func (s *service) petClinicCatalogItem() model.CatalogItem {
 	return model.CatalogItem{
 		ID:          "pet-clinic",
 		ApiVersion:  "v1alpha1",
@@ -95,14 +95,20 @@ func petClinicCatalogItem() model.CatalogItem {
 		Path:        "catalog-items/pet-clinic",
 		Spec: model.CatalogItemSpec{
 			ServiceType: "three-tier-app-demo",
-			Fields:      petClinicFields(),
+			Fields:      s.petClinicFields(),
 		},
 		SpecServiceType: "three-tier-app-demo",
 	}
 }
 
-func petClinicFields() []model.FieldConfiguration {
+func (s *service) petClinicFields() []model.FieldConfiguration {
+	regionEnum := make([]any, len(s.petClinicConfig.RegionEnum))
+	for i, v := range s.petClinicConfig.RegionEnum {
+		regionEnum[i] = v
+	}
 	return []model.FieldConfiguration{
+		fieldConfig("metadata.labels.region", "Region", true,
+			s.petClinicConfig.RegionDefault, map[string]any{"type": "string", "enum": regionEnum}, nil),
 		fieldConfig("database.engine", "Database engine", true,
 			three_tier_app_demo.DefaultDatabaseEngine,
 			map[string]any{"type": "string", "enum": []any{"postgres", "mysql"}}, nil),
