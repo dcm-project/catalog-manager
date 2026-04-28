@@ -37,7 +37,7 @@ var _ = Describe("SpecBuilder (via CatalogItemInstance Create)", func() {
 		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{}, &model.CatalogItemInstance{})
 		Expect(err).ToNot(HaveOccurred())
 		str = store.NewStore(db, slog.Default())
-		svc, err = service.NewService(str, &mockPMClient{}, config.DefaultPetClinicConfig(), slog.Default())
+		svc, err = service.NewService(str, &mockPMClient{}, config.DefaultSeedConfig(), slog.Default())
 		Expect(err).ToNot(HaveOccurred())
 
 		// Seed ServiceType with a rich spec

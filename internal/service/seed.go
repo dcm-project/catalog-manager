@@ -102,13 +102,13 @@ func (s *service) petClinicCatalogItem() model.CatalogItem {
 }
 
 func (s *service) petClinicFields() []model.FieldConfiguration {
-	regionEnum := make([]any, len(s.petClinicConfig.RegionEnum))
-	for i, v := range s.petClinicConfig.RegionEnum {
+	regionEnum := make([]any, len(s.seedConfig.RegionEnum))
+	for i, v := range s.seedConfig.RegionEnum {
 		regionEnum[i] = v
 	}
 	return []model.FieldConfiguration{
 		fieldConfig("metadata.labels.region", "Region", true,
-			s.petClinicConfig.RegionDefault, map[string]any{"type": "string", "enum": regionEnum}, nil),
+			s.seedConfig.RegionDefault, map[string]any{"type": "string", "enum": regionEnum}, nil),
 		fieldConfig("database.engine", "Database engine", true,
 			three_tier_app_demo.DefaultDatabaseEngine,
 			map[string]any{"type": "string", "enum": []any{"postgres", "mysql"}}, nil),

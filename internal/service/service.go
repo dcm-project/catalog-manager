@@ -24,14 +24,14 @@ type Service interface {
 type service struct {
 	store                      store.Store
 	logger                     *slog.Logger
-	petClinicConfig            config.PetClinicConfig
+	seedConfig                 config.SeedConfig
 	serviceTypeService         ServiceTypeService
 	catalogItemService         CatalogItemService
 	catalogItemInstanceService CatalogItemInstanceService
 }
 
 // NewService creates a new Service instance
-func NewService(store store.Store, pmClient placement.Client, cfg config.PetClinicConfig, logger *slog.Logger) (Service, error) {
+func NewService(store store.Store, pmClient placement.Client, cfg config.SeedConfig, logger *slog.Logger) (Service, error) {
 	svcLogger := logger.With("component", "service")
 	catalogItemInstanceSvc, err := newCatalogItemInstanceService(store, pmClient, svcLogger)
 	if err != nil {
@@ -40,7 +40,7 @@ func NewService(store store.Store, pmClient placement.Client, cfg config.PetClin
 	return &service{
 		store:                      store,
 		logger:                     svcLogger,
-		petClinicConfig:            cfg,
+		seedConfig:                 cfg,
 		serviceTypeService:         newServiceTypeService(store, svcLogger),
 		catalogItemService:         newCatalogItemService(store, svcLogger),
 		catalogItemInstanceService: catalogItemInstanceSvc,
