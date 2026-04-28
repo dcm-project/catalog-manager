@@ -39,7 +39,7 @@ var _ = Describe("Seed", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		dataStore = store.NewStore(db, slog.Default())
-		svc, err = service.NewService(dataStore, &mockPMClient{}, config.PetClinicConfig{RegionEnum: []string{"region-a", "region-b"}}, slog.Default())
+		svc, err = service.NewService(dataStore, &mockPMClient{}, config.DefaultPetClinicConfig(), slog.Default())
 		Expect(err).ToNot(HaveOccurred())
 	})
 

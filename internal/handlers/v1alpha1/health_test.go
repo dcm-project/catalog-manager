@@ -60,7 +60,7 @@ var _ = Describe("Health Handler", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		dataStore = store.NewStore(db, slog.Default())
-		svc, err := service.NewService(dataStore, &noopPMClient{}, config.PetClinicConfig{}, slog.Default())
+		svc, err := service.NewService(dataStore, &noopPMClient{}, config.DefaultPetClinicConfig(), slog.Default())
 		Expect(err).ToNot(HaveOccurred())
 		handler = v1alpha1.NewHandler(svc, slog.Default())
 	})

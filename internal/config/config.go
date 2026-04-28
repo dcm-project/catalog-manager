@@ -30,6 +30,12 @@ type PetClinicConfig struct {
 	RegionEnum    []string `envconfig:"PETCLINIC_REGION_ENUM" default:"region-a,region-b"`
 }
 
+func DefaultPetClinicConfig() PetClinicConfig {
+	return PetClinicConfig{
+		RegionEnum: []string{"region-a", "region-b"},
+	}
+}
+
 // Config holds all configuration for the application
 type Config struct {
 	Service   ServiceConfig

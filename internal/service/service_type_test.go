@@ -34,7 +34,7 @@ var _ = Describe("ServiceType Service", func() {
 		err = db.AutoMigrate(&model.ServiceType{})
 		Expect(err).ToNot(HaveOccurred())
 		str = store.NewStore(db, slog.Default())
-		svc, err = service.NewService(str, &mockPMClient{}, config.PetClinicConfig{}, slog.Default())
+		svc, err = service.NewService(str, &mockPMClient{}, config.DefaultPetClinicConfig(), slog.Default())
 		Expect(err).ToNot(HaveOccurred())
 	})
 
