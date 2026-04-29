@@ -1177,6 +1177,7 @@ type CreateCatalogItemInstanceResponse struct {
 	JSON406      *PolicyRejected
 	JSON409      *AlreadyExists
 	JSON422      *ProviderError
+	JSON424      *PolicyDependency
 	JSON500      *InternalServerError
 }
 
@@ -1255,6 +1256,7 @@ type RehydrateCatalogItemInstanceResponse struct {
 	JSON406      *PolicyRejected
 	JSON409      *AlreadyExists
 	JSON422      *ProviderError
+	JSON424      *PolicyDependency
 	JSON500      *InternalServerError
 }
 
@@ -1774,6 +1776,13 @@ func ParseCreateCatalogItemInstanceResponse(rsp *http.Response) (*CreateCatalogI
 		}
 		response.JSON422 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 424:
+		var dest PolicyDependency
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON424 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest InternalServerError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1935,6 +1944,13 @@ func ParseRehydrateCatalogItemInstanceResponse(rsp *http.Response) (*RehydrateCa
 			return nil, err
 		}
 		response.JSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 424:
+		var dest PolicyDependency
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON424 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest InternalServerError

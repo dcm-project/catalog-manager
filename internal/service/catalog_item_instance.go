@@ -241,7 +241,7 @@ func (s *catalogItemInstanceService) Delete(ctx context.Context, id string) erro
 }
 
 // mapPlacementError inspects the error from the placement client and maps
-// known HTTP status codes (406, 422) to specific sentinel errors. For
+// known HTTP status codes (406, 422, 424) to specific sentinel errors. For
 // unrecognised codes or non-PlacementError errors, the genericSentinel is used.
 func mapPlacementError(err error, genericSentinel error) error {
 	var pmErr *placement.PlacementError
@@ -251,6 +251,8 @@ func mapPlacementError(err error, genericSentinel error) error {
 			return fmt.Errorf("%w: %s", ErrPlacementManagerPolicyRejected, pmErr.Error())
 		case http.StatusUnprocessableEntity:
 			return fmt.Errorf("%w: %s", ErrPlacementManagerProviderError, pmErr.Error())
+		case http.StatusFailedDependency:
+			return fmt.Errorf("%w: %s", ErrPlacementManagerPolicyDependency, pmErr.Error())
 		}
 	}
 	return fmt.Errorf("%w: %s", genericSentinel, err.Error())
