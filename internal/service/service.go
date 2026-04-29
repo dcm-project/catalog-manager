@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/dcm-project/catalog-manager/internal/config"
 	"github.com/dcm-project/catalog-manager/internal/placement"
 	"github.com/dcm-project/catalog-manager/internal/store"
 	"github.com/google/uuid"
@@ -23,13 +24,14 @@ type Service interface {
 type service struct {
 	store                      store.Store
 	logger                     *slog.Logger
+	seedConfig                 config.SeedConfig
 	serviceTypeService         ServiceTypeService
 	catalogItemService         CatalogItemService
 	catalogItemInstanceService CatalogItemInstanceService
 }
 
 // NewService creates a new Service instance
-func NewService(store store.Store, pmClient placement.Client, logger *slog.Logger) (Service, error) {
+func NewService(store store.Store, pmClient placement.Client, cfg config.SeedConfig, logger *slog.Logger) (Service, error) {
 	svcLogger := logger.With("component", "service")
 	catalogItemInstanceSvc, err := newCatalogItemInstanceService(store, pmClient, svcLogger)
 	if err != nil {
@@ -38,6 +40,7 @@ func NewService(store store.Store, pmClient placement.Client, logger *slog.Logge
 	return &service{
 		store:                      store,
 		logger:                     svcLogger,
+		seedConfig:                 cfg,
 		serviceTypeService:         newServiceTypeService(store, svcLogger),
 		catalogItemService:         newCatalogItemService(store, svcLogger),
 		catalogItemInstanceService: catalogItemInstanceSvc,

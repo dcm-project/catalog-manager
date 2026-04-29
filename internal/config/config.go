@@ -24,11 +24,24 @@ type PlacementConfig struct {
 	URL string `envconfig:"PLACEMENT_MANAGER_URL" default:"http://localhost:8081"`
 }
 
+// SeedConfig holds configuration for seeding default catalog items
+type SeedConfig struct {
+	RegionDefault string   `envconfig:"SEED_REGION_DEFAULT" default:""`
+	RegionEnum    []string `envconfig:"SEED_REGION_ENUM" default:"region-a,region-b"`
+}
+
+func DefaultSeedConfig() SeedConfig {
+	return SeedConfig{
+		RegionEnum: []string{"region-a", "region-b"},
+	}
+}
+
 // Config holds all configuration for the application
 type Config struct {
 	Service   ServiceConfig
 	Database  DBConfig
 	Placement PlacementConfig
+	Seed      SeedConfig
 }
 
 func Load() (*Config, error) {
@@ -40,6 +53,9 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 	if err := envconfig.Process("", &cfg.Placement); err != nil {
+		return nil, err
+	}
+	if err := envconfig.Process("", &cfg.Seed); err != nil {
 		return nil, err
 	}
 	return &cfg, nil
