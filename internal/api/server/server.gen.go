@@ -721,6 +721,8 @@ type InternalServerErrorJSONResponse Error
 
 type NotFoundJSONResponse Error
 
+type PolicyDependencyJSONResponse Error
+
 type PolicyRejectedJSONResponse Error
 
 type ProviderErrorJSONResponse Error
@@ -896,6 +898,20 @@ func (response CreateCatalogItemInstance422JSONResponse) VisitCreateCatalogItemI
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCatalogItemInstance424JSONResponse struct{ PolicyDependencyJSONResponse }
+
+func (response CreateCatalogItemInstance424JSONResponse) VisitCreateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(424)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -1144,6 +1160,20 @@ func (response RehydrateCatalogItemInstance422JSONResponse) VisitRehydrateCatalo
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RehydrateCatalogItemInstance424JSONResponse struct{ PolicyDependencyJSONResponse }
+
+func (response RehydrateCatalogItemInstance424JSONResponse) VisitRehydrateCatalogItemInstanceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(424)
 	_, err := buf.WriteTo(w)
 	return err
 }

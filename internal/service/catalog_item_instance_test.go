@@ -721,6 +721,32 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			_, getErr := svc.CatalogItemInstance().Get(ctx, instanceID)
 			Expect(getErr).To(Equal(service.ErrCatalogItemInstanceNotFound))
 		})
+
+		It("should return ErrPlacementManagerPolicyDependency when PM create returns 424", func() {
+			mockPM.createFunc = func(_ context.Context, _ placement.CreateResourceRequest, _ string) (*placement.Resource, error) {
+				return nil, &placement.PlacementError{StatusCode: 424, Body: "policy dependency"}
+			}
+
+			instanceID := "pm-dependency-fail"
+			req := &service.CreateCatalogItemInstanceRequest{
+				ID:          &instanceID,
+				ApiVersion:  "v1alpha1",
+				DisplayName: "PM Dependency Fail",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			}
+
+			result, err := svc.CatalogItemInstance().Create(ctx, req)
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, service.ErrPlacementManagerPolicyDependency)).To(BeTrue())
+			Expect(result).To(BeNil())
+
+			// Verify DB record was cleaned up (rollback)
+			_, getErr := svc.CatalogItemInstance().Get(ctx, instanceID)
+			Expect(getErr).To(Equal(service.ErrCatalogItemInstanceNotFound))
+		})
 	})
 
 	Describe("Rehydrate with PM", func() {
@@ -888,6 +914,35 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 			result, err := svc.CatalogItemInstance().Rehydrate(ctx, instanceID)
 			Expect(err).To(HaveOccurred())
 			Expect(errors.Is(err, service.ErrPlacementManagerProviderError)).To(BeTrue())
+			Expect(result).To(BeNil())
+
+			// Verify resource_id rolled back
+			got, err := svc.CatalogItemInstance().Get(ctx, instanceID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(*got.ResourceId).To(Equal(oldResourceID))
+		})
+
+		It("should return ErrPlacementManagerPolicyDependency when PM rehydrate returns 424", func() {
+			instanceID := "rehydrate-dependency-fail"
+			created, err := svc.CatalogItemInstance().Create(ctx, &service.CreateCatalogItemInstanceRequest{
+				ID:          &instanceID,
+				ApiVersion:  "v1alpha1",
+				DisplayName: "PM Rehydrate Dependency Fail",
+				Spec: v1alpha1.CatalogItemInstanceSpec{
+					CatalogItemId: "small-vm",
+					UserValues:    []v1alpha1.UserValue{},
+				},
+			})
+			Expect(err).ToNot(HaveOccurred())
+			oldResourceID := *created.ResourceId
+
+			mockPM.rehydrateFunc = func(_ context.Context, _ string, _ string) (*placement.Resource, error) {
+				return nil, &placement.PlacementError{StatusCode: 424, Body: "policy dependency"}
+			}
+
+			result, err := svc.CatalogItemInstance().Rehydrate(ctx, instanceID)
+			Expect(err).To(HaveOccurred())
+			Expect(errors.Is(err, service.ErrPlacementManagerPolicyDependency)).To(BeTrue())
 			Expect(result).To(BeNil())
 
 			// Verify resource_id rolled back

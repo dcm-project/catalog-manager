@@ -61,6 +61,9 @@ var (
 	// ErrPlacementManagerProviderError indicates the Placement Manager SPRM provider returned an error (422)
 	ErrPlacementManagerProviderError = errors.New("placement manager provider error")
 
+	// ErrPlacementManagerPolicyDependency indicates policy evaluation succeeded but a required dependency was not satisfied (424)
+	ErrPlacementManagerPolicyDependency = errors.New("placement manager policy dependency not satisfied")
+
 	// ErrPlacementManagerCreateFailed indicates the Placement Manager failed to create a resource
 	ErrPlacementManagerCreateFailed = errors.New("placement manager create resource failed")
 
