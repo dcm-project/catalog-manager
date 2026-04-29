@@ -61,6 +61,15 @@ func mapCreateCatalogItemInstanceErrorToHTTP(err error) server.CreateCatalogItem
 				Detail: stringPtr(err.Error()),
 			},
 		}
+	case errors.Is(err, service.ErrPlacementManagerPolicyDependency):
+		return server.CreateCatalogItemInstance424JSONResponse{
+			PolicyDependencyJSONResponse: server.PolicyDependencyJSONResponse{
+				Type:   v1alpha1.FAILEDPRECONDITION,
+				Status: 424,
+				Title:  "Policy Dependency",
+				Detail: stringPtr(err.Error()),
+			},
+		}
 	case errors.Is(err, service.ErrPlacementManagerCreateFailed):
 		return server.CreateCatalogItemInstance500JSONResponse{
 			InternalServerErrorJSONResponse: server.InternalServerErrorJSONResponse{
@@ -118,6 +127,15 @@ func mapRehydrateCatalogItemInstanceErrorToHTTP(err error) server.RehydrateCatal
 				Type:   v1alpha1.FAILEDPRECONDITION,
 				Status: 422,
 				Title:  "Provider Error",
+				Detail: stringPtr(err.Error()),
+			},
+		}
+	case errors.Is(err, service.ErrPlacementManagerPolicyDependency):
+		return server.RehydrateCatalogItemInstance424JSONResponse{
+			PolicyDependencyJSONResponse: server.PolicyDependencyJSONResponse{
+				Type:   v1alpha1.FAILEDPRECONDITION,
+				Status: 424,
+				Title:  "Policy Dependency",
 				Detail: stringPtr(err.Error()),
 			},
 		}
