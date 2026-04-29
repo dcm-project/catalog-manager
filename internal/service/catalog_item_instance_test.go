@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
+	"github.com/dcm-project/catalog-manager/internal/config"
 	"github.com/dcm-project/catalog-manager/internal/placement"
 	"github.com/dcm-project/catalog-manager/internal/service"
 	"github.com/dcm-project/catalog-manager/internal/store"
@@ -125,7 +126,7 @@ var _ = Describe("CatalogItemInstance Service", func() {
 		Expect(err).ToNot(HaveOccurred())
 		str = store.NewStore(db, slog.Default())
 		mockPM = &mockPMClient{}
-		svc, err = service.NewService(str, mockPM, slog.Default())
+		svc, err = service.NewService(str, mockPM, config.DefaultSeedConfig(), slog.Default())
 		Expect(err).ToNot(HaveOccurred())
 		// Ensure prerequisites with specs
 		ensureServiceTypeWithSpec(ctx, str, "vm-st", "vm", map[string]any{
@@ -588,7 +589,7 @@ var _ = Describe("CatalogItemInstance Service with Placement Manager", func() {
 		Expect(err).ToNot(HaveOccurred())
 		str = store.NewStore(db, slog.Default())
 		mockPM = &mockPMClient{}
-		svc, err = service.NewService(str, mockPM, slog.Default())
+		svc, err = service.NewService(str, mockPM, config.DefaultSeedConfig(), slog.Default())
 		Expect(err).ToNot(HaveOccurred())
 		// Ensure prerequisites
 		ensureServiceTypeWithSpec(ctx, str, "vm-st", "vm", map[string]any{

@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	"github.com/dcm-project/catalog-manager/api/v1alpha1"
+	"github.com/dcm-project/catalog-manager/internal/config"
 	"github.com/dcm-project/catalog-manager/internal/service"
 	"github.com/dcm-project/catalog-manager/internal/store"
 	"github.com/dcm-project/catalog-manager/internal/store/model"
@@ -36,7 +37,7 @@ var _ = Describe("SpecBuilder (via CatalogItemInstance Create)", func() {
 		err = db.AutoMigrate(&model.ServiceType{}, &model.CatalogItem{}, &model.CatalogItemInstance{})
 		Expect(err).ToNot(HaveOccurred())
 		str = store.NewStore(db, slog.Default())
-		svc, err = service.NewService(str, &mockPMClient{}, slog.Default())
+		svc, err = service.NewService(str, &mockPMClient{}, config.DefaultSeedConfig(), slog.Default())
 		Expect(err).ToNot(HaveOccurred())
 
 		// Seed ServiceType with a rich spec
