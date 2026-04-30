@@ -118,10 +118,8 @@ func (s *service) petClinicFields() []model.FieldConfiguration {
 				"postgres": {three_tier_app_demo.DefaultDatabaseVersion, "17"},
 				"mysql":    {"8.4", "8.3", "8"},
 			})),
-		fieldConfig("app.image", "App image", false,
-			"docker.io/springcommunity/spring-framework-petclinic:6.1.2", nil, nil),
-		fieldConfig("web.image", "Web image", false,
-			"docker.io/library/nginx:alpine", nil, nil),
+		fieldConfig("app.image", "App image", false, three_tier_app_demo.AppImage, nil, nil),
+		fieldConfig("web.image", "Web image", false, three_tier_app_demo.WebImage, nil, nil),
 	}
 }
 
