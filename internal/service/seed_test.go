@@ -172,12 +172,12 @@ var _ = Describe("Seed", func() {
 				// Verify app.image and web.image fixed defaults
 				appImageField := findFieldByPath(ci.Spec.Fields, "app.image")
 				Expect(appImageField).ToNot(BeNil())
-				Expect(appImageField.Default).To(Equal("docker.io/springcommunity/spring-framework-petclinic:6.1.2"))
+				Expect(appImageField.Default).To(Equal(three_tier_app_demo.AppImage))
 				Expect(appImageField.Editable).To(BeFalse())
 
 				webImageField := findFieldByPath(ci.Spec.Fields, "web.image")
 				Expect(webImageField).ToNot(BeNil())
-				Expect(webImageField.Default).To(Equal("docker.io/library/nginx:alpine"))
+				Expect(webImageField.Default).To(Equal(three_tier_app_demo.WebImage))
 				Expect(webImageField.Editable).To(BeFalse())
 			})
 		})
