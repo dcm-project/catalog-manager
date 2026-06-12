@@ -1,4 +1,15 @@
-# DCM Catalog Manager
+# DCM Catalog Manager (archived)
+
+> [!WARNING]
+> **This repository is archived and read-only.** Do not open PRs here.
+>
+> All active development moved to the
+> [control-plane](https://github.com/dcm-project/control-plane) monolith.
+
+---
+
+<details>
+<summary><strong>Legacy README</strong> (historical reference only)</summary>
 
 DCM Catalog Manager is a Go service for managing service type definitions,
 catalog items, and catalog item instances for infrastructure services. It
@@ -245,3 +256,5 @@ in shared-workflows for the full release process, tag behavior, and version conv
 
 Apache 2.0 — see the [OpenAPI spec](api/v1alpha1/openapi.yaml) for license
 details.
+
+</details>
